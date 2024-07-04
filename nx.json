@@ -65,5 +65,6 @@
       "style": "scss",
       "changeDetection": "OnPush"
     }
-  }
+  },
+  "nxCloudAccessToken": "YzUwYjkyYjQtYmNhZS00ODQzLTgwMjEtMzVjNWY4MDc1YTY2fHJlYWQtd3JpdGU="
 }
