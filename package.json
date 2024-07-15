@@ -16,6 +16,8 @@
     "@angular/router": "~18.0.0",
     "@angular/ssr": "~18.0.0",
     "@nx/angular": "19.4.0",
+    "@portabletext/toolkit": "^2.0.15",
+    "@portabletext/types": "^2.0.13",
     "express": "~4.18.2",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
