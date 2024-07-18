@@ -10,6 +10,7 @@ import { blocks } from './fixture';
 import { LinkComponent } from './components/link.component';
 import { SpeechSynthesisComponent } from './components/speech-synthesis.component';
 import { CurrencyAmountComponent } from './components/currency-amount.component';
+import { LinkableHeaderComponent } from './components/linkable-header.component';
 
 /**
  * Note that these are statically defined (outside the scope of a function),
@@ -21,6 +22,11 @@ const ptComponents: PortableTextComponents = {
   // Components for totally custom types outside the scope of Portable Text
   types: {
     currencyAmount: CurrencyAmountComponent,
+  },
+
+  // Overrides for specific block styles - in this case just the `h2` style
+  block: {
+    h2: LinkableHeaderComponent,
   },
 
   // Custom components for marks - note that `link` overrides the default component,

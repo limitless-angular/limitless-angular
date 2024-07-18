@@ -7,3 +7,5 @@ export {
   PortableTextListComponent,
 } from './directives/portable-text-directives';
 export { PortableTextComponents } from './types';
+export { toPlainText } from '@portabletext/toolkit';
+export type { PortableTextBlock } from '@portabletext/types';
