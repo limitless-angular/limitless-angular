@@ -47,7 +47,8 @@ export class DynamicPortableTextContent<Node extends TypedObject = TypedObject>
  */
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class PortableTextMarkComponent<
-  M extends TypedObject = ArbitraryTypedObject
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  M extends TypedObject = any
 > extends DynamicPortableTextContent<M> {
   /**
    * Mark definition, e.g. the actual data of the annotation. If the mark is a simple decorator, this will be `undefined`

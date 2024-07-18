@@ -21,7 +21,11 @@ import {
   LIST_NEST_MODE_HTML,
   nestLists,
 } from '@portabletext/toolkit';
-import { PortableTextBlock, TypedObject } from '@portabletext/types';
+import {
+  ArbitraryTypedObject,
+  PortableTextBlock,
+  TypedObject,
+} from '@portabletext/types';
 
 import { BlockComponent } from './block.component';
 import { PortableTextComponents } from '../types';
@@ -141,14 +145,8 @@ import { ListItemComponent } from './list-item.component';
         "
       />
       } @else {
-      <ng-container
-        *ngTemplateOutlet="unknownBlockTmpl(); context: { $implicit: value }"
-      />
+      <div>Unknown block type: {{ value._type }}</div>
       }
-    </ng-template>
-
-    <ng-template #unknownBlock let-block>
-      <div>Unknown block type: {{ block._type }}</div>
     </ng-template>
   `,
   styles: `
@@ -160,7 +158,9 @@ import { ListItemComponent } from './list-item.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })
-export class PortableTextComponent<B extends TypedObject = PortableTextBlock> {
+export class PortableTextComponent<
+  B extends TypedObject = PortableTextBlock | ArbitraryTypedObject
+> {
   value = input.required<B | B[]>();
   components = input<Partial<PortableTextComponents>>({});
 
