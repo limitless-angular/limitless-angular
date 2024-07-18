@@ -194,7 +194,7 @@ export const blocks: (PortableTextBlock | CodeBlock | AnnotatedMapBlock)[] = [
     children: [
       {
         _type: 'span',
-        text: 'Aside from that, you can drop in pretty much any data you want, as long as you define a React component to render it. Here is a code block, highlighted by ',
+        text: 'Aside from that, you can drop in pretty much any data you want, as long as you define an Angular component to render it. Here is a code block, highlighted by ',
       },
       { _type: 'span', text: 'react-refractor', marks: ['lllink'] },
       { _type: 'span', text: ', for instance:' },

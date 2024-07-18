@@ -44,7 +44,7 @@ const ptComponents: PortableTextComponents = {
   template: `
     <main>
       <article
-        class="prose lg:prose-xl mx-auto"
+        class="prose lg:prose-xl prose-code:bg-[#eee] prose-code:after:content-[''] prose-code:before:content-[''] mx-auto"
         portable-text
         [value]="blocks"
         [components]="ptComponents"
