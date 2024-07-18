@@ -8,7 +8,6 @@ import {
 } from '@angular/core';
 
 import {
-  ArbitraryTypedObject,
   PortableTextBlock,
   PortableTextListItemBlock,
   TypedObject,

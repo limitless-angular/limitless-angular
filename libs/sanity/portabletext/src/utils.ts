@@ -21,3 +21,11 @@ export function serializeBlock(
     node,
   };
 }
+
+export function trackBy(
+  key: string | undefined,
+  index: number,
+  prefix = 'node',
+) {
+  return key ?? `${prefix}-${index}`;
+}

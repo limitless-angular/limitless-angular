@@ -6,7 +6,7 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import { NgComponentOutlet, NgTemplateOutlet } from '@angular/common';
-import { PortableTextBlock, TypedObject } from '@portabletext/types';
+import { PortableTextBlock } from '@portabletext/types';
 import { TemplateContext } from '../types';
 import { serializeBlock } from '../utils';
 
@@ -31,11 +31,10 @@ import { serializeBlock } from '../utils';
         />
       </ng-template>
 
-      @let style = node.style ?? 'normal';
-      @if (components.block?.[style]) {
+      @if (components.block?.[node.style ?? 'normal']) {
         <ng-container
           *ngComponentOutlet="
-            components.block?.[style];
+            components.block?.[node.style ?? 'normal'];
             inputs: {
               childrenData: {
                 template: blockChildren,
@@ -47,7 +46,7 @@ import { serializeBlock } from '../utils';
           "
         />
       } @else {
-        @switch (style) {
+        @switch (node.style ?? 'normal') {
           @case ('normal') {
             <p>
               <ng-container *ngTemplateOutlet="children" />
@@ -89,7 +88,10 @@ import { serializeBlock } from '../utils';
             </blockquote>
           }
           @default {
-            <div>Unknown block style: {{ node.style }}</div>
+            <!-- TODO: remove class when warning msg be implemented -->
+            <p [class]="'unknown__pt__block__' + node.style">
+              <ng-container *ngTemplateOutlet="children" />
+            </p>
           }
         }
       }

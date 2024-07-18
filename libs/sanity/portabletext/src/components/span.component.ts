@@ -11,7 +11,6 @@ import {
   spanToPlainText,
   ToolkitNestedPortableTextSpan,
 } from '@portabletext/toolkit';
-import { TypedObject } from '@portabletext/types';
 
 import { TemplateContext } from '../types';
 
@@ -73,12 +72,9 @@ import { TemplateContext } from '../types';
             /></a>
           }
           @default {
-            <ng-container
-              *ngTemplateOutlet="
-                unknownSpanTypeTmpl();
-                context: { $implicit: node }
-              "
-            />
+            <span [class]="'unknown__pt__mark__' + node.markType"
+              ><ng-container *ngTemplateOutlet="children"
+            /></span>
           }
         }
       }
@@ -108,10 +104,6 @@ import { TemplateContext } from '../types';
         }
       }
     </ng-template>
-
-    <ng-template #unknownSpanType let-node>
-      <span>Unknown span type: {{ node._type }}</span>
-    </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
@@ -121,9 +113,5 @@ export class SpanComponent {
     viewChild.required<
       TemplateRef<TemplateContext<ToolkitNestedPortableTextSpan>>
     >('spanTmpl');
-  unknownSpanTypeTmpl =
-    viewChild.required<TemplateRef<{ $implicit: TypedObject }>>(
-      'unknownSpanType',
-    );
   protected readonly spanToPlainText = spanToPlainText;
 }

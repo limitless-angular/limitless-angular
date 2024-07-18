@@ -17,7 +17,7 @@ import {
 
 export interface PortableTextComponents {
   types?: Record<string, Type<PortableTextTypeComponent>>;
-  marks?: Record<string, Type<PortableTextMarkComponent>>;
+  marks?: Record<string, Type<PortableTextMarkComponent> | undefined>;
   block?: Record<PortableTextBlockStyle, Type<PortableTextBlockComponent>>;
   list?: Record<PortableTextListItemType, Type<PortableTextListComponent>>;
   listItem?: Record<

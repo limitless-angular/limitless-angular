@@ -10,6 +10,7 @@ import { NgComponentOutlet, NgTemplateOutlet } from '@angular/common';
 import { TypedObject } from '@portabletext/types';
 
 import { PortableTextListBlock, TemplateContext } from '../types';
+import { trackBy } from '../utils';
 
 @Component({
   selector: 'lib-list',
@@ -57,12 +58,10 @@ import { PortableTextListBlock, TemplateContext } from '../types';
             </ol>
           }
           @default {
-            <ng-container
-              *ngTemplateOutlet="
-                unknownListTypeTmpl();
-                context: { $implicit: node }
-              "
-            />
+            <!-- TODO: remove class when warning msg be implemented -->
+            <ul [class]="'unknown__pt__list__' + node.listItem">
+              <ng-container *ngTemplateOutlet="children" />
+            </ul>
           }
         }
       }
@@ -74,7 +73,11 @@ import { PortableTextListBlock, TemplateContext } from '../types';
       let-components="components"
       let-renderNode="renderNode"
     >
-      @for (child of node.children; track child._key; let index = $index) {
+      @for (
+        child of node.children;
+        track trackBy(child._key, index, 'li');
+        let index = $index
+      ) {
         <ng-container
           *ngTemplateOutlet="
             renderNode;
@@ -88,10 +91,6 @@ import { PortableTextListBlock, TemplateContext } from '../types';
         />
       }
     </ng-template>
-
-    <ng-template #unknownListType let-node>
-      <div>Unknown list type: {{ node.listItem }}</div>
-    </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
@@ -101,10 +100,6 @@ export class ListComponent {
     viewChild.required<TemplateRef<TemplateContext<PortableTextListBlock>>>(
       'listTmpl',
     );
-  unknownListTypeTmpl =
-    viewChild.required<TemplateRef<{ $implicit: TypedObject }>>(
-      'unknownListType',
-    );
 
   protected getChildNode(
     child: PortableTextListBlock['children'][0],
@@ -112,4 +107,6 @@ export class ListComponent {
   ) {
     return child._key ? child : { ...child, _key: `li-${index}` };
   }
+
+  protected readonly trackBy = trackBy;
 }

@@ -33,6 +33,7 @@ import { TextComponent } from './text.component';
 import { SpanComponent } from './span.component';
 import { ListComponent } from './list.component';
 import { ListItemComponent } from './list-item.component';
+import { trackBy } from '../utils';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -48,7 +49,11 @@ import { ListItemComponent } from './list-item.component';
     TextComponent,
   ],
   template: `
-    @for (block of nestedBlocks(); track block._key; let index = $index) {
+    @for (
+      block of nestedBlocks();
+      track trackBy(block._key, index);
+      let index = $index
+    ) {
       <ng-container
         *ngTemplateOutlet="
           renderNode;
@@ -106,12 +111,7 @@ import { ListItemComponent } from './list-item.component';
         <ng-container
           *ngTemplateOutlet="
             blockTemplate().template();
-            context: {
-              $implicit: node,
-              isInline: isInline,
-              components,
-              renderNode,
-            }
+            context: { $implicit: node, isInline, components, renderNode }
           "
         />
       } @else if (isPortableTextToolkitTextNode(node)) {
@@ -145,7 +145,18 @@ import { ListItemComponent } from './list-item.component';
           "
         />
       } @else {
-        <div>Unknown block type: {{ value._type }}</div>
+        <ng-container
+          *ngTemplateOutlet="unknownBlock; context: { node: value, isInline }"
+        />
+      }
+    </ng-template>
+
+    <ng-template #unknownBlock let-value="node" let-isInline="isInline">
+      @let msg = 'Unknown block type: ' + value._type;
+      @if (isInline) {
+        <span style="display: none">{{ msg }}</span>
+      } @else {
+        <div style="display: none">{{ msg }}</div>
       }
     </ng-template>
   `,
@@ -202,4 +213,5 @@ export class PortableTextComponent<
   protected readonly isPortableTextToolkitSpan = isPortableTextToolkitSpan;
   protected readonly isPortableTextToolkitTextNode =
     isPortableTextToolkitTextNode;
+  protected readonly trackBy = trackBy;
 }
