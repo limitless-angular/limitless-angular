@@ -13,6 +13,7 @@ import { CurrencyAmountComponent } from './components/currency-amount.component'
 import { LinkableHeaderComponent } from './components/linkable-header.component';
 import { SchnauzerListComponent } from './components/schnauzer-list.component';
 import { AnnotatedMapComponent } from './components/annotated-map.component';
+import { TermDefinitionComponent } from './components/term-definition.component';
 
 /**
  * Note that these are statically defined (outside the scope of a function),
@@ -42,6 +43,7 @@ const ptComponents: PortableTextComponents = {
   marks: {
     link: LinkComponent,
     speech: SpeechSynthesisComponent,
+    definition: TermDefinitionComponent,
   },
 };
 
