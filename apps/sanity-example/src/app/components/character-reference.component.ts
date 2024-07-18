@@ -43,8 +43,8 @@ const characters: Record<string, CharacterDefinition> = {
         <ng-container #children />
       </a>
       <span
-        class="peer-hover:opacity-100 transition-opacity w-[400px] bg-white p-4 border border-solid rounded-md absolute left-1/2
-      -translate-x-1/2 translate-y-1/4 opacity-0 mx-auto shadow-lg"
+        class="peer-hover:inline-block w-[400px] bg-white p-4 border border-solid rounded-md absolute left-1/2
+      -translate-x-1/2 translate-y-1/4 hidden mx-auto shadow-lg"
       >
         <span class="flex items-center gap-4">
           <span class="flex-shrink-0">
