@@ -14,6 +14,7 @@ import { LinkableHeaderComponent } from './components/linkable-header.component'
 import { SchnauzerListComponent } from './components/schnauzer-list.component';
 import { AnnotatedMapComponent } from './components/annotated-map.component';
 import { TermDefinitionComponent } from './components/term-definition.component';
+import { CharacterReferenceComponent } from './components/character-reference.component';
 
 /**
  * Note that these are statically defined (outside the scope of a function),
@@ -42,6 +43,7 @@ const ptComponents: PortableTextComponents = {
   // while the others define components for totally custom types.
   marks: {
     link: LinkComponent,
+    characterReference: CharacterReferenceComponent,
     speech: SpeechSynthesisComponent,
     definition: TermDefinitionComponent,
   },
