@@ -11,6 +11,7 @@ import { LinkComponent } from './components/link.component';
 import { SpeechSynthesisComponent } from './components/speech-synthesis.component';
 import { CurrencyAmountComponent } from './components/currency-amount.component';
 import { LinkableHeaderComponent } from './components/linkable-header.component';
+import { SchnauzerListComponent } from './components/schnauzer-list.component';
 
 /**
  * Note that these are statically defined (outside the scope of a function),
@@ -27,6 +28,11 @@ const ptComponents: PortableTextComponents = {
   // Overrides for specific block styles - in this case just the `h2` style
   block: {
     h2: LinkableHeaderComponent,
+  },
+
+  // Implements a custom component to handle the `schnauzer` list item type
+  list: {
+    schnauzer: SchnauzerListComponent,
   },
 
   // Custom components for marks - note that `link` overrides the default component,
