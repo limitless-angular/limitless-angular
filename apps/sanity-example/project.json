@@ -25,7 +25,7 @@
         "styles": ["apps/sanity-example/src/styles.scss"],
         "scripts": [],
         "server": "apps/sanity-example/src/main.server.ts",
-        "prerender": true,
+        "prerender": false,
         "ssr": {
           "entry": "apps/sanity-example/server.ts"
         }

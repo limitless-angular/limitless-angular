@@ -26,13 +26,12 @@ export class DynamicPortableTextContent<Node extends TypedObject = TypedObject>
     context: RenderNodeContext<Node>;
   }>();
 
-  children = viewChild.required<ViewContainerRef, ViewContainerRef>(
-    'children',
-    { read: ViewContainerRef },
-  );
+  children = viewChild<ViewContainerRef, ViewContainerRef>('children', {
+    read: ViewContainerRef,
+  });
 
   ngAfterViewInit() {
-    this.children().createEmbeddedView(
+    this.children()?.createEmbeddedView(
       this.childrenData().template,
       this.childrenData().context,
     );

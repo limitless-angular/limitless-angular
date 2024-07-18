@@ -9,6 +9,7 @@ import {
 import { blocks } from './fixture';
 import { LinkComponent } from './components/link.component';
 import { SpeechSynthesisComponent } from './components/speech-synthesis.component';
+import { CurrencyAmountComponent } from './components/currency-amount.component';
 
 /**
  * Note that these are statically defined (outside the scope of a function),
@@ -17,6 +18,11 @@ import { SpeechSynthesisComponent } from './components/speech-synthesis.componen
  * `useMemo()`, but if you can get away with this approach it is _better_.
  **/
 const ptComponents: PortableTextComponents = {
+  // Components for totally custom types outside the scope of Portable Text
+  types: {
+    currencyAmount: CurrencyAmountComponent,
+  },
+
   // Custom components for marks - note that `link` overrides the default component,
   // while the others define components for totally custom types.
   marks: {
