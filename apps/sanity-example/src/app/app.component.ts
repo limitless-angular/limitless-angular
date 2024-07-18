@@ -12,6 +12,7 @@ import { SpeechSynthesisComponent } from './components/speech-synthesis.componen
 import { CurrencyAmountComponent } from './components/currency-amount.component';
 import { LinkableHeaderComponent } from './components/linkable-header.component';
 import { SchnauzerListComponent } from './components/schnauzer-list.component';
+import { AnnotatedMapComponent } from './components/annotated-map.component';
 
 /**
  * Note that these are statically defined (outside the scope of a function),
@@ -23,6 +24,7 @@ const ptComponents: PortableTextComponents = {
   // Components for totally custom types outside the scope of Portable Text
   types: {
     currencyAmount: CurrencyAmountComponent,
+    annotatedMap: AnnotatedMapComponent,
   },
 
   // Overrides for specific block styles - in this case just the `h2` style

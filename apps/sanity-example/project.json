@@ -19,10 +19,18 @@
         "assets": [
           {
             "glob": "**/*",
+            "input": "node_modules/leaflet/dist/images",
+            "output": "/media"
+          },
+          {
+            "glob": "**/*",
             "input": "apps/sanity-example/public"
           }
         ],
-        "styles": ["apps/sanity-example/src/styles.scss"],
+        "styles": [
+          "node_modules/leaflet/dist/leaflet.css",
+          "apps/sanity-example/src/styles.scss"
+        ],
         "scripts": [],
         "server": "apps/sanity-example/src/main.server.ts",
         "prerender": false,
