@@ -31,10 +31,10 @@ import { serializeBlock } from '../utils';
         />
       </ng-template>
 
-      @if (components.block?.[node.style]) {
+      @let style = node.style ?? 'normal'; @if (components.block?.[style]) {
       <ng-container
         *ngComponentOutlet="
-            components.block?.[node.style];
+            components.block?.[style];
             inputs: {
               childrenData: {
                 template: blockChildren,
@@ -45,7 +45,7 @@ import { serializeBlock } from '../utils';
             }
           "
       />
-      } @else { @switch (node.style) { @case ('normal') {
+      } @else { @switch (style) { @case ('normal') {
       <p>
         <ng-container *ngTemplateOutlet="children" />
       </p>
@@ -78,9 +78,7 @@ import { serializeBlock } from '../utils';
         <ng-container *ngTemplateOutlet="children" />
       </blockquote>
       } @default {
-      <ng-container
-        *ngTemplateOutlet="unknownStyleTmpl(); context: { $implicit: node }"
-      />
+      <div>Unknown block style: {{ node.style }}</div>
       } } }
     </ng-template>
 
@@ -106,10 +104,6 @@ import { serializeBlock } from '../utils';
       />
       }
     </ng-template>
-
-    <ng-template #unknownStyle let-node>
-      <div>Unknown block style: {{ node.style }}</div>
-    </ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
@@ -119,7 +113,5 @@ export class BlockComponent {
     viewChild.required<TemplateRef<TemplateContext<PortableTextBlock>>>(
       'blockTmpl'
     );
-  unknownStyleTmpl =
-    viewChild.required<TemplateRef<{ $implicit: TypedObject }>>('unknownStyle');
   protected readonly serializeBlock = serializeBlock;
 }
