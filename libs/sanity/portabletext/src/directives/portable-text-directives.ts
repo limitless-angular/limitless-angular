@@ -29,13 +29,13 @@ export class DynamicPortableTextContent<Node extends TypedObject = TypedObject>
 
   children = viewChild.required<ViewContainerRef, ViewContainerRef>(
     'children',
-    { read: ViewContainerRef }
+    { read: ViewContainerRef },
   );
 
   ngAfterViewInit() {
     this.children().createEmbeddedView(
       this.childrenData().template,
-      this.childrenData().context
+      this.childrenData().context,
     );
   }
 }
@@ -48,7 +48,7 @@ export class DynamicPortableTextContent<Node extends TypedObject = TypedObject>
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class PortableTextMarkComponent<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  M extends TypedObject = any
+  M extends TypedObject = any,
 > extends DynamicPortableTextContent<M> {
   /**
    * Mark definition, e.g. the actual data of the annotation. If the mark is a simple decorator, this will be `undefined`
@@ -73,7 +73,7 @@ export class PortableTextMarkComponent<
  */
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class PortableTextTypeComponent<
-  T extends TypedObject = any
+  T extends TypedObject = any,
 > extends DynamicPortableTextContent<T> {
   value = input.required<T>();
 

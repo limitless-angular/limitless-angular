@@ -28,36 +28,38 @@ import { serializeBlock } from '../utils';
     let-renderNode="renderNode"
   >
     <ng-template #listItemChildren>
-      @for (child of serializeBlock({ node, isInline: false }).children; track
-      child._key) {
-      <ng-container
-        *ngTemplateOutlet="
-          renderNode;
-          context: { $implicit: child, isInline: true, components }
-        "
-      />
+      @for (
+        child of serializeBlock({ node, isInline: false }).children;
+        track child._key
+      ) {
+        <ng-container
+          *ngTemplateOutlet="
+            renderNode;
+            context: { $implicit: child, isInline: true, components }
+          "
+        />
       }
     </ng-template>
 
     @if (components.listItem?.[node.listItem]) {
-    <ng-container
-      *ngComponentOutlet="
+      <ng-container
+        *ngComponentOutlet="
           components.listItem?.[node.listItem];
           inputs: {
             childrenData: {
               template: listItemChildren,
-              context: { node, index, components, renderNode }
+              context: { node, index, components, renderNode },
             },
             value: node,
             index,
-            isInline: false
+            isInline: false,
           }
         "
-    />
+      />
     } @else {
-    <li>
-      <ng-container *ngTemplateOutlet="listItemChildren" />
-    </li>
+      <li>
+        <ng-container *ngTemplateOutlet="listItemChildren" />
+      </li>
     }
   </ng-template>`,
   changeDetection: ChangeDetectionStrategy.OnPush,

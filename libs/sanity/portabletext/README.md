@@ -247,7 +247,7 @@ export class SampleImageComponent extends PortableTextTypeComponent {
       .width(this.isInline() ? 100 : 800)
       .fit('max')
       .auto('format')
-      .url()
+      .url(),
   );
 
   aspectRatio = computed(() => {
@@ -299,7 +299,7 @@ export class SampleImageComponent extends PortableTextTypeComponent {
       .width(this.isInline() ? 100 : 800)
       .fit('max')
       .auto('format')
-      .url()
+      .url(),
   );
 
   aspectRatio = computed(() => {

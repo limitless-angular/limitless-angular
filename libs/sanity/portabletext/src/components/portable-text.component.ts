@@ -49,16 +49,16 @@ import { ListItemComponent } from './list-item.component';
   ],
   template: `
     @for (block of nestedBlocks(); track block._key; let index = $index) {
-    <ng-container
-      *ngTemplateOutlet="
-        renderNode;
-        context: {
-          $implicit: block,
-          isInline: false,
-          components: components()
-        }
-      "
-    />
+      <ng-container
+        *ngTemplateOutlet="
+          renderNode;
+          context: {
+            $implicit: block,
+            isInline: false,
+            components: components(),
+          }
+        "
+      />
     }
 
     <ng-template
@@ -69,65 +69,65 @@ import { ListItemComponent } from './list-item.component';
       let-components="components"
     >
       @if (isPortableTextToolkitList(node)) {
-      <ng-container
-        *ngTemplateOutlet="
-          listTemplate().template();
-          context: {
-            $implicit: node,
-            components,
-            renderNode
-          }
-        "
-      />
+        <ng-container
+          *ngTemplateOutlet="
+            listTemplate().template();
+            context: {
+              $implicit: node,
+              components,
+              renderNode,
+            }
+          "
+        />
       } @else if (isPortableTextListItemBlock(node)) {
-      <ng-container
-        *ngTemplateOutlet="
-          listItemTemplate().template();
-          context: {
-            $implicit: node,
-            index,
-            components,
-            renderNode
-          }
-        "
-      />
+        <ng-container
+          *ngTemplateOutlet="
+            listItemTemplate().template();
+            context: {
+              $implicit: node,
+              index,
+              components,
+              renderNode,
+            }
+          "
+        />
       } @else if (isPortableTextToolkitSpan(node)) {
-      <ng-container
-        *ngTemplateOutlet="
-          spanTemplate().template();
-          context: {
-            $implicit: node,
-            components,
-            renderNode
-          }
-        "
-      />
+        <ng-container
+          *ngTemplateOutlet="
+            spanTemplate().template();
+            context: {
+              $implicit: node,
+              components,
+              renderNode,
+            }
+          "
+        />
       } @else if (isPortableTextBlock(node)) {
-      <ng-container
-        *ngTemplateOutlet="
-          blockTemplate().template();
-          context: {
-            $implicit: node,
-            isInline: isInline,
-            components,
-            renderNode
-          }
-        "
-      />
+        <ng-container
+          *ngTemplateOutlet="
+            blockTemplate().template();
+            context: {
+              $implicit: node,
+              isInline: isInline,
+              components,
+              renderNode,
+            }
+          "
+        />
       } @else if (isPortableTextToolkitTextNode(node)) {
-      <ng-container
-        *ngTemplateOutlet="
-          textTemplate().template();
-          context: { $implicit: node, components }
-        "
-      />
+        <ng-container
+          *ngTemplateOutlet="
+            textTemplate().template();
+            context: { $implicit: node, components }
+          "
+        />
       } @else {
-      <ng-container
-        *ngTemplateOutlet="
-          customBlockTmpl;
-          context: { node, components, isInline }
-        "
-      />
+        <ng-container
+          *ngTemplateOutlet="
+            customBlockTmpl;
+            context: { node, components, isInline }
+          "
+        />
       }
     </ng-template>
 
@@ -138,14 +138,14 @@ import { ListItemComponent } from './list-item.component';
       let-isInline="isInline"
     >
       @if (hasCustomComponent(value)) {
-      <ng-container
-        *ngComponentOutlet="
-          getCustomComponent(value);
-          inputs: { value, isInline }
-        "
-      />
+        <ng-container
+          *ngComponentOutlet="
+            getCustomComponent(value);
+            inputs: { value, isInline }
+          "
+        />
       } @else {
-      <div>Unknown block type: {{ value._type }}</div>
+        <div>Unknown block type: {{ value._type }}</div>
       }
     </ng-template>
   `,
@@ -159,7 +159,7 @@ import { ListItemComponent } from './list-item.component';
   encapsulation: ViewEncapsulation.None,
 })
 export class PortableTextComponent<
-  B extends TypedObject = PortableTextBlock | ArbitraryTypedObject
+  B extends TypedObject = PortableTextBlock | ArbitraryTypedObject,
 > {
   value = input.required<B | B[]>();
   components = input<Partial<PortableTextComponents>>({});
@@ -170,19 +170,19 @@ export class PortableTextComponent<
   #container = inject(ViewContainerRef);
 
   blockTemplate = computed(
-    () => this.#container.createComponent(BlockComponent).instance
+    () => this.#container.createComponent(BlockComponent).instance,
   );
   listTemplate = computed(
-    () => this.#container.createComponent(ListComponent).instance
+    () => this.#container.createComponent(ListComponent).instance,
   );
   listItemTemplate = computed(
-    () => this.#container.createComponent(ListItemComponent).instance
+    () => this.#container.createComponent(ListItemComponent).instance,
   );
   spanTemplate = computed(
-    () => this.#container.createComponent(SpanComponent).instance
+    () => this.#container.createComponent(SpanComponent).instance,
   );
   textTemplate = computed(
-    () => this.#container.createComponent(TextComponent).instance
+    () => this.#container.createComponent(TextComponent).instance,
   );
 
   nestedBlocks = computed(() => {

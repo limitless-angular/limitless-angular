@@ -31,32 +31,41 @@ import { PortableTextListBlock, TemplateContext } from '../types';
         />
       </ng-template>
       @if (components.list?.[node.listItem]) {
-      <ng-container
-        *ngComponentOutlet="
+        <ng-container
+          *ngComponentOutlet="
             components.list?.[node.listItem];
             inputs: {
               childrenData: {
                 template: listChildren,
-                context: { node, components, renderNode }
+                context: { node, components, renderNode },
               },
               value: node,
-              isInline: false
+              isInline: false,
             }
           "
-      />
-      } @else { @switch (node.listItem) { @case ('bullet') {
-      <ul>
-        <ng-container *ngTemplateOutlet="children" />
-      </ul>
-      } @case ('number') {
-      <ol>
-        <ng-container *ngTemplateOutlet="children" />
-      </ol>
-      } @default {
-      <ng-container
-        *ngTemplateOutlet="unknownListTypeTmpl(); context: { $implicit: node }"
-      />
-      } } }
+        />
+      } @else {
+        @switch (node.listItem) {
+          @case ('bullet') {
+            <ul>
+              <ng-container *ngTemplateOutlet="children" />
+            </ul>
+          }
+          @case ('number') {
+            <ol>
+              <ng-container *ngTemplateOutlet="children" />
+            </ol>
+          }
+          @default {
+            <ng-container
+              *ngTemplateOutlet="
+                unknownListTypeTmpl();
+                context: { $implicit: node }
+              "
+            />
+          }
+        }
+      }
     </ng-template>
 
     <ng-template
@@ -66,17 +75,17 @@ import { PortableTextListBlock, TemplateContext } from '../types';
       let-renderNode="renderNode"
     >
       @for (child of node.children; track child._key; let index = $index) {
-      <ng-container
-        *ngTemplateOutlet="
-          renderNode;
-          context: {
-            $implicit: getChildNode(child, index),
-            index,
-            isInline: false,
-            components
-          }
-        "
-      />
+        <ng-container
+          *ngTemplateOutlet="
+            renderNode;
+            context: {
+              $implicit: getChildNode(child, index),
+              index,
+              isInline: false,
+              components,
+            }
+          "
+        />
       }
     </ng-template>
 
@@ -90,16 +99,16 @@ import { PortableTextListBlock, TemplateContext } from '../types';
 export class ListComponent {
   template =
     viewChild.required<TemplateRef<TemplateContext<PortableTextListBlock>>>(
-      'listTmpl'
+      'listTmpl',
     );
   unknownListTypeTmpl =
     viewChild.required<TemplateRef<{ $implicit: TypedObject }>>(
-      'unknownListType'
+      'unknownListType',
     );
 
   protected getChildNode(
     child: PortableTextListBlock['children'][0],
-    index: number
+    index: number,
   ) {
     return child._key ? child : { ...child, _key: `li-${index}` };
   }

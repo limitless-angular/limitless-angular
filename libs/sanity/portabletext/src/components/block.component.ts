@@ -31,55 +31,68 @@ import { serializeBlock } from '../utils';
         />
       </ng-template>
 
-      @let style = node.style ?? 'normal'; @if (components.block?.[style]) {
-      <ng-container
-        *ngComponentOutlet="
+      @let style = node.style ?? 'normal';
+      @if (components.block?.[style]) {
+        <ng-container
+          *ngComponentOutlet="
             components.block?.[style];
             inputs: {
               childrenData: {
                 template: blockChildren,
-                context: { node, isInline, components, renderNode }
+                context: { node, isInline, components, renderNode },
               },
               value: node,
-              isInline
+              isInline,
             }
           "
-      />
-      } @else { @switch (style) { @case ('normal') {
-      <p>
-        <ng-container *ngTemplateOutlet="children" />
-      </p>
-      } @case ('h1') {
-      <h1>
-        <ng-container *ngTemplateOutlet="children" />
-      </h1>
-      } @case ('h2') {
-      <h2>
-        <ng-container *ngTemplateOutlet="children" />
-      </h2>
-      } @case ('h3') {
-      <h3>
-        <ng-container *ngTemplateOutlet="children" />
-      </h3>
-      } @case ('h4') {
-      <h4>
-        <ng-container *ngTemplateOutlet="children" />
-      </h4>
-      } @case ('h5') {
-      <h5>
-        <ng-container *ngTemplateOutlet="children" />
-      </h5>
-      } @case ('h6') {
-      <h6>
-        <ng-container *ngTemplateOutlet="children" />
-      </h6>
-      } @case ('blockquote') {
-      <blockquote>
-        <ng-container *ngTemplateOutlet="children" />
-      </blockquote>
-      } @default {
-      <div>Unknown block style: {{ node.style }}</div>
-      } } }
+        />
+      } @else {
+        @switch (style) {
+          @case ('normal') {
+            <p>
+              <ng-container *ngTemplateOutlet="children" />
+            </p>
+          }
+          @case ('h1') {
+            <h1>
+              <ng-container *ngTemplateOutlet="children" />
+            </h1>
+          }
+          @case ('h2') {
+            <h2>
+              <ng-container *ngTemplateOutlet="children" />
+            </h2>
+          }
+          @case ('h3') {
+            <h3>
+              <ng-container *ngTemplateOutlet="children" />
+            </h3>
+          }
+          @case ('h4') {
+            <h4>
+              <ng-container *ngTemplateOutlet="children" />
+            </h4>
+          }
+          @case ('h5') {
+            <h5>
+              <ng-container *ngTemplateOutlet="children" />
+            </h5>
+          }
+          @case ('h6') {
+            <h6>
+              <ng-container *ngTemplateOutlet="children" />
+            </h6>
+          }
+          @case ('blockquote') {
+            <blockquote>
+              <ng-container *ngTemplateOutlet="children" />
+            </blockquote>
+          }
+          @default {
+            <div>Unknown block style: {{ node.style }}</div>
+          }
+        }
+      }
     </ng-template>
 
     <ng-template
@@ -89,19 +102,22 @@ import { serializeBlock } from '../utils';
       let-components="components"
       let-renderNode="renderNode"
     >
-      @for ( child of serializeBlock({ node, isInline: false }).children; track
-      child._key; let childIndex = $index ) {
-      <ng-container
-        *ngTemplateOutlet="
-          renderNode;
-          context: {
-            $implicit: child,
-            index: childIndex,
-            isInline: true,
-            components
-          }
-        "
-      />
+      @for (
+        child of serializeBlock({ node, isInline: false }).children;
+        track child._key;
+        let childIndex = $index
+      ) {
+        <ng-container
+          *ngTemplateOutlet="
+            renderNode;
+            context: {
+              $implicit: child,
+              index: childIndex,
+              isInline: true,
+              components,
+            }
+          "
+        />
       }
     </ng-template>
   `,
@@ -111,7 +127,7 @@ import { serializeBlock } from '../utils';
 export class BlockComponent {
   template =
     viewChild.required<TemplateRef<TemplateContext<PortableTextBlock>>>(
-      'blockTmpl'
+      'blockTmpl',
     );
   protected readonly serializeBlock = serializeBlock;
 }
