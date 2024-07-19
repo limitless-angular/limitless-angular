@@ -7,6 +7,7 @@ import {
   viewChild,
   ViewEncapsulation,
 } from '@angular/core';
+
 import { PortableTextTypeComponent } from '@limitless-angular/sanity/portabletext';
 
 export interface Geopoint {
