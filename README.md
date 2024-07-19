@@ -144,6 +144,10 @@ Stay tuned for updates!
 
 If you encounter any issues or have questions, please [open an issue](https://github.com/limitless-angular/limitless-angular/issues) on our GitHub repository.
 
+## Credits
+
+This repository is adapted from [@portabletext/react](https://github.com/portabletext/react-portabletext) which provided the vast majority of node rendering logic.
+
 ## License
 
 This project is licensed under the MIT License. See our [LICENSE](LICENSE) file for details.
