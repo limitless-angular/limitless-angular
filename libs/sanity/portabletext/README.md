@@ -24,7 +24,7 @@ Render [Portable Text](https://portabletext.org/) with Angular.
 ## Installation
 
 ```
-npm install --save @limitless-angular/sanity/portabletext
+npm install --save @limitless-angular/sanity
 ```
 
 ## Basic usage
@@ -733,7 +733,7 @@ export class CheckmarksListItemComponent extends PortableTextListItemComponent {
 
 @Component({
   selector: 'app-your-component',
-  template: ` <div portable-text [value]="portableTextValue" [components]="components"></div> `,
+  template: `<div portable-text [value]="portableTextValue" [components]="components"></div> `,
   standalone: true,
   imports: [PortableTextComponent],
 })
@@ -759,80 +759,25 @@ Component to use for rendering "hard breaks", eg `\n` inside of text spans.
 
 Will by default render a `<br />`. Pass `false` to render as-is (`\n`)
 
-## Typing Portable Text
+## Rendering Plain Text
 
-Portable Text data can be typed using the `@portabletext/types` package.
+This module also exports a function (toPlainText()) that will render one or more Portable Text blocks as plain text. This is helpful in cases where formatted text is not supported, or you need to process the raw text value.
 
-### Basic usage
-
-Use `PortableTextBlock` without generics for loosely typed defaults.
+For example, to generate element IDs for headers, in order for them to be linkable:
 
 ```typescript
-import { PortableTextBlock } from '@portabletext/types';
+import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
+import { PortableTextBlockComponent, toPlainText } from '@limitless-angular/sanity/portabletext';
+import slugify from 'slugify';
 
-interface MySanityDocument {
-  portableTextField: (PortableTextBlock | SomeBlockType)[];
+@Component({
+  selector: 'h2',
+  standalone: true,
+  template: `<ng-container #children />`,
+  host: { '[id]': 'slug()' },
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class LinkableHeaderComponent extends PortableTextBlockComponent {
+  slug = computed(() => slugify(toPlainText(this.value())));
 }
 ```
-
-### Narrow types, marks, inline-blocks and lists
-
-`PortableTextBlock` supports generics, and has the following signature:
-
-```typescript
-interface PortableTextBlock<M extends PortableTextMarkDefinition = PortableTextMarkDefinition, C extends TypedObject = ArbitraryTypedObject | PortableTextSpan, S extends string = PortableTextBlockStyle, L extends string = PortableTextListItemType> {}
-```
-
-Create your own, narrowed Portable text type:
-
-```typescript
-import { PortableTextBlock, PortableTextMarkDefinition, PortableTextSpan } from '@portabletext/types';
-
-// MARKS
-interface FirstMark extends PortableTextMarkDefinition {
-  _type: 'firstMark';
-  // ...other fields
-}
-
-interface SecondMark extends PortableTextMarkDefinition {
-  _type: 'secondMark';
-  // ...other fields
-}
-
-type CustomMarks = FirstMark | SecondMark;
-
-// INLINE BLOCKS
-interface MyInlineBlock {
-  _type: 'myInlineBlock';
-  // ...other fields
-}
-
-type InlineBlocks = PortableTextSpan | MyInlineBlock;
-
-// STYLES
-type TextStyles = 'normal' | 'h1' | 'myCustomStyle';
-
-// LISTS
-type ListStyles = 'bullet' | 'myCustomList';
-
-// CUSTOM PORTABLE TEXT BLOCK
-type CustomPortableTextBlock = PortableTextBlock<CustomMarks, InlineBlocks, TextStyles, ListStyles>;
-
-// Other BLOCKS that can appear in between text
-interface MyCustomBlock {
-  _type: 'myCustomBlock';
-  // ...other fields
-}
-
-// TYPE FOR PORTABLE TEXT FIELD ITEMS
-type PortableTextFieldType = CustomPortableTextBlock | MyCustomBlock;
-
-// Using it in your document type
-interface MyDocumentType {
-  portableTextField: PortableTextFieldType[];
-}
-```
-
-## License
-
-MIT © [Limitless Angular]
