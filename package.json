@@ -20,6 +20,7 @@
     "@nx/angular": "19.4.4",
     "@portabletext/toolkit": "^2.0.15",
     "@portabletext/types": "^2.0.13",
+    "@sanity/image-url": "^1.0.2",
     "express": "~4.18.2",
     "leaflet": "^1.9.4",
     "prismjs": "^1.29.0",

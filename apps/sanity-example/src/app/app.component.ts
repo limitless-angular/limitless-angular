@@ -16,6 +16,7 @@ import { AnnotatedMapComponent } from './components/annotated-map.component';
 import { TermDefinitionComponent } from './components/term-definition.component';
 import { CharacterReferenceComponent } from './components/character-reference.component';
 import { CodeComponent } from './components/code.component';
+import { ImageComponent } from './components/image.component';
 
 const ptComponents: PortableTextComponents = {
   // Components for totally custom types outside the scope of Portable Text
@@ -23,6 +24,7 @@ const ptComponents: PortableTextComponents = {
     code: CodeComponent,
     currencyAmount: CurrencyAmountComponent,
     annotatedMap: AnnotatedMapComponent,
+    image: ImageComponent,
   },
 
   // Overrides for specific block styles - in this case just the `h2` style

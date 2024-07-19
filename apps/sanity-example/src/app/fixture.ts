@@ -1,5 +1,6 @@
 import type { PortableTextBlock } from '@portabletext/types';
 import { AnnotatedMapBlock } from './components/annotated-map.component';
+import { ImageBlock } from './components/image.component';
 
 interface CodeBlock {
   _type: 'code';
@@ -33,13 +34,13 @@ interface CodeBlock {
 export class CodeComponent extends PortableTextTypeComponent<CodeBlock> {}
 `.trim();
 
-export const blocks: (PortableTextBlock | CodeBlock | AnnotatedMapBlock)[] = [
+export const blocks: (PortableTextBlock | CodeBlock | AnnotatedMapBlock | ImageBlock)[] = [
   {
     _type: 'block',
     _key: 'head',
     style: 'h1',
     markDefs: [],
-    children: [{ _type: 'span', text: '@limitless-angular/sanity/portabletext demo' }],
+    children: [{ _type: 'span', text: '@limitless-angular/sanity demo' }],
   },
   {
     _type: 'block',
@@ -545,6 +546,56 @@ export const blocks: (PortableTextBlock | CodeBlock | AnnotatedMapBlock)[] = [
         title: 'Presidio',
       },
     ],
+  },
+  {
+    _type: 'block',
+    _key: 'image-loader-header',
+    style: 'h2',
+    children: [{ _type: 'span', _key: 'a', text: 'Sanity Image Loader' }],
+  },
+  {
+    _type: 'block',
+    _key: 'image-loader-intrp',
+    style: 'normal',
+    markDefs: [],
+    children: [
+      {
+        _type: 'span',
+        text: "Alright, let's talk about images for a sec. You know how sometimes images can be a pain to deal with in web apps? Well, we've got something pretty cool for that.",
+      },
+    ],
+  },
+  {
+    _type: 'block',
+    _key: 'image-loader-intrp-2',
+    style: 'normal',
+    markDefs: [],
+    children: [
+      {
+        _type: 'span',
+        text: "We've cooked up this thing called the Image Loader Provider. It's basically a neat way to make Sanity and Angular play nice together when it comes to loading images. You get all the cool stuff Sanity can do with images, but it works smoothly with Angular's fancy NgOptimizedImage directive.",
+      },
+    ],
+  },
+  {
+    _type: 'block',
+    _key: 'image-loader-intrp-3',
+    style: 'normal',
+    markDefs: [],
+    children: [
+      {
+        _type: 'span',
+        text: 'Check this example:',
+      },
+    ],
+  },
+  {
+    _key: 'image-loader-example',
+    asset: {
+      _ref: 'image-94de66d44fb5c6848bc2d7a18d0fa4c1de0aa6e8-200x200-gif',
+      _type: 'reference',
+    },
+    _type: 'image',
   },
   {
     _type: 'block',
