@@ -8,17 +8,29 @@ interface CodeBlock {
 }
 
 const exampleCode = `
-import {PortableText, PortableTextTypeComponent} from '@portabletext/react'
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { PortableTextTypeComponent } from '@limitless-angular/sanity/portabletext';
+import { LowlightComponent } from './lowlight.component';
 
 interface CodeBlock {
-  _type: 'code'
-  code: string
-  language?: string
+  _type: 'code';
+  code: string;
+  language?: string;
 }
 
-const Code: PortableTextComponent<CodeBlock> = ({value}) => {
-  return <Lowlight language={value.language || 'js'} value={value.code} />
-}
+@Component({
+  selector: 'app-code',
+  standalone: true,
+  imports: [LowlightComponent],
+  template: \`
+    <app-lowlight
+      [language]="value().language || 'js'"
+      [code]="value().code"
+    ></app-lowlight>
+  \`,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class CodeComponent extends PortableTextTypeComponent<CodeBlock> {}
 `.trim();
 
 export const blocks: (PortableTextBlock | CodeBlock | AnnotatedMapBlock)[] = [
@@ -27,7 +39,7 @@ export const blocks: (PortableTextBlock | CodeBlock | AnnotatedMapBlock)[] = [
     _key: 'head',
     style: 'h1',
     markDefs: [],
-    children: [{ _type: 'span', text: '@portabletext/react demo' }],
+    children: [{ _type: 'span', text: '@limitless-angular/sanity/portabletext demo' }],
   },
   {
     _type: 'block',
@@ -169,7 +181,7 @@ export const blocks: (PortableTextBlock | CodeBlock | AnnotatedMapBlock)[] = [
       {
         _type: 'link',
         _key: 'lllink',
-        href: 'https://github.com/rexxars/react-refractor',
+        href: 'https://github.com/PrismJS/prism',
       },
     ],
     children: [
@@ -177,7 +189,7 @@ export const blocks: (PortableTextBlock | CodeBlock | AnnotatedMapBlock)[] = [
         _type: 'span',
         text: 'Aside from that, you can drop in pretty much any data you want, as long as you define an Angular component to render it. Here is a code block, highlighted by ',
       },
-      { _type: 'span', text: 'react-refractor', marks: ['lllink'] },
+      { _type: 'span', text: 'prism', marks: ['lllink'] },
       { _type: 'span', text: ', for instance:' },
     ],
   },

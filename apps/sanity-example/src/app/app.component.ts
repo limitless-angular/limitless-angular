@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import {
@@ -15,16 +15,12 @@ import { SchnauzerListComponent } from './components/schnauzer-list.component';
 import { AnnotatedMapComponent } from './components/annotated-map.component';
 import { TermDefinitionComponent } from './components/term-definition.component';
 import { CharacterReferenceComponent } from './components/character-reference.component';
+import { CodeComponent } from './components/code.component';
 
-/**
- * Note that these are statically defined (outside the scope of a function),
- * which ensures that unnecessary rerenders does not happen because of a new
- * components object being generated on every render. The alternative is to
- * `useMemo()`, but if you can get away with this approach it is _better_.
- **/
 const ptComponents: PortableTextComponents = {
   // Components for totally custom types outside the scope of Portable Text
   types: {
+    code: CodeComponent,
     currencyAmount: CurrencyAmountComponent,
     annotatedMap: AnnotatedMapComponent,
   },
@@ -56,7 +52,7 @@ const ptComponents: PortableTextComponents = {
   template: `
     <main>
       <article
-        class="prose lg:prose-xl prose-code:bg-[#eee] prose-code:after:content-[''] prose-code:before:content-[''] mx-auto"
+        class="prose lg:prose-xl prose-code:bg-[#eee] prose-code:after:content-[''] prose-code:before:content-[''] mx-auto pt-8"
         portable-text
         [value]="blocks"
         [components]="ptComponents"
@@ -64,7 +60,7 @@ const ptComponents: PortableTextComponents = {
     </main>
     <router-outlet />
   `,
-  styles: ``,
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {
   protected readonly blocks = blocks;
