@@ -15,7 +15,14 @@
     "sharedGlobals": []
   },
   "release": {
-    "projects": ["libs/*"]
+    "projects": ["libs/*"],
+    "projectsRelationship": "independent",
+    "changelog": {
+      "projectChangelogs": {
+        "file": false,
+        "createRelease": "github"
+      }
+    }
   },
   "targetDefaults": {
     "@angular-devkit/build-angular:application": {
