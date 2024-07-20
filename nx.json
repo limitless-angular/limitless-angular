@@ -17,6 +17,9 @@
   "release": {
     "projects": ["libs/*"],
     "projectsRelationship": "independent",
+    "version": {
+      "conventionalCommits": true
+    },
     "changelog": {
       "projectChangelogs": {
         "file": false,
