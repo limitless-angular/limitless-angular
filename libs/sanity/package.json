@@ -28,7 +28,8 @@
   },
   "dependencies": {
     "@portabletext/toolkit": "^2.0.15",
-    "@portabletext/types": "^2.0.13"
+    "@portabletext/types": "^2.0.13",
+    "@sanity/image-url": "^1.0.2"
   },
   "sideEffects": false,
   "publishConfig": {
