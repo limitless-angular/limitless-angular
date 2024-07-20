@@ -1,0 +1,38 @@
+diff --git a/node_modules/@netlify/angular-runtime/src/helpers/getAngularJson.js b/node_modules/@netlify/angular-runtime/src/helpers/getAngularJson.js
+index ba571df..e884763 100644
+--- a/node_modules/@netlify/angular-runtime/src/helpers/getAngularJson.js
++++ b/node_modules/@netlify/angular-runtime/src/helpers/getAngularJson.js
+@@ -4,11 +4,11 @@ const { existsSync, readJsonSync } = require('fs-extra')
+ 
+ // Get contents of project's angular.json file
+ const getAngularJson = function ({ failPlugin, siteRoot }) {
+-  if (!existsSync(join(siteRoot, 'angular.json'))) {
++  if (!existsSync(join(siteRoot, 'project.json'))) {
+     return failPlugin(`No angular.json found at project root`)
+   }
+   try {
+-    return readJsonSync(join(siteRoot, 'angular.json'))
++    return readJsonSync(join(siteRoot, 'project.json'))
+   } catch {
+     return failPlugin(`Could not parse contents of angular.json`)
+   }
+diff --git a/node_modules/@netlify/angular-runtime/src/helpers/getAngularRoot.js b/node_modules/@netlify/angular-runtime/src/helpers/getAngularRoot.js
+index ebc7260..10744dc 100644
+--- a/node_modules/@netlify/angular-runtime/src/helpers/getAngularRoot.js
++++ b/node_modules/@netlify/angular-runtime/src/helpers/getAngularRoot.js
+@@ -9,13 +9,13 @@ const process = require('process')
+ const getAngularRoot = ({ failBuild, netlifyConfig }) => {
+   let angularRoot = process.cwd()
+   if (
+-    !existsSync(path.join(angularRoot, 'angular.json')) &&
++    !existsSync(path.join(angularRoot, 'project.json')) &&
+     netlifyConfig.build.publish &&
+     netlifyConfig.build.publish !== angularRoot
+   ) {
+     angularRoot = path.dirname(path.resolve(path.join(netlifyConfig.build.publish, '..', '..')))
+ 
+-    if (!existsSync(path.join(angularRoot, 'angular.json'))) {
++    if (!existsSync(path.join(angularRoot, 'project.json'))) {
+       return failBuild(
+         `Could not locate your angular.json at your project root or two levels above your publish directory. Make sure your publish directory is set to "{PATH_TO_YOUR_SITE}/dist/{YOUR_PROJECT_NAME}/browser", where {YOUR_PROJECT_NAME} is 'defaultProject' in your angular.json.`,
+       )

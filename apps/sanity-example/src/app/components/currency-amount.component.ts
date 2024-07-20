@@ -3,23 +3,30 @@ import {
   Component,
   computed,
   inject,
+  InjectionToken,
   PLATFORM_ID,
 } from '@angular/core';
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
 
 import { PortableTextTypeComponent } from '@limitless-angular/sanity/portabletext';
-import { type Request } from 'express';
+import { type Request as ExpressRequest } from 'express';
 
 import { REQUEST } from '../../server.tokens';
 
 // FIXME: request token isn't injected with `ng serve` see: https://github.com/angular/angular-cli/issues/26323
 const getLanguagesFn = () => {
   const platformId = inject(PLATFORM_ID);
-  const request = inject<Request>(REQUEST, { optional: true });
+  const expressRequest = inject<ExpressRequest>(REQUEST, { optional: true });
+  const request = inject<Request>(
+    new InjectionToken<Request>('netlify.request'),
+    { optional: true },
+  );
 
   return () => {
-    if (isPlatformServer(platformId) && request) {
-      const acceptLanguage = request.headers['accept-language'];
+    if (isPlatformServer(platformId) && (expressRequest || request)) {
+      const acceptLanguage =
+        expressRequest?.headers['accept-language'] ??
+        request?.headers.get('accept-language');
       if (acceptLanguage) {
         return acceptLanguage
           .split(',')
