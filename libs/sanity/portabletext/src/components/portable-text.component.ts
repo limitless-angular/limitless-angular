@@ -152,11 +152,14 @@ import { trackBy } from '../utils';
     </ng-template>
 
     <ng-template #unknownBlock let-value="node" let-isInline="isInline">
-      @let msg = 'Unknown block type: ' + value._type;
       @if (isInline) {
-        <span style="display: none">{{ msg }}</span>
+        <span style="display: none">{{
+          'Unknown block type: ' + value._type
+        }}</span>
       } @else {
-        <div style="display: none">{{ msg }}</div>
+        <div style="display: none">
+          {{ 'Unknown block type: ' + value._type }}
+        </div>
       }
     </ng-template>
   `,
