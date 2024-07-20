@@ -2,13 +2,18 @@
 
 This library provides Angular integrations for Sanity.io, enhancing your ability to work with Sanity content in Angular applications.
 
+## Demo
+
+Check out our example project in the monorepo: [`apps/sanity-example`](../../apps/sanity-example)
+
+You can also see a live demo of the Sanity example here: [Limitless Angular Sanity Example](https://limitless-angular-sanity-example.netlify.app/)
+
 ## Table of Contents
 
 - [Getting Started](#getting-started)
   - [Installation](#installation)
   - [Portable Text](#portable-text)
   - [Image Loader](#image-loader)
-- [Demo](#demo)
 
 ## Getting Started
 

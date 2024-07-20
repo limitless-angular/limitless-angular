@@ -4,6 +4,12 @@
 
 Limitless Angular is a collection of powerful Angular libraries designed to enhance the Angular ecosystem and help developers build better applications with a focus on Sanity.io integration.
 
+## Demo
+
+Check out our example project in the monorepo: [`apps/sanity-example`](apps/sanity-example)
+
+You can also see a live demo of the Sanity example here: [Limitless Angular Sanity Example](https://limitless-angular-sanity-example.netlify.app/)
+
 ## Table of Contents
 
 - [Libraries](#libraries)
@@ -12,7 +18,6 @@ Limitless Angular is a collection of powerful Angular libraries designed to enha
   - [Usage](#usage)
   - [Portable Text](#portable-text)
   - [Image Loader](#image-loader)
-- [Demo](#demo)
 - [Contributing](#contributing)
 - [License](#license)
 - [Roadmap](#roadmap)
@@ -111,10 +116,6 @@ import { SanityImageLoader } from '@limitless-angular/sanity/image-loader';
 ```
 
 For more details on the Image Loader, check out the [Image Loader README](libs/sanity/image-loader/README.md).
-
-## Demo
-
-Check out our example project in the monorepo: `apps/sanity-example`
 
 ## Contributing
 
