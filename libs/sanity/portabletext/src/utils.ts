@@ -11,6 +11,7 @@ export function serializeBlock(
   const children = tree.map((child, i) => ({
     ...child,
     // TODO: check this _key generation
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     _key: (child as any)._key ?? `block-${i}`,
   }));
 

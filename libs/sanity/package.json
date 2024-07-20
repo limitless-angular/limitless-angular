@@ -5,5 +5,9 @@
     "@angular/common": "^18.0.0",
     "@angular/core": "^18.0.0"
   },
+  "dependencies": {
+    "@portabletext/toolkit": "^2.0.15",
+    "@portabletext/types": "^2.0.13"
+  },
   "sideEffects": false
 }

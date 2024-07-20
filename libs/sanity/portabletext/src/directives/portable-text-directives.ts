@@ -71,6 +71,7 @@ export class PortableTextMarkComponent<
  */
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class PortableTextTypeComponent<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   T extends TypedObject = any,
 > extends DynamicPortableTextContent<T> {
   value = input.required<T>();

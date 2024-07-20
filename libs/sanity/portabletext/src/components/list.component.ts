@@ -7,8 +7,6 @@ import {
 } from '@angular/core';
 import { NgComponentOutlet, NgTemplateOutlet } from '@angular/common';
 
-import { TypedObject } from '@portabletext/types';
-
 import { PortableTextListBlock, TemplateContext } from '../types';
 import { trackBy } from '../utils';
 

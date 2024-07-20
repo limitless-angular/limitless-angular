@@ -34,6 +34,7 @@ export interface Serializable<T> {
 
 export interface SerializedBlock {
   _key?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   children: any[];
   isInline: boolean;
   node: PortableTextBlock | PortableTextListItemBlock;
