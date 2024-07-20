@@ -1,6 +1,27 @@
 {
   "name": "@limitless-angular/sanity",
   "version": "0.0.1",
+  "description": "A powerful Angular library for Sanity.io integration, featuring Portable Text rendering and optimized image loading.",
+  "author": "Alfonso Andrés López Molina <osnoser3@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/limitless-angular/limitless-angular"
+  },
+  "bugs": {
+    "url": "https://github.com/limitless-angular/limitless-angular/issues"
+  },
+  "homepage": "https://github.com/limitless-angular/limitless-angular#readme",
+  "keywords": [
+    "angular",
+    "sanity",
+    "sanity-io",
+    "sanity-cms",
+    "portable-text",
+    "portabletext",
+    "image-loader",
+    "cms"
+  ],
   "peerDependencies": {
     "@angular/common": "^18.0.0",
     "@angular/core": "^18.0.0"
@@ -9,5 +30,8 @@
     "@portabletext/toolkit": "^2.0.15",
     "@portabletext/types": "^2.0.13"
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  }
 }
