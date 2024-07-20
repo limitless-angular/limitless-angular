@@ -16,6 +16,7 @@ Limitless Angular is a collection of powerful Angular libraries designed to enha
 - [Contributing](#contributing)
 - [License](#license)
 - [Roadmap](#roadmap)
+- [Credits](#credits)
 - [Support](#support)
 
 ## Libraries
