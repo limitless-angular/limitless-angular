@@ -6,7 +6,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/limitless-angular/limitless-angular"
+    "url": "git+https://github.com/limitless-angular/limitless-angular.git"
   },
   "bugs": {
     "url": "https://github.com/limitless-angular/limitless-angular/issues"
