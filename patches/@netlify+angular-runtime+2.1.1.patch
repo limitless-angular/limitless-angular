@@ -1,0 +1,99 @@
+diff --git a/node_modules/@netlify/angular-runtime/package.json b/node_modules/@netlify/angular-runtime/package.json
+index 9499279..6d7379c 100644
+--- a/node_modules/@netlify/angular-runtime/package.json
++++ b/node_modules/@netlify/angular-runtime/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "@netlify/angular-runtime",
+-  "version": "2.1.0",
++  "version": "2.1.1",
+   "description": "Netlify Angular Runtime - Run Angular seamlessly on Netlify.",
+   "main": "src/index.js",
+   "files": [
+diff --git a/node_modules/@netlify/angular-runtime/src/helpers/fixOutputDir.js b/node_modules/@netlify/angular-runtime/src/helpers/fixOutputDir.js
+index 2b6c701..96cf532 100644
+--- a/node_modules/@netlify/angular-runtime/src/helpers/fixOutputDir.js
++++ b/node_modules/@netlify/angular-runtime/src/helpers/fixOutputDir.js
+@@ -7,9 +7,9 @@ const fixOutputDir = async function ({ failBuild, failPlugin, siteRoot, PUBLISH_
+   const angularJson = getAngularJson({ failPlugin, siteRoot })
+   const project = getProject(angularJson)
+ 
+-  const { outputPath } = project.architect.build.options
++  const { outputPath } = project.targets.build.options
+ 
+-  const isApplicationBuilder = project.architect.build.builder.endsWith(':application')
++  const isApplicationBuilder = project.targets.build.executor.endsWith(':application')
+   const correctPublishDir = isApplicationBuilder ? join(outputPath, 'browser') : outputPath
+   if (correctPublishDir === PUBLISH_DIR) {
+     return
+diff --git a/node_modules/@netlify/angular-runtime/src/helpers/getAngularJson.js b/node_modules/@netlify/angular-runtime/src/helpers/getAngularJson.js
+index ba571df..e884763 100644
+--- a/node_modules/@netlify/angular-runtime/src/helpers/getAngularJson.js
++++ b/node_modules/@netlify/angular-runtime/src/helpers/getAngularJson.js
+@@ -4,11 +4,11 @@ const { existsSync, readJsonSync } = require('fs-extra')
+ 
+ // Get contents of project's angular.json file
+ const getAngularJson = function ({ failPlugin, siteRoot }) {
+-  if (!existsSync(join(siteRoot, 'angular.json'))) {
++  if (!existsSync(join(siteRoot, 'project.json'))) {
+     return failPlugin(`No angular.json found at project root`)
+   }
+   try {
+-    return readJsonSync(join(siteRoot, 'angular.json'))
++    return readJsonSync(join(siteRoot, 'project.json'))
+   } catch {
+     return failPlugin(`Could not parse contents of angular.json`)
+   }
+diff --git a/node_modules/@netlify/angular-runtime/src/helpers/getAngularRoot.js b/node_modules/@netlify/angular-runtime/src/helpers/getAngularRoot.js
+index ebc7260..95268f6 100644
+--- a/node_modules/@netlify/angular-runtime/src/helpers/getAngularRoot.js
++++ b/node_modules/@netlify/angular-runtime/src/helpers/getAngularRoot.js
+@@ -7,15 +7,15 @@ const process = require('process')
+  * If there's no angular.json in the root, we instead look for it 2 levels up from the publish dir
+  */
+ const getAngularRoot = ({ failBuild, netlifyConfig }) => {
+-  let angularRoot = process.cwd()
++  let angularRoot = path.join(process.cwd(), 'apps', 'sanity-example')
+   if (
+-    !existsSync(path.join(angularRoot, 'angular.json')) &&
++    !existsSync(path.join(angularRoot, 'project.json')) &&
+     netlifyConfig.build.publish &&
+     netlifyConfig.build.publish !== angularRoot
+   ) {
+     angularRoot = path.dirname(path.resolve(path.join(netlifyConfig.build.publish, '..', '..')))
+ 
+-    if (!existsSync(path.join(angularRoot, 'angular.json'))) {
++    if (!existsSync(path.join(angularRoot, 'project.json'))) {
+       return failBuild(
+         `Could not locate your angular.json at your project root or two levels above your publish directory. Make sure your publish directory is set to "{PATH_TO_YOUR_SITE}/dist/{YOUR_PROJECT_NAME}/browser", where {YOUR_PROJECT_NAME} is 'defaultProject' in your angular.json.`,
+       )
+diff --git a/node_modules/@netlify/angular-runtime/src/helpers/setUpEdgeFunction.js b/node_modules/@netlify/angular-runtime/src/helpers/setUpEdgeFunction.js
+index 9ef5f0b..b1a7e54 100644
+--- a/node_modules/@netlify/angular-runtime/src/helpers/setUpEdgeFunction.js
++++ b/node_modules/@netlify/angular-runtime/src/helpers/setUpEdgeFunction.js
+@@ -33,15 +33,7 @@ const getProject = (angularJson, failBuild) => {
+     return project
+   }
+ 
+-  const projectNames = Object.keys(angularJson.projects)
+-  const [projectName] = projectNames
+-  if (projectNames.length > 1) {
+-    console.warn(
+-      `Found multiple projects in angular.json, deploying "${projectName}". To deploy a different one, set the ANGULAR_PROJECT environment variable to the project name.`,
+-    )
+-  }
+-
+-  return angularJson.projects[projectName]
++  return angularJson;
+ }
+ 
+ module.exports.getProject = getProject
+@@ -60,7 +52,7 @@ const getPrerenderedRoutes = async (outputDir) => {
+ const setUpEdgeFunction = async ({ angularJson, constants, failBuild }) => {
+   const project = getProject(angularJson)
+   const {
+-    architect: { build },
++    targets: { build },
+   } = project
+   const outputDir = build?.options?.outputPath
+   if (!outputDir || !existsSync(outputDir)) {

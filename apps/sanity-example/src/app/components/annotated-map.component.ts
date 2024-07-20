@@ -70,6 +70,13 @@ export class AnnotatedMapComponent extends PortableTextTypeComponent<AnnotatedMa
 
   private async loadLeaflet() {
     this.L = await import('leaflet');
+    // TODO: remove prod hack
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if ((this.L as any).default) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      this.L = (this.L as any).default;
+    }
+
     this.isLoading.set(false);
     this.initializeMap();
   }
@@ -100,7 +107,13 @@ export class AnnotatedMapComponent extends PortableTextTypeComponent<AnnotatedMa
 
     for (const marker of this.value().markers ?? []) {
       const { lat, lng } = marker.position;
-      this.L.marker([lat, lng]).addTo(this.map).bindPopup(marker.title);
+      this.L.marker([lat, lng], {
+        icon: this.L.icon({
+          iconUrl: '/media/marker-icon.png',
+        }),
+      })
+        .addTo(this.map)
+        .bindPopup(marker.title);
     }
   }
 }
