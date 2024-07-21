@@ -1,15 +1,3 @@
-diff --git a/node_modules/@netlify/angular-runtime/package.json b/node_modules/@netlify/angular-runtime/package.json
-index 9499279..6d7379c 100644
---- a/node_modules/@netlify/angular-runtime/package.json
-+++ b/node_modules/@netlify/angular-runtime/package.json
-@@ -1,6 +1,6 @@
- {
-   "name": "@netlify/angular-runtime",
--  "version": "2.1.0",
-+  "version": "2.1.1",
-   "description": "Netlify Angular Runtime - Run Angular seamlessly on Netlify.",
-   "main": "src/index.js",
-   "files": [
 diff --git a/node_modules/@netlify/angular-runtime/src/helpers/fixOutputDir.js b/node_modules/@netlify/angular-runtime/src/helpers/fixOutputDir.js
 index 2b6c701..96cf532 100644
 --- a/node_modules/@netlify/angular-runtime/src/helpers/fixOutputDir.js

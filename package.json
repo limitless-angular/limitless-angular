@@ -39,7 +39,7 @@
     "@angular/cli": "~18.1.1",
     "@angular/compiler-cli": "~18.1.1",
     "@angular/language-service": "~18.1.1",
-    "@netlify/angular-runtime": "^2.1.0",
+    "@netlify/angular-runtime": "2.1.0",
     "@nx/eslint": "19.4.4",
     "@nx/eslint-plugin": "19.4.4",
     "@nx/jest": "19.4.4",
