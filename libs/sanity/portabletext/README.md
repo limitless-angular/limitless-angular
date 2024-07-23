@@ -1,10 +1,15 @@
 # @limitless-angular/sanity/portabletext
 
-[![npm version](https://img.shields.io/npm/v/@limitless-angular/sanity/portabletext.svg?style=flat-square)](https://www.npmjs.com/package/@limitless-angular/sanity/portabletext)
-[![npm bundle size](https://img.shields.io/bundlephobia/minzip/@limitless-angular/sanity/portabletext?style=flat-square)](https://bundlephobia.com/result?p=@limitless-angular/sanity/portabletext)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/limitless-angular/angular-sanity/main.yml?branch=main&style=flat-square)](https://github.com/limitless-angular/angular-sanity/actions?query=workflow%3Atest)
+[![npm version](https://img.shields.io/npm/v/@limitless-angular/sanity.svg)](https://www.npmjs.com/package/@limitless-angular/sanity)
+[![npm downloads](https://img.shields.io/npm/dm/@limitless-angular/sanity.svg)](https://www.npmjs.com/package/@limitless-angular/sanity)
 
 Render [Portable Text](https://portabletext.org/) with Angular.
+
+## Demo
+
+Chout out our live demo of the Sanity example here: [Limitless Angular Sanity Example](https://limitless-angular-sanity-example.netlify.app/)
+
+You can also see example project in the monorepo: [`apps/sanity-example`](/apps/sanity-example)
 
 ## Table of contents
 

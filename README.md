@@ -6,9 +6,9 @@ Limitless Angular is a collection of powerful Angular libraries designed to enha
 
 ## Demo
 
-Check out our example project in the monorepo: [`apps/sanity-example`](apps/sanity-example)
+Chout out our live demo of the Sanity example here: [Limitless Angular Sanity Example](https://limitless-angular-sanity-example.netlify.app/)
 
-You can also see a live demo of the Sanity example here: [Limitless Angular Sanity Example](https://limitless-angular-sanity-example.netlify.app/)
+You can also see example project in the monorepo: [`apps/sanity-example`](/apps/sanity-example)
 
 ## Table of Contents
 
@@ -28,10 +28,8 @@ You can also see a live demo of the Sanity example here: [Limitless Angular Sani
 
 ### @limitless-angular/sanity
 
-
 [![npm version](https://img.shields.io/npm/v/@limitless-angular/sanity.svg)](https://www.npmjs.com/package/@limitless-angular/sanity)
 [![npm downloads](https://img.shields.io/npm/dm/@limitless-angular/sanity.svg)](https://www.npmjs.com/package/@limitless-angular/sanity)
-[![npm bundle size](https://img.shields.io/bundlephobia/minzip/@limitless-angular/sanity)](https://bundlephobia.com/result?p=@limitless-angular/sanity)
 
 This library provides two main features:
 
