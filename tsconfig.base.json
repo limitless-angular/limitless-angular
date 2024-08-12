@@ -21,7 +21,8 @@
       ],
       "@limitless-angular/sanity/portabletext": [
         "libs/sanity/portabletext/src/index.ts"
-      ]
+      ],
+      "@limitless-angular/sanity/shared": ["libs/sanity/shared/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

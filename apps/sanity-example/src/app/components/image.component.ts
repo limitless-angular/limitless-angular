@@ -1,40 +1,35 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { NgOptimizedImage } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
 
-import { provideSanityLoader } from '@limitless-angular/sanity/image-loader';
+import { getImageDimensions } from '@sanity/asset-utils';
+
+import {
+  provideSanityLoader,
+  SanityImage,
+} from '@limitless-angular/sanity/image-loader';
 import { PortableTextTypeComponent } from '@limitless-angular/sanity/portabletext';
-
-interface Asset {
-  _ref: string;
-  _type: string;
-}
-
-export interface ImageBlock {
-  _type: 'image';
-  _key: string;
-  asset: Asset;
-}
 
 @Component({
   selector: 'app-image',
   standalone: true,
-  imports: [NgOptimizedImage],
+  imports: [SanityImage],
   template: `
     <img
       class="mx-auto"
-      [ngSrc]="value().asset._ref"
-      [width]="300"
-      [height]="300"
       alt="Sanity Image"
+      [sanityImage]="value()"
+      [width]="dimensions().width"
+      [height]="dimensions().height"
     />
   `,
   styles: `
     :host {
-      @apply block h-[300px];
+      @apply block;
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   // Project data taken from https://www.sanity.io/demos/studio
   providers: [provideSanityLoader({ projectId: 'k4hg38xw', dataset: 'demo' })],
 })
-export class ImageComponent extends PortableTextTypeComponent<ImageBlock> {}
+export class ImageComponent extends PortableTextTypeComponent {
+  dimensions = computed(() => getImageDimensions(this.value()));
+}

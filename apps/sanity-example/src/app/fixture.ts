@@ -1,6 +1,10 @@
 import type { PortableTextBlock } from '@portabletext/types';
 import { AnnotatedMapBlock } from './components/annotated-map.component';
-import { ImageBlock } from './components/image.component';
+
+interface ImageBlock {
+  _type: 'image';
+  [key: string]: any;
+}
 
 interface CodeBlock {
   _type: 'code';
@@ -34,7 +38,12 @@ interface CodeBlock {
 export class CodeComponent extends PortableTextTypeComponent<CodeBlock> {}
 `.trim();
 
-export const blocks: (PortableTextBlock | CodeBlock | AnnotatedMapBlock | ImageBlock)[] = [
+export const blocks: (
+  | PortableTextBlock
+  | CodeBlock
+  | AnnotatedMapBlock
+  | ImageBlock
+)[] = [
   {
     _type: 'block',
     _key: 'head',
@@ -551,7 +560,7 @@ export const blocks: (PortableTextBlock | CodeBlock | AnnotatedMapBlock | ImageB
     _type: 'block',
     _key: 'image-loader-header',
     style: 'h2',
-    children: [{ _type: 'span', _key: 'a', text: 'Sanity Image Loader' }],
+    children: [{ _type: 'span', _key: 'a', text: 'Sanity Image Awesomeness' }],
   },
   {
     _type: 'block',
@@ -561,7 +570,7 @@ export const blocks: (PortableTextBlock | CodeBlock | AnnotatedMapBlock | ImageB
     children: [
       {
         _type: 'span',
-        text: "Alright, let's talk about images for a sec. You know how sometimes images can be a pain to deal with in web apps? Well, we've got something pretty cool for that.",
+        text: "Alright, let's talk about some cool image stuff for your Angular apps with Sanity. We've cooked up not one, but two nifty features to make your life easier.",
       },
     ],
   },
@@ -573,7 +582,7 @@ export const blocks: (PortableTextBlock | CodeBlock | AnnotatedMapBlock | ImageB
     children: [
       {
         _type: 'span',
-        text: "We've cooked up this thing called the Image Loader Provider. It's basically a neat way to make Sanity and Angular play nice together when it comes to loading images. You get all the cool stuff Sanity can do with images, but it works smoothly with Angular's fancy NgOptimizedImage directive.",
+        text: "First up, we've got this sweet little thing called the Sanity Image Directive. It's like a magic wand for your images. You just slap a sanityImage attribute on your img tag, and bam! Your Sanity images are right there, looking all pretty and optimized. It's like telling your images, \"Hey, you're a Sanity image now. Act cool.\"\n",
       },
     ],
   },
@@ -585,7 +594,19 @@ export const blocks: (PortableTextBlock | CodeBlock | AnnotatedMapBlock | ImageB
     children: [
       {
         _type: 'span',
-        text: 'Check this example:',
+        text: "Now, let's chat about its sidekick - the Image Loader Provider. This is the behind-the-scenes hero that makes sure everything runs smooth as butter. It's basically a neat way to make Sanity and Angular play nice together when it comes to loading images. You get all the cool stuff Sanity can do with images, but it works smoothly with Angular's fancy NgOptimizedImage directive.",
+      },
+    ],
+  },
+  {
+    _type: 'block',
+    _key: 'image-loader-intrp-4',
+    style: 'normal',
+    markDefs: [],
+    children: [
+      {
+        _type: 'span',
+        text: 'Together, these two are like having a personal assistant for your images. You just point and say, "I want that image there," and our tools make sure it happens, all optimized and fancy-like. Pretty cool, right?',
       },
     ],
   },
