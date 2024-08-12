@@ -41,7 +41,7 @@ import { PortableTextComponent, PortableTextComponents } from '@limitless-angula
 
 @Component({
   selector: 'app-your-component',
-  template: ` <div portable-text [value]="portableTextValue" [components]="customComponents"></div> `,
+  template: `<div portable-text [value]="portableTextValue" [components]="customComponents"></div> `,
   standalone: true,
   imports: [PortableTextComponent],
 })

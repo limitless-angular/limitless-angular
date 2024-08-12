@@ -6,7 +6,7 @@ Limitless Angular is a collection of powerful Angular libraries designed to enha
 
 ## Demo
 
-Chout out our live demo of the Sanity example here: [Limitless Angular Sanity Example](https://limitless-angular-sanity-example.netlify.app/)
+Check out our live demo of the Sanity example here: [Limitless Angular Sanity Example](https://limitless-angular-sanity-example.netlify.app/)
 
 You can also see example project in the monorepo: [`apps/sanity-example`](/apps/sanity-example)
 
@@ -18,6 +18,7 @@ You can also see example project in the monorepo: [`apps/sanity-example`](/apps/
   - [Usage](#usage)
   - [Portable Text](#portable-text)
   - [Image Loader](#image-loader)
+  - [Sanity Image Directive](#sanity-image-directive)
 - [Contributing](#contributing)
 - [License](#license)
 - [Roadmap](#roadmap)
@@ -31,10 +32,11 @@ You can also see example project in the monorepo: [`apps/sanity-example`](/apps/
 [![npm version](https://img.shields.io/npm/v/@limitless-angular/sanity.svg)](https://www.npmjs.com/package/@limitless-angular/sanity)
 [![npm downloads](https://img.shields.io/npm/dm/@limitless-angular/sanity.svg)](https://www.npmjs.com/package/@limitless-angular/sanity)
 
-This library provides two main features:
+This library provides three main features:
 
 1. A complete Portable Text implementation for Angular
 2. An image loader to optimize images using Sanity
+3. A Sanity Image directive for easy image rendering
 
 ## Getting Started
 
@@ -53,7 +55,7 @@ npm install --save @limitless-angular/sanity
 ### Usage
 
 - For Portable Text: `import { ... } from '@limitless-angular/sanity/portabletext';`
-- For Image Loader: `import { ... } from '@limitless-angular/sanity/image-loader';`
+- For Image Loader and Sanity Image Directive: `import { ... } from '@limitless-angular/sanity/image-loader';`
 
 For more detailed information, refer to the specific feature documentation:
 
@@ -114,6 +116,29 @@ import { SanityImageLoader } from '@limitless-angular/sanity/image-loader';
 ```
 
 For more details on the Image Loader, check out the [Image Loader README](libs/sanity/image-loader/README.md).
+
+### Sanity Image Directive
+
+The `sanityImage` directive provides a convenient way to render Sanity images in your Angular components, especially when working with Portable Text content.
+
+#### Basic Usage
+
+```typescript
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { provideSanityLoader, SanityImage } from '@limitless-angular/sanity/image-loader';
+import { PortableTextTypeComponent } from '@limitless-angular/sanity/portabletext';
+
+@Component({
+  selector: 'app-image',
+  standalone: true,
+  template: `<img width="100" height="100" [sanityImage]="value()" />`,
+  imports: [SanityImage],
+  providers: [provideSanityLoader({ projectId: 'SANITY_PROJECT_ID', dataset: 'SANITY_DATASET' })],
+})
+export class ImageComponent extends PortableTextTypeComponent {}
+```
+
+This directive simplifies the process of rendering Sanity images in your components, handling the complexities of image optimization and URL generation.
 
 ## Contributing
 

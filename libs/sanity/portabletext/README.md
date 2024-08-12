@@ -24,7 +24,6 @@ You can also see example project in the monorepo: [`apps/sanity-example`](/apps/
   - [list](#list)
   - [listItem](#listitem)
   - [hardBreak](#hardbreak)
-- [Typing Portable Text](#typing-portable-text)
 
 ## Installation
 
@@ -72,14 +71,14 @@ Here are two examples for each case: one using direct HTML element selectors, an
 import { Component, computed, input } from '@angular/core';
 import { PortableTextComponent, PortableTextComponents, PortableTextMarkComponent, PortableTextBlockComponent, PortableTextListComponent, PortableTextListItemComponent } from '@limitless-angular/sanity/portabletext';
 
+type LinkProps = { _type: 'link'; href: string };
+
 @Component({
   selector: 'a',
   standalone: true,
   template: `<ng-container #children />`,
 })
-export class LinkComponent extends PortableTextMarkComponent {
-  value = input.required<{ href: string }>();
-}
+export class LinkComponent extends PortableTextMarkComponent<LinkProps> {}
 
 @Component({
   selector: 'p',
@@ -148,14 +147,14 @@ export class YourComponent {
 import { Component, computed, input } from '@angular/core';
 import { PortableTextComponent, PortableTextComponents, PortableTextMarkComponent, PortableTextBlockComponent, PortableTextListComponent, PortableTextListItemComponent } from '@limitless-angular/sanity/portabletext';
 
+type LinkProps = { _type: 'link'; href: string };
+
 @Component({
   selector: 'app-link',
   standalone: true,
-  template: `<a [href]="value()?.['href']"><ng-container #children /></a>`,
+  template: `<a [href]="value()?.href"><ng-container #children /></a>`,
 })
-export class LinkComponent extends PortableTextMarkComponent {
-  value = input.required<{ href: string }>();
-}
+export class LinkComponent extends PortableTextMarkComponent<LinkProps> {}
 
 @Component({
   selector: 'app-paragraph',
@@ -243,9 +242,6 @@ import { getImageDimensions } from '@sanity/asset-utils';
   },
 })
 export class SampleImageComponent extends PortableTextTypeComponent {
-  value = input.required<any>();
-  isInline = input.required<boolean>();
-
   imageUrl = computed(() =>
     urlBuilder()
       .image(this.value())
@@ -263,7 +259,7 @@ export class SampleImageComponent extends PortableTextTypeComponent {
 
 @Component({
   selector: 'app-your-component',
-  template: ` <div portable-text [value]="portableTextValue" [components]="components"></div> `,
+  template: `<div portable-text [value]="portableTextValue" [components]="components"></div> `,
   standalone: true,
   imports: [PortableTextComponent],
 })
@@ -295,9 +291,6 @@ import { getImageDimensions } from '@sanity/asset-utils';
   template: ` <img [src]="imageUrl()" [alt]="value().alt || ' '" loading="lazy" [style.display]="isInline() ? 'inline-block' : 'block'" [style.aspectRatio]="aspectRatio()" /> `,
 })
 export class SampleImageComponent extends PortableTextTypeComponent {
-  value = input.required<any>();
-  isInline = input.required<boolean>();
-
   imageUrl = computed(() =>
     urlBuilder()
       .image(this.value())
@@ -332,6 +325,8 @@ export class YourComponent {
   };
 }
 ```
+
+**Note:** While the above examples demonstrate how to render Sanity images within Portable Text, there's an easier way to handle this using the Sanity Image Directive. For more information on this simpler approach, please refer to the [Image Loader README](../image-loader/README.md).
 
 ### `marks`
 
@@ -369,11 +364,13 @@ export class EmComponent extends PortableTextMarkComponent {}
   },
 })
 export class LinkComponent extends PortableTextMarkComponent {
-  value = input.required<{ href: string }>();
+  target = computed(() =>
+    (this.value()?.href ?? '').startsWith('http') ? '_blank' : undefined,
+  );
 
-  target = computed(() => ((this.value().href || '').startsWith('http') ? '_blank' : undefined));
-
-  rel = computed(() => (this.target() === '_blank' ? 'noindex nofollow' : undefined));
+  rel = computed(() =>
+    this.target() === '_blank' ? 'noindex nofollow' : undefined,
+  );
 }
 
 @Component({
@@ -419,11 +416,13 @@ export class EmComponent extends PortableTextMarkComponent {}
   `,
 })
 export class LinkComponent extends PortableTextMarkComponent {
-  value = input.required<{ href: string }>();
+  target = computed(() =>
+    (this.value()?.href ?? '').startsWith('http') ? '_blank' : undefined,
+  );
 
-  target = computed(() => ((this.value().href || '').startsWith('http') ? '_blank' : undefined));
-
-  rel = computed(() => (this.target() === '_blank' ? 'noindex nofollow' : undefined));
+  rel = computed(() =>
+    this.target() === '_blank' ? 'noindex nofollow' : undefined,
+  );
 }
 
 @Component({
