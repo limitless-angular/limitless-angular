@@ -15,7 +15,7 @@
     "sharedGlobals": []
   },
   "release": {
-    "projects": ["libs/*"],
+    "projects": ["packages/*"],
     "projectsRelationship": "independent",
     "version": {
       "conventionalCommits": true

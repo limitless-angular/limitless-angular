@@ -1,7 +1,7 @@
 {
   "name": "sanity",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "libs/sanity/src",
+  "sourceRoot": "packages/sanity/src",
   "prefix": "lib",
   "projectType": "library",
   "tags": [],
@@ -10,14 +10,14 @@
       "executor": "@nx/angular:package",
       "outputs": ["{workspaceRoot}/dist/{projectRoot}"],
       "options": {
-        "project": "libs/sanity/ng-package.json"
+        "project": "packages/sanity/ng-package.json"
       },
       "configurations": {
         "production": {
-          "tsConfig": "libs/sanity/tsconfig.lib.prod.json"
+          "tsConfig": "packages/sanity/tsconfig.lib.prod.json"
         },
         "development": {
-          "tsConfig": "libs/sanity/tsconfig.lib.json"
+          "tsConfig": "packages/sanity/tsconfig.lib.json"
         }
       },
       "defaultConfiguration": "production"
@@ -26,7 +26,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "libs/sanity/jest.config.ts"
+        "jestConfig": "packages/sanity/jest.config.ts"
       }
     },
     "lint": {

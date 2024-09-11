@@ -55,7 +55,7 @@ export class YourComponent {
 }
 ```
 
-For more detailed information on using Portable Text, including styling, customizing components, and available components, please refer to the [Portable Text README](libs/sanity/portabletext/README.md).
+For more detailed information on using Portable Text, including styling, customizing components, and available components, please refer to the [Portable Text README](packages/sanity/portabletext/README.md).
 
 ### Image Loader
 
@@ -81,7 +81,7 @@ import { SanityImageLoader } from '@limitless-angular/sanity/image-loader';
 })
 ```
 
-For more details on the Image Loader, check out the [Image Loader README](libs/sanity/image-loader/README.md).
+For more details on the Image Loader, check out the [Image Loader README](packages/sanity/image-loader/README.md).
 
 ## Demo
 

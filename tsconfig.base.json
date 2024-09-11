@@ -15,14 +15,14 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@limitless-angular/sanity": ["libs/sanity/src/index.ts"],
+      "@limitless-angular/sanity": ["packages/sanity/src/index.ts"],
       "@limitless-angular/sanity/image-loader": [
-        "libs/sanity/image-loader/src/index.ts"
+        "packages/sanity/image-loader/src/index.ts"
       ],
       "@limitless-angular/sanity/portabletext": [
-        "libs/sanity/portabletext/src/index.ts"
+        "packages/sanity/portabletext/src/index.ts"
       ],
-      "@limitless-angular/sanity/shared": ["libs/sanity/shared/src/index.ts"]
+      "@limitless-angular/sanity/shared": ["packages/sanity/shared/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
