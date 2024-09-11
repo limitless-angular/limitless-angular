@@ -7,6 +7,11 @@
     "postinstall": "patch-package"
   },
   "private": true,
+  "workspaces": [
+    "packages/*",
+    "packages/sanity/*",
+    "apps/*"
+  ],
   "dependencies": {
     "@angular/animations": "~18.1.1",
     "@angular/common": "~18.1.1",

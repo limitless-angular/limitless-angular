@@ -1,0 +1,20 @@
+{
+  "name": "visual-editing-helpers",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/sanity/preview-kit-compat/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project preview-kit-compat --web",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/visual-editing-helpers",
+        "main": "packages/sanity/visual-editing-helpers/src/index.ts",
+        "tsConfig": "packages/sanity/visual-editing-helpers/tsconfig.lib.json",
+        "assets": []
+      }
+    }
+  }
+}

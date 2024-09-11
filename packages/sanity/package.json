@@ -24,12 +24,26 @@
   ],
   "peerDependencies": {
     "@angular/common": "^18.0.0",
-    "@angular/core": "^18.0.0"
+    "@angular/core": "^18.0.0",
+    "@sanity/client": "^6.21.3"
+  },
+  "peerDependenciesMeta": {
+    "@sanity/client": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@portabletext/toolkit": "^2.0.15",
     "@portabletext/types": "^2.0.13",
-    "@sanity/image-url": "^1.0.2"
+    "@sanity/image-url": "^1.0.2",
+    "@vercel/stega": "0.1.2",
+    "lodash-es": "^4.17.21",
+    "lru-cache": "^11.0.0",
+    "mendoza": "^3.0.7",
+    "scroll-into-view-if-needed": "^3.1.0"
+  },
+  "devDependencies": {
+    "@types/lodash-es": "^4.17.12"
   },
   "sideEffects": false,
   "publishConfig": {

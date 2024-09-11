@@ -4,5 +4,14 @@
   "lib": {
     "entryFile": "src/public-api.ts"
   },
-  "allowedNonPeerDependencies": ["@portabletext/toolkit", "@portabletext/types", "@sanity/image-url"]
+  "allowedNonPeerDependencies": [
+    "@portabletext/toolkit",
+    "@portabletext/types",
+    "@sanity/image-url",
+    "@vercel/stega",
+    "lodash-es",
+    "lru-cache",
+    "mendoza",
+    "scroll-into-view-if-needed"
+  ]
 }
