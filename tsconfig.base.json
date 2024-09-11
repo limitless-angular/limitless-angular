@@ -35,9 +35,6 @@
       ],
       "@repo/visual-editing-helpers": [
         "packages/sanity/visual-editing-helpers/src/index.ts"
-      ],
-      "@repo/visual-editing-helpers/csm": [
-        "packages/sanity/visual-editing-helpers/src/csm/index.ts"
       ]
     }
   },
