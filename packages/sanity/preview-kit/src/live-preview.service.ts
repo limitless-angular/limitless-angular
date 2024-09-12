@@ -25,7 +25,7 @@ import { LRUCache } from 'lru-cache';
 import { applyPatch } from 'mendoza';
 import { vercelStegaSplit } from '@vercel/stega';
 import { applySourceDocuments } from '@sanity/client/csm';
-import { LIVE_PREVIEW_REFRESH_INTERVAL, SANITY_CLIENT_FACTORY } from './tokens';
+import { LIVE_PREVIEW_REFRESH_INTERVAL } from './tokens';
 import { QueryCacheKey, type EnhancedQuerySnapshot } from './types';
 import {
   ContentSourceMap,
@@ -38,6 +38,7 @@ import {
 import { RevalidateService } from './revalidate.service';
 // eslint-disable-next-line @nx/enforce-module-boundaries
 import { UseDocumentsInUseService } from '@repo/preview-kit-compat';
+import { SANITY_CLIENT_FACTORY } from '@limitless-angular/sanity/shared';
 
 const DEFAULT_TAG = 'sanity.preview-kit';
 

@@ -1,8 +1,4 @@
-import type {
-  ContentSourceMap,
-  QueryParams,
-  SanityClient,
-} from '@sanity/client';
+import type { ContentSourceMap, QueryParams } from '@sanity/client';
 
 export interface QuerySnapshot<T> {
   result: T;
@@ -16,5 +12,3 @@ export interface EnhancedQuerySnapshot<T> extends QuerySnapshot<T> {
 
 /** @internal */
 export type QueryCacheKey = `${string}-${string}`;
-
-export type SanityClientFactory = (preview?: { token: string }) => SanityClient;

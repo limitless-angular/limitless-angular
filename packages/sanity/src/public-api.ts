@@ -3,3 +3,4 @@
  */
 
 export * from '@limitless-angular/sanity/shared';
+export * from './providers';
