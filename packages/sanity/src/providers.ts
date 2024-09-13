@@ -9,7 +9,9 @@ import { LIVE_PREVIEW_REFRESH_INTERVAL } from '@limitless-angular/sanity/preview
 
 import {
   SANITY_CLIENT_FACTORY,
+  SANITY_CONFIG,
   type SanityClientFactory,
+  type SanityConfig,
 } from '@limitless-angular/sanity/shared';
 
 const DEFAULT_LIVE_PREVIEW_REFRESH_INTERVAL = 10000;
@@ -19,11 +21,16 @@ export interface LivePreviewOptions {
 }
 
 export function provideSanity(
-  factory: SanityClientFactory,
+  factoryOrConfig: SanityClientFactory | SanityConfig,
   ...features: SanityFeatures[]
 ): EnvironmentProviders {
   return makeEnvironmentProviders([
-    { provide: SANITY_CLIENT_FACTORY, useValue: factory },
+    ...(typeof factoryOrConfig === 'function'
+      ? [
+          { provide: SANITY_CLIENT_FACTORY, useValue: factoryOrConfig },
+          { provide: SANITY_CONFIG, useValue: factoryOrConfig()?.config() },
+        ]
+      : [{ provide: SANITY_CONFIG, useValue: factoryOrConfig }]),
     {
       provide: ENVIRONMENT_INITIALIZER,
       multi: true,

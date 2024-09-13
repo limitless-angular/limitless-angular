@@ -6,17 +6,43 @@ import {
   input,
   OnInit,
 } from '@angular/core';
-import { NgOptimizedImage } from '@angular/common';
+import {
+  IMAGE_LOADER,
+  type ImageLoaderConfig,
+  NgOptimizedImage,
+} from '@angular/common';
 
 import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
 import imageUrlBuilder from '@sanity/image-url';
 
 import { SANITY_CONFIG } from '@limitless-angular/sanity/shared';
+import { sanityImageLoader } from './loader';
+
+function getNoopImageLoader() {
+  return (
+    IMAGE_LOADER.ɵprov as {
+      factory: () => (config: ImageLoaderConfig) => string;
+    }
+  ).factory();
+}
 
 @Directive({
   // eslint-disable-next-line @angular-eslint/directive-selector
   selector: 'img[sanityImage]',
   standalone: true,
+  providers: [
+    {
+      provide: IMAGE_LOADER,
+      useFactory: () => {
+        const config = inject(SANITY_CONFIG);
+        const imageLoader = inject(IMAGE_LOADER, { skipSelf: true });
+        const noopImageLoader = getNoopImageLoader();
+        return imageLoader !== noopImageLoader
+          ? imageLoader
+          : sanityImageLoader(config);
+      },
+    },
+  ],
 })
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class SanityImage extends NgOptimizedImage implements OnInit {
