@@ -1,0 +1,10 @@
+{
+  "name": "@repo/preview-kit-compat",
+  "private": true,
+  "license": "MIT",
+  "sideEffects": false,
+  "type": "module",
+  "peerDependencies": {
+    "@sanity/client": "^6.21.3"
+  }
+}

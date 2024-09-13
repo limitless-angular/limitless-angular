@@ -1,0 +1,20 @@
+{
+  "name": "channels",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/sanity/channels/src",
+  "projectType": "library",
+  "tags": [],
+  "// targets": "to see all targets run: nx show project channels --web",
+  "targets": {
+    "build": {
+      "executor": "@nx/js:tsc",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/packages/channels",
+        "main": "packages/sanity/channels/src/index.ts",
+        "tsConfig": "packages/sanity/channels/tsconfig.lib.json",
+        "assets": []
+      }
+    }
+  }
+}

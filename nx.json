@@ -64,6 +64,11 @@
       "options": {
         "packageRoot": "dist/{projectRoot}"
       }
+    },
+    "@nx/js:tsc": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["production", "^production"]
     }
   },
   "generators": {
@@ -84,5 +89,13 @@
       "changeDetection": "OnPush"
     }
   },
-  "nxCloudAccessToken": "YzUwYjkyYjQtYmNhZS00ODQzLTgwMjEtMzVjNWY4MDc1YTY2fHJlYWQtd3JpdGU="
+  "nxCloudAccessToken": "YzUwYjkyYjQtYmNhZS00ODQzLTgwMjEtMzVjNWY4MDc1YTY2fHJlYWQtd3JpdGU=",
+  "plugins": [
+    {
+      "plugin": "@nx/eslint/plugin",
+      "options": {
+        "targetName": "eslint:lint"
+      }
+    }
+  ]
 }
