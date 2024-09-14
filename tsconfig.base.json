@@ -29,11 +29,13 @@
       "@limitless-angular/sanity/visual-editing": [
         "packages/sanity/visual-editing/src/index.ts"
       ],
-      "@repo/channels": ["packages/sanity/channels/src/index.ts"],
-      "@repo/preview-kit-compat": [
+      "@limitless-angular/sanity/channels": [
+        "packages/sanity/channels/src/index.ts"
+      ],
+      "@limitless-angular/sanity/preview-kit-compat": [
         "packages/sanity/preview-kit-compat/src/index.ts"
       ],
-      "@repo/visual-editing-helpers": [
+      "@limitless-angular/sanity/visual-editing-helpers": [
         "packages/sanity/visual-editing-helpers/src/index.ts"
       ]
     }

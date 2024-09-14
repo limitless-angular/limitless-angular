@@ -4,17 +4,5 @@
   "sourceRoot": "packages/sanity/preview-kit-compat/src",
   "projectType": "library",
   "tags": [],
-  "// targets": "to see all targets run: nx show project preview-kit-compat --web",
-  "targets": {
-    "build": {
-      "executor": "@nx/js:tsc",
-      "outputs": ["{options.outputPath}"],
-      "options": {
-        "outputPath": "dist/packages/preview-kit-compat",
-        "main": "packages/sanity/preview-kit-compat/src/index.ts",
-        "tsConfig": "packages/sanity/preview-kit-compat/tsconfig.lib.json",
-        "assets": []
-      }
-    }
-  }
+  "targets": {}
 }

@@ -6,12 +6,15 @@ import { BehaviorSubject, combineLatest } from 'rxjs';
 import { distinctUntilChanged, filter } from 'rxjs/operators';
 import type { ContentSourceMapDocuments } from '@sanity/client/csm';
 
-import { type ChannelsNode, createChannelsNode } from '@repo/channels';
+import {
+  type ChannelsNode,
+  createChannelsNode,
+} from '@limitless-angular/sanity/channels';
 import type {
   PresentationMsg,
   PreviewKitMsg,
   VisualEditingConnectionIds,
-} from '@repo/visual-editing-helpers';
+} from '@limitless-angular/sanity/visual-editing-helpers';
 
 type UseDocumentsInUseConfig = { projectId: string; dataset: string };
 

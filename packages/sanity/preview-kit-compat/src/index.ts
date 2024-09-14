@@ -1,1 +1,1 @@
-export * from './document-in-use.service'
+export * from './document-in-use.service';

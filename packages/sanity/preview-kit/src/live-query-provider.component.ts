@@ -6,7 +6,7 @@ import {
   input,
 } from '@angular/core';
 // eslint-disable-next-line @nx/enforce-module-boundaries
-import { UseDocumentsInUseService } from '@repo/preview-kit-compat';
+import { UseDocumentsInUseService } from '@limitless-angular/sanity/preview-kit-compat';
 
 import { LivePreviewService } from './live-preview.service';
 import { RevalidateService } from './revalidate.service';
