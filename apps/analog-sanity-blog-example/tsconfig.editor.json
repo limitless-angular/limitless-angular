@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["**/*.ts",
+    "tailwind.config"
+  ],
+  "compilerOptions": {
+    "types": ["node"]
+  }
+}

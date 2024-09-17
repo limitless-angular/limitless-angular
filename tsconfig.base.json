@@ -37,7 +37,8 @@
       ],
       "@limitless-angular/sanity/visual-editing-helpers": [
         "packages/sanity/visual-editing-helpers/src/index.ts"
-      ]
+      ],
+      "@/analog-sanity-blog-example/sanity": ["apps/analog-sanity-blog-example/src/sanity/lib/index.ts"],
     }
   },
   "exclude": ["node_modules", "tmp"]

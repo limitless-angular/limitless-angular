@@ -1,0 +1,51 @@
+{
+  "name": "analog-sanity-blog-example",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/analog-sanity-blog-example/src",
+  "prefix": "app",
+  "targets": {
+    "build": {
+      "executor": "@analogjs/platform:vite",
+      "options": {
+        "main": "apps/analog-sanity-blog-example/src/main.ts",
+        "configFile": "apps/analog-sanity-blog-example/vite.config.ts",
+        "outputPath": "dist/apps/analog-sanity-blog-example/client",
+        "tsConfig": "apps/analog-sanity-blog-example/tsconfig.app.json"
+      },
+      "outputs": [
+        "{options.outputPath}",
+        "{workspaceRoot}/dist/apps/analog-sanity-blog-example/.nitro",
+        "{workspaceRoot}/dist/apps/analog-sanity-blog-example/ssr",
+        "{workspaceRoot}/dist/apps/analog-sanity-blog-example/analog"
+      ],
+      "configurations": {
+        "development": {
+          "mode": "development"
+        },
+        "production": {
+          "sourcemap": false,
+          "mode": "production"
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "executor": "@analogjs/platform:vite-dev-server",
+      "options": {
+        "buildTarget": "analog-sanity-blog-example:build",
+        "port": 4200
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "analog-sanity-blog-example:build:production"
+        },
+        "development": {
+          "buildTarget": "analog-sanity-blog-example:build:development",
+          "hmr": true
+        }
+      },
+      "defaultConfiguration": "development"
+    }
+  }
+}
