@@ -42,7 +42,7 @@ export const description = [
       {
         _key: '4a58edd077885',
         _type: 'span',
-        marks: ['1f8991913ea8'],
+        marks: ['6b5d5d6a63cf0'],
         text: 'Limitless Angular',
       },
       {

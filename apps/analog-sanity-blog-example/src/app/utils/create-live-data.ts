@@ -46,13 +46,13 @@ function computedAsync<T>(
   const error = signal<unknown | undefined>(undefined);
 
   effect(
-    () => {
+    (onCleanup) => {
       const subscription = computation().subscribe({
         next: (v) => value.set(v),
         error: (e) => error.set(e),
       });
 
-      return () => subscription.unsubscribe();
+      onCleanup(() => subscription.unsubscribe());
     },
     { allowSignalWrites: true },
   );

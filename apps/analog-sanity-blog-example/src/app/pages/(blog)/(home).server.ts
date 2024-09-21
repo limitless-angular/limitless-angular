@@ -12,14 +12,14 @@ import { readToken } from '../../../sanity/lib/token';
 export const load = async ({ event }: PageServerLoad) => {
   const draftMode = isDraftMode(event);
   const client = getClient(draftMode ? { token: readToken } : undefined);
-  const [settings, posts] = await Promise.all([
+  const [settings, posts = []] = await Promise.all([
     getSettings(client),
     getMoreStories(client, undefined, 100),
   ]);
 
   return {
-    settings,
-    posts,
+    settings: (settings ?? {}) as NonNullable<typeof settings>,
+    posts: posts,
     draftMode,
     token: draftMode ? readToken : '',
   };

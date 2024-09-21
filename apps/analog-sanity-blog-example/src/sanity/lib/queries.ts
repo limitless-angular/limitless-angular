@@ -1,6 +1,6 @@
-import groq from 'groq';
+import { defineQuery } from 'groq';
 
-export const settingsQuery = groq`*[_type == "settings"][0]`;
+export const settingsQuery = defineQuery(`*[_type == "settings"][0]`);
 
 const postFields = /* groq */ `
   _id,
@@ -14,11 +14,13 @@ const postFields = /* groq */ `
   _updatedAt,
 `;
 
-export const moreStoriesQuery = groq`*[_type == "post" && slug.current != $skip && defined(slug.current)] | order(date desc, _updatedAt desc) [0...$limit] {
+export const moreStoriesQuery =
+  defineQuery(`*[_type == "post" && slug.current != $skip && defined(slug.current)] | order(date desc, _updatedAt desc) [0...$limit] {
   ${postFields}
-}`;
+}`);
 
-export const postBySlugQuery = groq`*[_type == "post" && slug.current == $slug] [0] {
+export const postBySlugQuery =
+  defineQuery(`*[_type == "post" && slug.current == $slug] [0] {
   content,
   ${postFields}
-}`;
+}`);
