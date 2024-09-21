@@ -22,13 +22,6 @@
       },
       "defaultConfiguration": "production"
     },
-    "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
-      "options": {
-        "jestConfig": "packages/sanity/jest.config.ts"
-      }
-    },
     "lint": {
       "executor": "@nx/eslint:lint"
     }
