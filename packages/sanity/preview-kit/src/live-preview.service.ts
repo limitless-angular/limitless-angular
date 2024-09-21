@@ -253,8 +253,8 @@ export class LivePreviewService {
       .getRevalidateState()
       .pipe(
         map((state) => state === 'refresh' || state === 'inflight'),
-        filter(Boolean),
         distinctUntilChanged(),
+        filter(Boolean),
         switchMap(() => this.fetchQuery(query, params)),
         takeWhile(() => snapshot.observed),
         takeUntilDestroyed(this.destroyRef),
