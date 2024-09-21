@@ -16,7 +16,7 @@ import { AvatarComponent } from './components/avatar.component';
 import { demo } from '@/analog-sanity-blog-example/sanity';
 
 @Component({
-  selector: 'intro',
+  selector: 'blog-intro',
   standalone: true,
   imports: [PortableTextComponent],
   template: `
@@ -29,7 +29,7 @@ import { demo } from '@/analog-sanity-blog-example/sanity';
         {{ title() || demo.title }}
       </h1>
       <h2 class="text-pretty mt-5 text-center text-lg lg:pl-8 lg:text-left">
-        <portable-text class="prose-lg" [value]="descriptionToUse()" />
+        <blog-portable-text class="prose-lg" [value]="descriptionToUse()" />
       </h2>
     </section>
   `,
@@ -37,6 +37,7 @@ import { demo } from '@/analog-sanity-blog-example/sanity';
 })
 export class IntroComponent {
   title = input<string | null | undefined>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   description = input<any>();
 
   protected readonly demo = demo;
@@ -47,13 +48,13 @@ export class IntroComponent {
 }
 
 @Component({
-  selector: 'hero-post',
+  selector: 'blog-hero-post',
   standalone: true,
   imports: [RouterLink, CoverImageComponent, DateComponent, AvatarComponent],
   template: `
     <article>
       <a [routerLink]="['/posts', slug()]" class="group mb-8 block md:mb-16">
-        <cover-image [image]="coverImage()" [priority]="true" />
+        <blog-cover-image [image]="coverImage()" [priority]="true" />
       </a>
       <div class="mb-20 md:mb-28 md:grid md:grid-cols-2 md:gap-x-16 lg:gap-x-8">
         <div>
@@ -63,7 +64,7 @@ export class IntroComponent {
             </a>
           </h3>
           <div class="mb-4 text-lg md:mb-0">
-            <date-component [dateString]="date()" />
+            <blog-date [dateString]="date()" />
           </div>
         </div>
         <div>
@@ -73,7 +74,7 @@ export class IntroComponent {
             </p>
           }
           @if (author()) {
-            <avatar [name]="author().name" [picture]="author().picture" />
+            <blog-avatar [name]="author().name" [picture]="author().picture" />
           }
         </div>
       </div>
@@ -85,13 +86,15 @@ export class HeroPostComponent {
   title = input.required<string>();
   slug = input.required<string>();
   excerpt = input<string>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   coverImage = input.required<any>();
   date = input.required<string>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   author = input<any>();
 }
 
 @Component({
-  selector: 'home-page',
+  selector: 'blog-home-page',
   standalone: true,
   imports: [
     IntroComponent,
@@ -102,12 +105,12 @@ export class HeroPostComponent {
   ],
   template: `
     <div class="container mx-auto px-5">
-      <intro
+      <blog-intro
         [title]="settings()?.title"
         [description]="settings()?.description"
       />
       @if (heroPost(); as post) {
-        <hero-post
+        <blog-hero-post
           [title]="post.title"
           [slug]="post.slug"
           [coverImage]="post.coverImage"
@@ -116,7 +119,7 @@ export class HeroPostComponent {
           [author]="post.author"
         />
       } @else {
-        <onboarding />
+        <blog-onboarding />
       }
       @if (heroPost()?._id) {
         <aside>
@@ -125,11 +128,11 @@ export class HeroPostComponent {
           >
             More Stories
           </h2>
-          <more-stories [moreStories]="posts()" />
+          <blog-more-stories [moreStories]="posts()" />
         </aside>
       }
     </div>
-    <footer app-footer [footer]="settings()?.footer"></footer>
+    <footer blog-footer [footer]="settings()?.footer"></footer>
   `,
   styles: ``,
   changeDetection: ChangeDetectionStrategy.OnPush,

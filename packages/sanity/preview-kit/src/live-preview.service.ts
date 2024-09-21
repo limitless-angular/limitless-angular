@@ -190,6 +190,7 @@ export class LivePreviewService {
           ),
         );
       },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (changedValue: any, { previousValue }) => {
         if (
           typeof changedValue === 'string' &&

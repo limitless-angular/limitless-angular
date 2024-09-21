@@ -37,9 +37,9 @@ export const routeMeta: RouteMeta = {
   imports: [HomePageComponent, PreviewHomePageComponent],
   template: `
     @if (draftMode()) {
-      <preview-home-page [data]="load()" />
+      <blog-preview-home-page [data]="load()" />
     } @else {
-      <home-page [data]="load()" />
+      <blog-home-page [data]="load()" />
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -5,7 +5,7 @@ import { VisualEditingComponent } from '@limitless-angular/sanity/visual-editing
 import { AlertBannerComponent } from './pages/(blog)/components/alert-banner.component';
 
 @Component({
-  selector: 'app-root',
+  selector: 'blog-root',
   standalone: true,
   imports: [RouterOutlet, VisualEditingComponent, AlertBannerComponent],
   template: `<router-outlet />`,

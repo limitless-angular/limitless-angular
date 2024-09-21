@@ -42,9 +42,9 @@ export const routeMeta: RouteMeta = {
   standalone: true,
   template: `
     @if (draftMode()) {
-      <preview-post-page [slug]="slug()" [data]="load()" />
+      <blog-preview-post-page [slug]="slug()" [data]="load()" />
     } @else {
-      <post-page [slug]="slug()" [data]="load()" />
+      <blog-post-page [slug]="slug()" [data]="load()" />
     }
   `,
   imports: [PreviewPostPageComponent, PostPageComponent],

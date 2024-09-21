@@ -26,7 +26,9 @@ export function createLiveData<
       (acc, [key, config]) => {
         acc[key as keyof T] = livePreviewService.listenLiveQuery(
           initial[key as keyof T],
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           config!.query,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           config!.params,
         );
         return acc;

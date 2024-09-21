@@ -9,7 +9,7 @@ import {
 import { SanityImage } from '@limitless-angular/sanity/image-loader';
 
 @Component({
-  selector: 'cover-image',
+  selector: 'blog-cover-image',
   standalone: true,
   imports: [SanityImage],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,6 +34,7 @@ import { SanityImage } from '@limitless-angular/sanity/image-loader';
   `,
 })
 export class CoverImageComponent {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   image = input.required<any>();
   priority = input(false, { transform: booleanAttribute });
 

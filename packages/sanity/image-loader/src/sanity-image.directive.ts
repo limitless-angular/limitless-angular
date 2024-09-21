@@ -18,6 +18,9 @@ import imageUrlBuilder from '@sanity/image-url';
 import { SANITY_CONFIG } from '@limitless-angular/sanity/shared';
 import { sanityImageLoader } from './loader';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type LoaderParams = Record<string, any>;
+
 function getNoopImageLoader() {
   return (
     IMAGE_LOADER.ɵprov as {
@@ -46,16 +49,17 @@ function getNoopImageLoader() {
 })
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class SanityImage extends NgOptimizedImage implements OnInit {
-  private _loaderParams!: Record<string, any>;
+  private _loaderParams!: LoaderParams;
 
   sanityImage = input.required<SanityImageSource>();
 
   @Input()
   // @ts-expect-error we want to add some internal properties to loaderParams input
-  override set loaderParams(loaderParams: Record<string, any>) {
+  override set loaderParams(loaderParams: LoaderParams) {
     this._loaderParams = this.prepareLoaderParams(loaderParams);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   override get loaderParams(): Record<string, any> {
     return this._loaderParams;
   }
@@ -81,10 +85,8 @@ export class SanityImage extends NgOptimizedImage implements OnInit {
     return imageUrlBuilder(this.sanityConfig).image(this.sanityImage()).url();
   }
 
-  private prepareLoaderParams(
-    loaderParams: Record<string, any>,
-  ): Record<string, any> {
-    const params: Record<string, any> = {};
+  private prepareLoaderParams(loaderParams: LoaderParams): LoaderParams {
+    const params: LoaderParams = {};
     if (this.width) {
       params['width'] = this.width;
     }

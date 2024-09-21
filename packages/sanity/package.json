@@ -47,6 +47,7 @@
     "@types/lodash-es": "^4.17.12"
   },
   "sideEffects": false,
+  "type": "module",
   "publishConfig": {
     "access": "public"
   }

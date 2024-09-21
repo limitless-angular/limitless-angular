@@ -11,6 +11,7 @@ import { injectChildrenLoad } from '../utils/inject-children-load';
 interface BlogPageProps {
   draftMode: boolean;
   token: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 
@@ -25,7 +26,7 @@ interface BlogPageProps {
   template: `
     <div class="min-h-screen">
       @if (draftMode()) {
-        <app-alert-banner />
+        <blog-alert-banner />
       }
       <main>
         @if (draftMode()) {

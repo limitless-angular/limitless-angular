@@ -13,6 +13,9 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@/analog-sanity-blog-example/sanity": [
+        "apps/analog-sanity-blog-example/src/sanity/lib/index.ts"
+      ],
       "@limitless-angular/sanity": ["packages/sanity/src/index.ts"],
       "@limitless-angular/sanity/channels": [
         "packages/sanity/channels/src/index.ts"
@@ -37,8 +40,7 @@
       ],
       "@limitless-angular/sanity/visual-editing-helpers": [
         "packages/sanity/visual-editing-helpers/src/index.ts"
-      ],
-      "@/analog-sanity-blog-example/sanity": ["apps/analog-sanity-blog-example/src/sanity/lib/index.ts"],
+      ]
     }
   },
   "exclude": ["node_modules", "tmp"]

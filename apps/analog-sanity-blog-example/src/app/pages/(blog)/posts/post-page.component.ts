@@ -12,7 +12,7 @@ import { DateComponent } from '../components/date.component';
 import { PortableTextComponent } from '../components/portable-text.component';
 
 @Component({
-  selector: 'post-page',
+  selector: 'blog-post-page',
   standalone: true,
   template: `
     @let post = data().post;
@@ -33,26 +33,26 @@ import { PortableTextComponent } from '../components/portable-text.component';
         </h1>
         <div class="hidden md:mb-12 md:block">
           @if (post.author; as author) {
-            <avatar [name]="author.name" [picture]="author.picture" />
+            <blog-avatar [name]="author.name" [picture]="author.picture" />
           }
         </div>
         <div class="mb-8 sm:mx-0 md:mb-16">
-          <cover-image [image]="post.coverImage" priority />
+          <blog-cover-image [image]="post.coverImage" priority />
         </div>
         <div class="mx-auto max-w-2xl">
           <div class="mb-6 block md:hidden">
             @if (post.author; as author) {
-              <avatar [name]="author.name" [picture]="author.picture" />
+              <blog-avatar [name]="author.name" [picture]="author.picture" />
             }
           </div>
           <div class="mb-6 text-lg">
             <div class="mb-4 text-lg">
-              <date-component [dateString]="post.date" />
+              <blog-date [dateString]="post.date" />
             </div>
           </div>
         </div>
         @if (post.content?.length) {
-          <portable-text
+          <blog-portable-text
             class="mx-auto max-w-2xl"
             [value]="$any(post.content)"
           />
@@ -65,10 +65,10 @@ import { PortableTextComponent } from '../components/portable-text.component';
         >
           Recent Stories
         </h2>
-        <more-stories [moreStories]="$any(data().morePosts)" />
+        <blog-more-stories [moreStories]="$any(data().morePosts)" />
       </aside>
     </div>
-    <footer app-footer [footer]="data().settings?.footer"></footer>
+    <footer blog-footer [footer]="data().settings?.footer"></footer>
   `,
   imports: [
     RouterLink,

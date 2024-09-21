@@ -9,7 +9,7 @@ import {
 import { injectDisableDraftMode } from './actions';
 
 @Component({
-  selector: 'app-alert-banner',
+  selector: 'blog-alert-banner',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

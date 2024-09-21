@@ -97,7 +97,9 @@ function getMetaTagSelector(metaTag: MetaTag): MetaTagSelector {
   return CHARSET_KEY;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function resolveFn<T = any>(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   dataOrFn: any,
   route: ActivatedRouteSnapshot,
   state: RouterStateSnapshot,

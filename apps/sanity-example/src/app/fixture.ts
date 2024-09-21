@@ -3,6 +3,7 @@ import { AnnotatedMapBlock } from './components/annotated-map.component';
 
 interface ImageBlock {
   _type: 'image';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
 }
 

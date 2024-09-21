@@ -10,9 +10,9 @@ import {
 import { createLiveData } from '../../../utils/create-live-data';
 
 @Component({
-  selector: 'preview-post-page',
+  selector: 'blog-preview-post-page',
   standalone: true,
-  template: `<post-page [slug]="slug()" [data]="liveData()" />`,
+  template: `<blog-post-page [slug]="slug()" [data]="liveData()" />`,
   imports: [PostPageComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

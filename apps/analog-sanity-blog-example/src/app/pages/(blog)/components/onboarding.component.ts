@@ -8,7 +8,7 @@ import {
 import { RouterLink } from '@angular/router';
 
 @Component({
-  selector: 'onboarding',
+  selector: 'blog-onboarding',
   standalone: true,
   imports: [RouterLink],
   template: `

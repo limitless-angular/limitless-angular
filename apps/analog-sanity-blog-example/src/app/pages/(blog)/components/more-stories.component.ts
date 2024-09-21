@@ -7,7 +7,7 @@ import { AvatarComponent } from './avatar.component';
 import { DateComponent } from './date.component';
 
 @Component({
-  selector: 'more-stories',
+  selector: 'blog-more-stories',
   standalone: true,
   imports: [RouterLink, CoverImageComponent, AvatarComponent, DateComponent],
   template: `
@@ -17,7 +17,7 @@ import { DateComponent } from './date.component';
       @for (post of moreStories(); track post._id) {
         <article>
           <a [routerLink]="'/posts/' + post.slug" class="group mb-5 block">
-            <cover-image [image]="post.coverImage" />
+            <blog-cover-image [image]="post.coverImage" />
           </a>
           <h3 class="text-balance mb-3 text-3xl leading-snug">
             <a [routerLink]="'/posts/' + post.slug" class="hover:underline">
@@ -25,7 +25,7 @@ import { DateComponent } from './date.component';
             </a>
           </h3>
           <div class="mb-4 text-lg">
-            <date-component [dateString]="post.date" />
+            <blog-date [dateString]="post.date" />
           </div>
           @if (post.excerpt) {
             <p class="text-pretty mb-4 text-lg leading-relaxed">
@@ -33,7 +33,7 @@ import { DateComponent } from './date.component';
             </p>
           }
           @if (post.author; as author) {
-            <avatar [name]="author.name" [picture]="author.picture" />
+            <blog-avatar [name]="author.name" [picture]="author.picture" />
           }
         </article>
       }
