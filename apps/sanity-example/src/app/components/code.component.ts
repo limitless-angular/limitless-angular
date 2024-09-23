@@ -26,7 +26,7 @@ interface CodeBlock {
     ><code #codeElement [class]="'language-' + (value().language ?? 'javascript')"></code></pre>
   `,
   // This is only to avoid a blink while the style loads
-  styleUrl: '../../../../../node_modules/prismjs/themes/prism-okaidia.css',
+  styleUrl: '../../../node_modules/prismjs/themes/prism-okaidia.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })

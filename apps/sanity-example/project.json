@@ -19,7 +19,7 @@
         "assets": [
           {
             "glob": "**/*",
-            "input": "node_modules/leaflet/dist/images",
+            "input": "{projectRoot}/node_modules/leaflet/dist/images",
             "output": "/media"
           },
           {
@@ -28,7 +28,7 @@
           }
         ],
         "styles": [
-          "node_modules/leaflet/dist/leaflet.css",
+          "{projectRoot}/node_modules/leaflet/dist/leaflet.css",
           "apps/sanity-example/src/styles.scss"
         ],
         "scripts": [],
