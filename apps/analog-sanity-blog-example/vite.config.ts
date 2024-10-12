@@ -36,6 +36,7 @@ export default defineConfig(() => {
             ],
           },
         },
+        useAPIMiddleware: false,
       }),
       nxViteTsPaths(),
       splitVendorChunkPlugin(),

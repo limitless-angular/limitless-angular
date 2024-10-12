@@ -16,6 +16,7 @@ export function setDraftMode(event: H3Event, enable = true): void {
       secure: process.env['NODE_ENV'] === 'production',
       maxAge: COOKIE_MAX_AGE,
       path: '/',
+      sameSite: 'none',
     });
   } else {
     deleteCookie(event, PRERENDER_BYPASS_COOKIE_NAME);
