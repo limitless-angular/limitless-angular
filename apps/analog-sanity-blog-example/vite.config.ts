@@ -21,7 +21,7 @@ export default defineConfig(() => {
           static: false,
           routeRules: {
             '/': { prerender: false, isr: 60 },
-            '/api/sitemap.xml': { isr: 3600 * 24 },
+            '/sitemap.xml': { isr: 3600 * 24 },
             '/posts/**': { isr: 60 },
           },
           vercel: {
