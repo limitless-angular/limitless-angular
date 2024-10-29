@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 
 import { combineLatest, type Observable, startWith } from 'rxjs';
-import { LivePreviewService } from '@limitless-angular/sanity/preview-kit';
+import { LivePreviewService } from './live-preview.service';
 
 type QueryConfig = { query: string; params?: Record<string, unknown> };
 
