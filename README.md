@@ -19,6 +19,8 @@ You can also see example project in the monorepo: [`apps/sanity-example`](/apps/
   - [Portable Text](#portable-text)
   - [Image Loader](#image-loader)
   - [Sanity Image Directive](#sanity-image-directive)
+  - [Preview Kit](#preview-kit)
+  - [Visual Editing](#visual-editing)
 - [Contributing](#contributing)
 - [License](#license)
 - [Roadmap](#roadmap)
@@ -32,11 +34,13 @@ You can also see example project in the monorepo: [`apps/sanity-example`](/apps/
 [![npm version](https://img.shields.io/npm/v/@limitless-angular/sanity.svg)](https://www.npmjs.com/package/@limitless-angular/sanity)
 [![npm downloads](https://img.shields.io/npm/dm/@limitless-angular/sanity.svg)](https://www.npmjs.com/package/@limitless-angular/sanity)
 
-This library provides three main features:
+This library provides five main features:
 
 1. A complete Portable Text implementation for Angular
 2. An image loader to optimize images using Sanity
 3. A Sanity Image directive for easy image rendering
+4. Real-time preview capabilities with Preview Kit
+5. Visual editing integration for seamless content management
 
 ## Getting Started
 
@@ -56,6 +60,8 @@ npm install --save @limitless-angular/sanity
 
 - For Portable Text: `import { ... } from '@limitless-angular/sanity/portabletext';`
 - For Image Loader and Sanity Image Directive: `import { ... } from '@limitless-angular/sanity/image-loader';`
+- For Preview Kit: `import { ... } from '@limitless-angular/sanity/preview-kit';`
+- For Visual Editing: `import { ... } from '@limitless-angular/sanity/visual-editing';`
 
 For more detailed information, refer to the specific feature documentation:
 
@@ -139,6 +145,60 @@ export class ImageComponent extends PortableTextTypeComponent {}
 ```
 
 This directive simplifies the process of rendering Sanity images in your components, handling the complexities of image optimization and URL generation.
+
+### Preview Kit
+
+The Preview Kit provides real-time preview capabilities for Sanity content in Angular applications, enabling live updates of content as it's being edited in the Sanity Studio.
+
+#### Basic Usage
+
+```typescript
+import { LiveQueryProviderComponent } from '@limitless-angular/sanity/preview-kit';
+
+@Component({
+  standalone: true,
+  imports: [LiveQueryProviderComponent],
+  template: `
+    @if (draftMode()) {
+      <live-query-provider [token]="token">
+        <router-outlet />
+      </live-query-provider>
+    } @else {
+      <router-outlet />
+    }
+  `,
+})
+export class AppComponent {
+  draftMode = signal(false);
+  token = signal('your-preview-token');
+}
+```
+
+For more detailed information on using Preview Kit, including configuration and advanced usage, please refer to the [Preview Kit README](packages/sanity/preview-kit/README.md).
+
+### Visual Editing
+
+The Visual Editing feature allows editors to click elements in your preview to navigate directly to the corresponding document and field in Sanity Studio.
+
+#### Basic Usage
+
+```typescript
+@Component({
+  standalone: true,
+  imports: [VisualEditingComponent],
+  template: `
+    <main>
+      <router-outlet />
+    </main>
+    @if (draftMode()) {
+      <visual-editing />
+    }
+  `,
+})
+export class AppComponent {}
+```
+
+For more detailed information on Visual Editing, including configuration and advanced features, please refer to the [Visual Editing README](packages/sanity/visual-editing/README.md).
 
 ## Contributing
 
