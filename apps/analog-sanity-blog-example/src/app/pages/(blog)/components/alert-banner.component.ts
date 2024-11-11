@@ -6,8 +6,6 @@ import {
   effect,
 } from '@angular/core';
 
-import { injectDisableDraftMode } from './actions';
-
 @Component({
   selector: 'blog-alert-banner',
   standalone: true,
@@ -15,30 +13,22 @@ import { injectDisableDraftMode } from './actions';
   template: `
     @if (shouldShow()) {
       <div
-        [class.animate-pulse]="pending()"
         class="fixed top-0 left-0 z-50 w-full border-b bg-white/95 text-black backdrop-blur"
       >
         <div class="py-2 text-center text-sm">
-          @if (pending()) {
-            Disabling draft mode...
-          } @else {
-            Previewing drafts.
-            <button
-              type="button"
-              (click)="disableDraft()"
-              class="hover:text-cyan underline transition-colors duration-200"
-            >
-              Back to published
-            </button>
-          }
+          Previewing drafts.
+          <a
+            href="/api/draft/disable"
+            class="hover:text-cyan underline transition-colors duration-200"
+          >
+            Back to published
+          </a>
         </div>
       </div>
     }
   `,
 })
 export class AlertBannerComponent {
-  private disableDraftMode = injectDisableDraftMode();
-
   pending = signal(false);
 
   shouldShow = computed(() => {
@@ -54,13 +44,6 @@ export class AlertBannerComponent {
       // It's here to demonstrate how we could react to changes if needed
       const show = this.shouldShow();
       console.log('Should show alert:', show);
-    });
-  }
-
-  disableDraft() {
-    this.pending.set(true);
-    this.disableDraftMode().then(() => {
-      this.pending.set(false);
     });
   }
 }
