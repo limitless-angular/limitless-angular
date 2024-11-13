@@ -2,7 +2,7 @@
   "name": "analog-sanity-blog-example",
   "type": "module",
   "dependencies": {
-    "@analogjs/router": "1.9.0-beta.4",
+    "@analogjs/router": "1.9.2",
     "@angular/common": "~18.2.5",
     "@angular/core": "~18.2.5",
     "@angular/platform-browser": "~18.2.5",
@@ -10,7 +10,8 @@
     "@angular/router": "~18.2.5",
     "@sanity/client": "^6.21.1",
     "@sanity/image-url": "^1.0.2",
-    "@sanity/preview-url-secret": "^1.6.20",
+    "@sanity/preview-url-secret": "^2.0.2",
+    "@sanity/visual-editing": "^2.5.2",
     "date-fns": "^4.1.0",
     "groq": "^3.53.0",
     "h3": "^1.12.0",
@@ -19,8 +20,8 @@
     "zone.js": "~0.14.0"
   },
   "devDependencies": {
-    "@analogjs/content": "1.9.0-beta.4",
-    "@analogjs/platform": "1.9.0-beta.4",
+    "@analogjs/content": "1.9.2",
+    "@analogjs/platform": "1.9.2",
     "@nx/vite": "19.8.0",
     "marked-highlight": "^2.1.4",
     "rollup-plugin-typescript-paths": "^1.5.0",
