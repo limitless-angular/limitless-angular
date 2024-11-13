@@ -4,7 +4,10 @@ import {
   inject,
   Input,
   input,
+  OnChanges,
   OnInit,
+  SimpleChange,
+  SimpleChanges,
 } from '@angular/core';
 import {
   IMAGE_LOADER,
@@ -12,14 +15,16 @@ import {
   NgOptimizedImage,
 } from '@angular/common';
 
-import type { SanityImageSource } from '@sanity/image-url/lib/types/types';
+import type {
+  ImageUrlBuilderOptions,
+  SanityImageSource,
+} from '@sanity/image-url/lib/types/types';
 import imageUrlBuilder from '@sanity/image-url';
 
 import { SANITY_CONFIG } from '@limitless-angular/sanity/shared';
 import { sanityImageLoader } from './loader';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type LoaderParams = Record<string, any>;
+type LoaderParams = Omit<ImageUrlBuilderOptions, 'quality'>;
 
 function getNoopImageLoader() {
   return (
@@ -48,19 +53,18 @@ function getNoopImageLoader() {
   ],
 })
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
-export class SanityImage extends NgOptimizedImage implements OnInit {
-  private _loaderParams!: LoaderParams;
+export class SanityImage extends NgOptimizedImage implements OnInit, OnChanges {
+  private _loaderParams: LoaderParams = {};
 
   sanityImage = input.required<SanityImageSource>();
 
   @Input()
   // @ts-expect-error we want to add some internal properties to loaderParams input
   override set loaderParams(loaderParams: LoaderParams) {
-    this._loaderParams = this.prepareLoaderParams(loaderParams);
+    this._loaderParams = loaderParams;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  override get loaderParams(): Record<string, any> {
+  override get loaderParams(): LoaderParams {
     return this._loaderParams;
   }
 
@@ -68,37 +72,47 @@ export class SanityImage extends NgOptimizedImage implements OnInit {
 
   quality = input<number>();
 
-  private computedSrc = computed(() => this.constructSanityUrl());
+  private imageUrl = computed(() => {
+    const url = new URL(
+      imageUrlBuilder(this.sanityConfig)
+        .image(this.sanityImage())
+        .withOptions(this.loaderParams)
+        .url(),
+    );
+    if (this.width) {
+      url.searchParams.set('w', this.width.toString());
+    }
+
+    if (this.height) {
+      url.searchParams.set('h', this.height.toString());
+    }
+
+    if (this.quality()) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      url.searchParams.set('q', this.quality()!.toString());
+    }
+
+    return url.toString();
+  });
 
   private sanityConfig = inject(SANITY_CONFIG);
 
   override ngOnInit() {
-    this.ngSrc = this.computedSrc();
-    if (!this._loaderParams) {
-      this._loaderParams = this.prepareLoaderParams({});
-    }
-
+    this.ngSrc = this.imageUrl();
     super.ngOnInit();
   }
 
-  private constructSanityUrl() {
-    return imageUrlBuilder(this.sanityConfig).image(this.sanityImage()).url();
-  }
-
-  private prepareLoaderParams(loaderParams: LoaderParams): LoaderParams {
-    const params: LoaderParams = {};
-    if (this.width) {
-      params['width'] = this.width;
+  // ngSrc is not being updated by NgOptimizedImage, so we need to do it manually
+  override ngOnChanges(changes: SimpleChanges) {
+    if (changes['sanityImage']) {
+      changes['ngSrc'] = new SimpleChange(
+        this.ngSrc,
+        this.imageUrl(),
+        changes['sanityImage'].isFirstChange(),
+      );
+      this.ngSrc = this.imageUrl();
     }
 
-    if (this.height) {
-      params['height'] = this.height;
-    }
-
-    if (this.quality()) {
-      params['quality'] = this.quality();
-    }
-
-    return { ...params, ...loaderParams };
+    super.ngOnChanges(changes);
   }
 }

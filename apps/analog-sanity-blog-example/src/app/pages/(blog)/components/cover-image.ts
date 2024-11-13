@@ -25,6 +25,7 @@ import { SanityImage } from '@limitless-angular/sanity/image-loader';
           sizes="100vw"
           [alt]="image()!.alt ?? ''"
           [sanityImage]="this.image()!"
+          [loaderParams]="{ width: 2000, height: 1000 }"
           [priority]="priority()"
         />
       } @else {

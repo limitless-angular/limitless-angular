@@ -5,48 +5,48 @@ import imageUrlBuilder from '@sanity/image-url';
 
 import { SANITY_CONFIG, SanityConfig } from '@limitless-angular/sanity/shared';
 
-const DEFAULT_IMAGE_QUALITY = 75;
-
 export function sanityImageLoader(config?: SanityConfig | null) {
   return (loaderConfig: ImageLoaderConfig) => {
-    const {
-      src,
-      loaderParams = {},
-      width = loaderParams['width'],
-      isPlaceholder,
-    } = loaderConfig;
-    const builder = imageUrlBuilder(config ?? undefined);
-    let imageBuilder = builder
-      .image(src)
-      .auto('format')
-      .fit((loaderParams['fit'] ?? loaderParams['height']) ? 'min' : 'max');
+    const { src, loaderParams = {}, width, isPlaceholder } = loaderConfig;
+    let url: URL | undefined;
+    const { quality, ...options } = loaderParams;
+    try {
+      url = new URL(src);
+    } catch {
+      const builder = imageUrlBuilder(config ?? undefined);
+      url = new URL(builder.image(src).withOptions(options).url());
+    }
 
-    if (width && loaderParams['height'] && loaderParams['width']) {
-      imageBuilder = imageBuilder.height(
-        Math.round((loaderParams['height'] / loaderParams['width']) * width),
+    url.searchParams.set('auto', 'format');
+    url.searchParams.set(
+      'fit',
+      url.searchParams.get('fit') || url.searchParams.has('h') ? 'min' : 'max',
+    );
+    if (width && url.searchParams.has('h') && url.searchParams.has('w')) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const originalHeight = parseInt(url.searchParams.get('h')!, 10);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const originalWidth = parseInt(url.searchParams.get('w')!, 10);
+      url.searchParams.set(
+        'h',
+        Math.round((originalHeight / originalWidth) * width).toString(),
       );
     }
 
     if (width) {
-      imageBuilder = imageBuilder.width(width);
+      url.searchParams.set('w', width.toString());
     }
 
-    // Use loaderParams for additional configuration
-    if (loaderParams['quality']) {
-      imageBuilder = imageBuilder.quality(loaderParams['quality']);
-    } else {
-      imageBuilder = imageBuilder.quality(DEFAULT_IMAGE_QUALITY);
-    }
-
-    if (loaderParams['blur']) {
-      imageBuilder = imageBuilder.blur(loaderParams['blur']);
+    if (quality) {
+      url.searchParams.set('q', quality.toString());
     }
 
     if (isPlaceholder) {
-      imageBuilder = imageBuilder.blur(50).quality(20);
+      url.searchParams.set('blur', '50');
+      url.searchParams.set('q', '20');
     }
 
-    return imageBuilder.url() || '';
+    return url.href;
   };
 }
 
