@@ -1,88 +1,211 @@
-# @limitless-angular/sanity
+# Limitless Angular
 
-This library provides Angular integrations for Sanity.io, enhancing your ability to work with Sanity content in Angular applications.
+[![Twitter Follow](https://img.shields.io/twitter/follow/osnoser1?style=social)](https://twitter.com/osnoser1)
+[![npm version](https://img.shields.io/npm/v/@limitless-angular/sanity.svg)](https://www.npmjs.com/package/@limitless-angular/sanity)
+[![npm downloads](https://img.shields.io/npm/dm/@limitless-angular/sanity.svg)](https://www.npmjs.com/package/@limitless-angular/sanity)
 
-## Demo
+Limitless Angular is a powerful collection of Angular libraries focused on Sanity.io integration, designed to enhance your development experience with features like Portable Text rendering, image optimization, real-time previews, and visual editing.
 
-Check out our example project in the monorepo: [`apps/sanity-example`](../../apps/sanity-example)
+## Quick Links
 
-You can also see a live demo of the Sanity example here: [Limitless Angular Sanity Example](https://limitless-angular-sanity-example.netlify.app/)
+- 🚀 [Portable Text Live Demo](https://limitless-angular-sanity-example.netlify.app/)
+- 💻 [Example Project](/apps/sanity-example)
+- 📦 [NPM Package](https://www.npmjs.com/package/@limitless-angular/sanity)
 
-## Table of Contents
+## Features
 
-- [Getting Started](#getting-started)
-  - [Installation](#installation)
-  - [Portable Text](#portable-text)
-  - [Image Loader](#image-loader)
+- ✨ **Portable Text**: Complete implementation for rendering Sanity's Portable Text
+- 🖼️ **Image Optimization**: Built-in image loader and directives for Sanity images
+- 🔄 **Real-time Preview**: Live content updates with Preview Kit
+- ✏️ **Visual Editing**: Seamless content management integration
+- 🎯 **Angular-First**: Built specifically for Angular 18+
 
-## Getting Started
-
-### Installation
+## Installation
 
 ```bash
 npm install --save @limitless-angular/sanity
 ```
 
-**Which Version to use?**
+### Version Compatibility
 
-| Angular version | @limitless-angular/sanity |
-| --------------- | ------------------------- |
-| \>=18.0.0       | 18.x                      |
+| Angular version | Package version |
+| --------------- | --------------- |
+| ≥18.0.0         | 18.x            |
+
+## Quick Start
+
+### Basic Configuration
+
+For image optimization features:
+
+```typescript
+import { ApplicationConfig } from '@angular/core';
+import { provideSanity } from '@limitless-angular/sanity';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideSanity({
+      projectId: 'your-project-id',
+      dataset: 'your-dataset',
+    }),
+  ],
+};
+```
+
+### Preview Kit & Visual Editing Configuration
+
+For preview and visual editing features, use the client factory approach:
+
+```typescript
+import { provideSanity, withLivePreview } from '@limitless-angular/sanity';
+import { createClient } from '@sanity/client';
+
+const client = createClient({
+  projectId: 'your-project-id',
+  dataset: 'your-dataset',
+  apiVersion: 'YYYY-MM-DD',
+  useCdn: true,
+});
+
+const getClientFactory = (preview?: { token: string }) =>
+  preview?.token
+    ? client.withConfig({
+        token: preview.token,
+        useCdn: false,
+        ignoreBrowserTokenWarning: true,
+        perspective: 'previewDrafts',
+        stega: {
+          enabled: true,
+          studioUrl: 'your-studio-url',
+        },
+      })
+    : client;
+
+export const appConfig: ApplicationConfig = {
+  providers: [provideSanity(getClientFactory, withLivePreview())],
+};
+```
+
+## Features
 
 ### Portable Text
 
-A complete implementation for rendering [Portable Text](https://portabletext.org/) in Angular applications.
-
-#### Basic Usage
+Render [Portable Text](https://portabletext.org/) with Angular.
 
 ```typescript
-import { Component } from '@angular/core';
-import { PortableTextComponent, PortableTextComponents } from '@limitless-angular/sanity/portabletext';
-
 @Component({
-  selector: 'app-your-component',
-  template: `<div portable-text [value]="portableTextValue" [components]="customComponents"></div> `,
   standalone: true,
   imports: [PortableTextComponent],
+  template: `<div portable-text [value]="content" [components]="components"></div>`,
 })
-export class YourComponent {
-  portableTextValue = [
-    /* array of portable text blocks */
+export class ContentComponent {
+  content = [
+    /* your portable text content */
   ];
-  customComponents: PortableTextComponents = {
-    // optional object of custom components to use
+  components: PortableTextComponents = {
+    // Custom components configuration
   };
 }
 ```
 
-For more detailed information on using Portable Text, including styling, customizing components, and available components, please refer to the [Portable Text README](packages/sanity/portabletext/README.md).
+[📚 Portable Text Documentation](packages/sanity/portabletext/README.md)
 
-### Image Loader
+### Image Handling
 
-The image loader allows you to connect the NgOptimizedImage directive with Sanity to load images using the @sanity/image-url package.
-
-#### Basic Usage
+Powerful features for working with Sanity images in Angular applications:
 
 ```typescript
-import { NgOptimizedImage } from '@angular/common';
-import { SanityImageLoader } from '@limitless-angular/sanity/image-loader';
-
 @Component({
   standalone: true,
-  template: '<img ngSrc="image-id" width="100" height="100" />',
-  imports: [NgOptimizedImage],
-  providers: [
-    provideSanityLoader({
-      projectId: 'SANITY_PROJECT_ID',
-      dataset: 'SANITY_DATASET',
-    })
-  ],
-  // ...
+  imports: [SanityImage],
+  template: `
+    <img
+      [sanityImage]="imageRef"
+      width="800"
+      height="600"
+      [alt]="imageRef.alt"
+    />
+  `,
 })
 ```
 
-For more details on the Image Loader, check out the [Image Loader README](packages/sanity/image-loader/README.md).
+[📚 Image Loader Documentation](packages/sanity/image-loader/README.md)
 
-## Demo
+### Preview Kit
 
-Check out our example project in the monorepo: `apps/sanity-example`
+The Preview Kit provides real-time preview capabilities for
+Sanity content in Angular applications, enabling live updates
+of content as it's being edited in the Sanity Studio:
+
+```typescript
+import { LiveQueryProviderComponent } from '@limitless-angular/sanity/preview-kit';
+
+@Component({
+  standalone: true,
+  imports: [LiveQueryProviderComponent],
+  template: `
+    @if (draftMode()) {
+      <live-query-provider [token]="token">
+        <router-outlet />
+      </live-query-provider>
+    } @else {
+      <router-outlet />
+    }
+  `,
+})
+export class AppComponent {
+  draftMode = signal(false);
+  token = signal('your-preview-token');
+}
+```
+
+[📚 Preview Kit Documentation](packages/sanity/preview-kit/README.md)
+
+### Visual Editing
+
+The Visual Editing feature allows editors to click elements in
+your preview to navigate directly to the corresponding
+document and field in Sanity Studio.
+
+```typescript
+@Component({
+  standalone: true,
+  imports: [VisualEditingComponent],
+  template: `
+    <main>
+      <router-outlet />
+      @if (draftMode()) {
+        <visual-editing />
+      }
+    </main>
+  `,
+})
+export class AppComponent {}
+```
+
+[📚 Visual Editing Documentation](packages/sanity/visual-editing/README.md)
+
+## Roadmap
+
+- 🎯 Performance optimizations
+- 📚 Enhanced documentation and examples
+- ✅ Comprehensive test coverage
+- 🔄 Lazy loading for Portable Text components
+
+## Contributing
+
+We welcome contributions! Check our [Contributing Guide](CONTRIBUTING.md) for details.
+
+## Support
+
+- 🐛 [Report Issues](https://github.com/limitless-angular/limitless-angular/issues)
+- 💬 [Discussions](https://github.com/limitless-angular/limitless-angular/discussions)
+
+## Credits
+
+Adapted from [@portabletext/react](https://github.com/portabletext/react-portabletext) which provided the
+vast majority of node rendering logic.
+
+## License
+
+This project is licensed under the MIT License. See our [LICENSE](LICENSE) file for details.
