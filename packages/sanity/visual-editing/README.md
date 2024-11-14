@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/@limitless-angular/sanity.svg)](https://www.npmjs.com/package/@limitless-angular/sanity)
 [![npm downloads](https://img.shields.io/npm/dm/@limitless-angular/sanity.svg)](https://www.npmjs.com/package/@limitless-angular/sanity)
 
-Based on [Visual Editing v2.1.9](https://github.com/sanity-io/visual-editing/blob/main/packages/visual-editing/CHANGELOG.md#219-2024-08-12)
+Based on [Visual Editing v2.1.9](https://github.com/sanity-io/visual-editing/blob/main/packages/visual-editing/CHANGELOG.md#219-2024-08-12) and [Next Sanity 9.8.13](https://github.com/sanity-io/next-sanity/blob/main/packages/next-sanity/CHANGELOG.md#9813-2024-11-13)
 
 This secondary entry point is used to create clickable elements to take editors right from previews to the document and field they want to edit.
 

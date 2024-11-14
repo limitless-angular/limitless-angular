@@ -1,8 +1,0 @@
-{
-  "name": "channels",
-  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/sanity/channels/src",
-  "projectType": "library",
-  "tags": [],
-  "targets": {}
-}
