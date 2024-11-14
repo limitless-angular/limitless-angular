@@ -16,11 +16,21 @@
     "version": {
       "conventionalCommits": true
     },
+    "conventionalCommits": {
+      "types": {
+        "refactor": {
+          "serverBump": "patch"
+        }
+      }
+    },
     "changelog": {
       "projectChangelogs": {
         "file": false,
         "createRelease": "github"
       }
+    },
+    "git": {
+      "commitMessage": "chore(release): publish {version} [skip ci]"
     }
   },
   "targetDefaults": {
@@ -45,7 +55,7 @@
     },
     "nx-release-publish": {
       "options": {
-        "packageRoot": "dist/{projectRoot}"
+        "packageRoot": "dist/packages/{projectName}"
       }
     },
     "@nx/js:tsc": {
