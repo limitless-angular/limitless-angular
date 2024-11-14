@@ -29,18 +29,6 @@ importers:
       '@nx/angular':
         specifier: 20.1.0
         version: 20.1.0(@angular-devkit/build-angular@18.2.11(gc5zdcu6qyj733agq6lgtjbb3e))(@angular-devkit/core@18.2.11(chokidar@3.6.0))(@angular-devkit/schematics@18.2.11(chokidar@3.6.0))(@babel/traverse@7.25.9)(@schematics/angular@18.2.11(chokidar@3.6.0))(@swc-node/register@1.9.2(@swc/core@1.5.29(@swc/helpers@0.5.15))(@swc/types@0.1.12)(typescript@5.4.5))(@swc/core@1.5.29(@swc/helpers@0.5.15))(@types/node@18.16.9)(@zkochan/js-yaml@0.0.7)(eslint@9.14.0(jiti@2.4.0))(nx@20.1.0(@swc-node/register@1.9.2(@swc/core@1.5.29(@swc/helpers@0.5.15))(@swc/types@0.1.12)(typescript@5.4.5))(@swc/core@1.5.29(@swc/helpers@0.5.15)))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(rxjs@7.8.1)(typescript@5.4.5)
-      '@portabletext/toolkit':
-        specifier: ^2.0.15
-        version: 2.0.16
-      '@portabletext/types':
-        specifier: ^2.0.13
-        version: 2.0.13
-      '@sanity/asset-utils':
-        specifier: ^1.3.0
-        version: 1.3.2
-      '@sanity/image-url':
-        specifier: ^1.0.2
-        version: 1.1.0
       leaflet:
         specifier: ^1.9.4
         version: 1.9.4
@@ -186,6 +174,12 @@ importers:
       '@angular/router':
         specifier: ~18.2.5
         version: 18.2.11(@angular/common@18.2.11(@angular/core@18.2.11(rxjs@7.8.1)(zone.js@0.14.10))(rxjs@7.8.1))(@angular/core@18.2.11(rxjs@7.8.1)(zone.js@0.14.10))(@angular/platform-browser@18.2.11(@angular/animations@18.2.11(@angular/core@18.2.11(rxjs@7.8.1)(zone.js@0.14.10)))(@angular/common@18.2.11(@angular/core@18.2.11(rxjs@7.8.1)(zone.js@0.14.10))(rxjs@7.8.1))(@angular/core@18.2.11(rxjs@7.8.1)(zone.js@0.14.10)))(rxjs@7.8.1)
+      '@portabletext/types':
+        specifier: ^2.0.13
+        version: 2.0.13
+      '@sanity/asset-utils':
+        specifier: ^2.1.0
+        version: 2.1.0
       '@sanity/client':
         specifier: ^6.21.1
         version: 6.22.4
@@ -195,9 +189,6 @@ importers:
       '@sanity/preview-url-secret':
         specifier: ^2.0.2
         version: 2.0.2(@sanity/client@6.22.4)
-      '@sanity/visual-editing':
-        specifier: ^2.5.2
-        version: 2.5.2(@sanity/client@6.22.4)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -213,9 +204,6 @@ importers:
       sitemap:
         specifier: ^8.0.0
         version: 8.0.0
-      zone.js:
-        specifier: ~0.14.0
-        version: 0.14.10
     devDependencies:
       '@analogjs/content':
         specifier: 1.9.2
@@ -262,6 +250,12 @@ importers:
       '@angular/ssr':
         specifier: ~18.2.5
         version: 18.2.11(@angular/common@18.2.11(@angular/core@18.2.11(rxjs@7.8.1)(zone.js@0.14.10))(rxjs@7.8.1))(@angular/core@18.2.11(rxjs@7.8.1)(zone.js@0.14.10))
+      '@portabletext/types':
+        specifier: ^2.0.13
+        version: 2.0.13
+      '@sanity/asset-utils':
+        specifier: ^2.1.0
+        version: 2.1.0
       express:
         specifier: ~4.21.0
         version: 4.21.1
@@ -271,12 +265,6 @@ importers:
       prismjs:
         specifier: ^1.29.0
         version: 1.29.0
-      rxjs:
-        specifier: ~7.8.0
-        version: 7.8.1
-      zone.js:
-        specifier: ~0.14.0
-        version: 0.14.10
     devDependencies:
       '@types/leaflet':
         specifier: ^1.9.12
@@ -293,6 +281,9 @@ importers:
       '@angular/core':
         specifier: ^18.0.0
         version: 18.2.11(rxjs@7.8.1)(zone.js@0.14.10)
+      '@angular/router':
+        specifier: ^18.0.0
+        version: 18.2.11(@angular/common@18.2.11(@angular/core@18.2.11(rxjs@7.8.1)(zone.js@0.14.10))(rxjs@7.8.1))(@angular/core@18.2.11(rxjs@7.8.1)(zone.js@0.14.10))(@angular/platform-browser@18.2.11(@angular/animations@18.2.11(@angular/core@18.2.11(rxjs@7.8.1)(zone.js@0.14.10)))(@angular/common@18.2.11(@angular/core@18.2.11(rxjs@7.8.1)(zone.js@0.14.10))(rxjs@7.8.1))(@angular/core@18.2.11(rxjs@7.8.1)(zone.js@0.14.10)))(rxjs@7.8.1)
       '@portabletext/toolkit':
         specifier: ^2.0.15
         version: 2.0.16
@@ -320,9 +311,9 @@ importers:
       mendoza:
         specifier: ^3.0.7
         version: 3.0.7
-      scroll-into-view-if-needed:
-        specifier: ^3.1.0
-        version: 3.1.0
+      rxjs:
+        specifier: ^7.8.0
+        version: 7.8.1
     devDependencies:
       '@types/lodash-es':
         specifier: ^4.17.12
@@ -3196,9 +3187,9 @@ packages:
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
 
-  '@sanity/asset-utils@1.3.2':
-    resolution: {integrity: sha512-dixN6MpMXsCEVh0Dr932cgZ4cU3Z2JnNOYBxjV+dgO6AnqVpNQTY+KgGMYlA1ca5zCztQI1VSk/MBCPSxihPqQ==}
-    engines: {node: '>=10'}
+  '@sanity/asset-utils@2.1.0':
+    resolution: {integrity: sha512-++d7UEnu72eKpBBozXAFwBgsGs/AEB4uc3a3BDin9l/aomdTtI2vJQJhcriQQvUeqJnTTF3Cxa5zl/V1vau/PA==}
+    engines: {node: '>=18'}
 
   '@sanity/client@6.22.4':
     resolution: {integrity: sha512-l807VLFs/CVrbWoqQ6C9SNqpvSvNkNnJ5RgxUSfCB2t8elkJ7fr3ahi1bbGrIMrfr/uL044WfWIQ4E3DoqpiuQ==}
@@ -12627,7 +12618,7 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  '@sanity/asset-utils@1.3.2': {}
+  '@sanity/asset-utils@2.1.0': {}
 
   '@sanity/client@6.22.4':
     dependencies:

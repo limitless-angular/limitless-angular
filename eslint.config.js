@@ -36,7 +36,12 @@ export default [
     rules: {
       '@nx/dependency-checks': [
         'error',
-        { ignoredFiles: ['{projectRoot}/eslint.config.{js,cjs,mjs}'] },
+        {
+          ignoredFiles: [
+            '{projectRoot}/{eslint,tailwind,vite}.config.{js,cjs,mjs,ts}',
+          ],
+          ignoredDependencies: ['@limitless-angular/sanity'],
+        },
       ],
       // TODO: what?
       '@typescript-eslint/no-unused-expressions': 'off',
