@@ -5,15 +5,16 @@ import { isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject, combineLatest } from 'rxjs';
 import { distinctUntilChanged, filter } from 'rxjs/operators';
 import type { ContentSourceMapDocuments } from '@sanity/client/csm';
+import {
+  createNode,
+  createNodeMachine,
+  type Message,
+  type Node,
+} from '@sanity/comlink';
 
 import {
-  type ChannelsNode,
-  createChannelsNode,
-} from '@limitless-angular/sanity/channels';
-import type {
-  PresentationMsg,
-  PreviewKitMsg,
-  VisualEditingConnectionIds,
+  createCompatibilityActors,
+  type PreviewKitNodeMsg,
 } from '@limitless-angular/sanity/visual-editing-helpers';
 
 type UseDocumentsInUseConfig = { projectId: string; dataset: string };
@@ -22,9 +23,10 @@ type UseDocumentsInUseConfig = { projectId: string; dataset: string };
 export class UseDocumentsInUseService {
   private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private destroyRef = inject(DestroyRef);
-  private channel$ = new BehaviorSubject<
-    ChannelsNode<PreviewKitMsg, PresentationMsg> | undefined
-  >(undefined);
+  private comlink$ = new BehaviorSubject<Node<
+    Message,
+    PreviewKitNodeMsg
+  > | null>(null);
   private connected$ = new BehaviorSubject(false);
   private documentsInUse$ = new BehaviorSubject<string>('[]');
   private documentsInUse = new Map<string, ContentSourceMapDocuments[number]>();
@@ -40,45 +42,51 @@ export class UseDocumentsInUseService {
 
   private setupChannelIfNeeded() {
     if (window.self !== window.top || window.opener) {
-      const channel = createChannelsNode<
-        VisualEditingConnectionIds,
-        PreviewKitMsg,
-        PresentationMsg
-      >({
-        id: 'preview-kit',
-        connectTo: 'presentation',
-      });
+      const comlink = createNode<Message, PreviewKitNodeMsg>(
+        {
+          name: 'preview-kit',
+          connectTo: 'presentation',
+        },
+        createNodeMachine<Message, PreviewKitNodeMsg>().provide({
+          actors: createCompatibilityActors<PreviewKitNodeMsg>(),
+        }),
+      );
 
-      channel.onStatusUpdate((status) =>
+      comlink.onStatus((status) =>
         this.connected$.next(status === 'connected'),
       );
 
-      setTimeout(() => this.channel$.next(channel), 0);
+      const timeout = setTimeout(() => this.comlink$.next(comlink), 0);
+      const stop = comlink.start();
 
       this.destroyRef.onDestroy(() => {
-        channel.destroy();
-        this.channel$.next(undefined);
+        stop();
+        this.comlink$.next(null);
+        clearTimeout(timeout);
       });
     }
   }
 
   private setupDocumentSync({ projectId, dataset }: UseDocumentsInUseConfig) {
-    combineLatest([this.channel$, this.connected$, this.documentsInUse$])
+    combineLatest([this.comlink$, this.connected$, this.documentsInUse$])
       .pipe(
         filter(
-          ([channel, connected, changedKeys]) =>
-            !!channel && connected && changedKeys !== '[]',
+          ([comlink, connected, changedKeys]) =>
+            !!comlink && connected && changedKeys !== '[]',
         ),
         distinctUntilChanged(),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(([channel]) => {
+      .subscribe(([comlink]) => {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        channel!.send('preview-kit/documents', {
-          projectId,
-          dataset,
-          perspective: 'previewDrafts',
-          documents: Array.from(this.documentsInUse.values()),
+        comlink!.post({
+          type: 'preview-kit/documents',
+          data: {
+            projectId,
+            dataset,
+            perspective: 'previewDrafts',
+            documents: Array.from(this.documentsInUse.values()),
+          },
         });
       });
   }
