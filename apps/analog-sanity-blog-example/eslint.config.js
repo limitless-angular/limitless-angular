@@ -13,16 +13,6 @@ originalEnforceModuleBoundaries[1].allow.push(
 
 export default [
   ...baseConfig,
-  {
-    files: ['**/*.json'],
-    rules: {
-      '@nx/dependency-checks': [
-        'error',
-        { ignoredFiles: ['{projectRoot}/eslint.config.{js,cjs,mjs}'] },
-      ],
-    },
-    languageOptions: { parser: jsonc_eslint_parser },
-  },
   ...nx.configs['flat/angular'],
   ...nx.configs['flat/angular-template'],
   {
