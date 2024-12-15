@@ -8,7 +8,6 @@ import { DateComponent } from './date.component';
 
 @Component({
   selector: 'blog-more-stories',
-  standalone: true,
   imports: [RouterLink, CoverImageComponent, AvatarComponent, DateComponent],
   template: `
     <div

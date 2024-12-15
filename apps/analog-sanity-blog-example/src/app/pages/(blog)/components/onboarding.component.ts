@@ -9,7 +9,6 @@ import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'blog-onboarding',
-  standalone: true,
   imports: [RouterLink],
   template: `
     <div class="grid grid-flow-row gap-6 py-60 text-center">

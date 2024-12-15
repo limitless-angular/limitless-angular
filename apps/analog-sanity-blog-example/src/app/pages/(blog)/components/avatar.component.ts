@@ -10,7 +10,6 @@ import type { Author } from '@/analog-sanity-blog-example/sanity';
 
 @Component({
   selector: 'blog-avatar',
-  standalone: true,
   imports: [SanityImage],
   template: `
     @if (hasPicture()) {

@@ -33,7 +33,6 @@ export const routeMeta: RouteMeta = {
 };
 
 @Component({
-  standalone: true,
   imports: [HomePageComponent, PreviewHomePageComponent],
   template: `
     @if (draftMode()) {

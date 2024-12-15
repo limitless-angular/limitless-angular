@@ -73,7 +73,6 @@ export const appConfig: ApplicationConfig = {
 import { LiveQueryProviderComponent } from '@limitless-angular/sanity/preview-kit';
 
 @Component({
-  standalone: true,
   imports: [LiveQueryProviderComponent],
   template: `
     @if (draftMode()) {
@@ -127,7 +126,6 @@ Your page component should use the resolved data:
 
 ```typescript:pages/posts/[slug].page.ts
 @Component({
-  standalone: true,
   template: `
     @if (draftMode()) {
       <blog-preview-post-page [slug]="slug()" [data]="load()" />
@@ -163,7 +161,6 @@ interface LoadResult {
 
 @Component({
   selector: 'blog-preview-post-page',
-  standalone: true,
   template: `<blog-post-page [slug]="slug()" [data]="liveData()" />`,
 })
 export class PreviewPostPageComponent {

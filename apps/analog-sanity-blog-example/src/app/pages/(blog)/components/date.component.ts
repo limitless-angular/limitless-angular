@@ -9,7 +9,6 @@ import { format } from 'date-fns';
 
 @Component({
   selector: 'blog-date',
-  standalone: true,
   imports: [],
   template: `
     <time [attr.dateTime]="dateString()">{{ formattedDate() }}</time>

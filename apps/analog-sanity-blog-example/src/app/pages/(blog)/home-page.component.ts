@@ -17,7 +17,6 @@ import { demo } from '@/analog-sanity-blog-example/sanity';
 
 @Component({
   selector: 'blog-intro',
-  standalone: true,
   imports: [PortableTextComponent],
   template: `
     <section
@@ -49,7 +48,6 @@ export class IntroComponent {
 
 @Component({
   selector: 'blog-hero-post',
-  standalone: true,
   imports: [RouterLink, CoverImageComponent, DateComponent, AvatarComponent],
   template: `
     <article>
@@ -84,8 +82,8 @@ export class IntroComponent {
 })
 export class HeroPostComponent {
   title = input.required<string>();
-  slug = input.required<string>();
-  excerpt = input<string>();
+  slug = input.required<string | null>();
+  excerpt = input<string | null>();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   coverImage = input.required<any>();
   date = input.required<string>();
@@ -95,7 +93,6 @@ export class HeroPostComponent {
 
 @Component({
   selector: 'blog-home-page',
-  standalone: true,
   imports: [
     IntroComponent,
     HeroPostComponent,
@@ -132,9 +129,8 @@ export class HeroPostComponent {
         </aside>
       }
     </div>
-    <footer blog-footer [footer]="settings()?.footer"></footer>
+    <footer blog-footer [footer]="settings().footer"></footer>
   `,
-  styles: ``,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePageComponent {

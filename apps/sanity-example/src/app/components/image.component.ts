@@ -10,7 +10,6 @@ import { PortableTextTypeComponent } from '@limitless-angular/sanity/portabletex
 
 @Component({
   selector: 'app-image',
-  standalone: true,
   imports: [SanityImage],
   template: `
     <img

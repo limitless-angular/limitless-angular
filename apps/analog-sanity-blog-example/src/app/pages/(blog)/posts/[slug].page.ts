@@ -39,7 +39,6 @@ export const routeMeta: RouteMeta = {
 };
 
 @Component({
-  standalone: true,
   template: `
     @if (draftMode()) {
       <blog-preview-post-page [slug]="slug()" [data]="load()" />

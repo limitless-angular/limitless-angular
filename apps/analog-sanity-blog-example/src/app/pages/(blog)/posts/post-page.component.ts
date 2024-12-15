@@ -13,7 +13,6 @@ import { PortableTextComponent } from '../components/portable-text.component';
 
 @Component({
   selector: 'blog-post-page',
-  standalone: true,
   template: `
     @let post = data().post;
     @let settings = data().settings;
@@ -29,32 +28,34 @@ import { PortableTextComponent } from '../components/portable-text.component';
         <h1
           class="text-balance mb-12 text-6xl font-bold leading-tight tracking-tighter md:text-7xl md:leading-none lg:text-8xl"
         >
-          {{ post.title }}
+          {{ post?.title }}
         </h1>
         <div class="hidden md:mb-12 md:block">
-          @if (post.author; as author) {
+          @if (post?.author; as author) {
             <blog-avatar [name]="author.name" [picture]="author.picture" />
           }
         </div>
         <div class="mb-8 sm:mx-0 md:mb-16">
-          <blog-cover-image [image]="post.coverImage" priority />
+          <blog-cover-image [image]="post?.coverImage" priority />
         </div>
         <div class="mx-auto max-w-2xl">
           <div class="mb-6 block md:hidden">
-            @if (post.author; as author) {
+            @if (post?.author; as author) {
               <blog-avatar [name]="author.name" [picture]="author.picture" />
             }
           </div>
           <div class="mb-6 text-lg">
             <div class="mb-4 text-lg">
-              <blog-date [dateString]="post.date" />
+              @if (post?.date; as date) {
+                <blog-date [dateString]="date" />
+              }
             </div>
           </div>
         </div>
-        @if (post.content?.length) {
+        @if (post?.content?.length) {
           <blog-portable-text
             class="mx-auto max-w-2xl"
-            [value]="$any(post.content)"
+            [value]="$any(post!.content)"
           />
         }
       </article>

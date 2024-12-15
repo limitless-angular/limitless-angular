@@ -23,9 +23,9 @@
     "cms"
   ],
   "peerDependencies": {
-    "@angular/common": "^18.0.0",
-    "@angular/core": "^18.0.0",
-    "@angular/router": "^18.0.0",
+    "@angular/common": "^18.0.0 || ^19.0.0",
+    "@angular/core": "^18.0.0 || ^19.0.0",
+    "@angular/router": "^18.0.0 || ^19.0.0",
     "@portabletext/toolkit": "^2.0.15",
     "@portabletext/types": "^2.0.13",
     "@sanity/client": "^6.21.3",

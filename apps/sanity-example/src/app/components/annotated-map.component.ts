@@ -32,7 +32,6 @@ export interface AnnotatedMapBlock {
 
 @Component({
   selector: 'app-annotated-map',
-  standalone: true,
   imports: [],
   template: `
     @if (isLoading()) {

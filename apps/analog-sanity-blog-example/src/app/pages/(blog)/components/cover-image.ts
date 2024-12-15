@@ -10,7 +10,6 @@ import { SanityImage } from '@limitless-angular/sanity/image-loader';
 
 @Component({
   selector: 'blog-cover-image',
-  standalone: true,
   imports: [SanityImage],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

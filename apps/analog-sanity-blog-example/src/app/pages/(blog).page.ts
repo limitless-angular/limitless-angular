@@ -16,7 +16,6 @@ interface BlogPageProps {
 }
 
 @Component({
-  standalone: true,
   imports: [
     RouterOutlet,
     AlertBannerComponent,
