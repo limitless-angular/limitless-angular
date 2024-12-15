@@ -16,7 +16,6 @@ import { TemplateContext } from '../types';
 
 @Component({
   selector: 'lib-span',
-  standalone: true,
   imports: [NgTemplateOutlet, NgComponentOutlet],
   template: `
     <ng-template

@@ -11,7 +11,6 @@ import { createLiveData } from '@limitless-angular/sanity/preview-kit';
 
 @Component({
   selector: 'blog-preview-post-page',
-  standalone: true,
   template: `<blog-post-page [slug]="slug()" [data]="liveData()" />`,
   imports: [PostPageComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,

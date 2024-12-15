@@ -12,7 +12,6 @@ import { trackBy } from '../utils';
 
 @Component({
   selector: 'lib-list',
-  standalone: true,
   imports: [NgTemplateOutlet, NgComponentOutlet],
   template: `
     <ng-template

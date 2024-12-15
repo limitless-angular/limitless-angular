@@ -6,10 +6,9 @@ import { PortableTextComponent } from './portable-text.component';
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'footer[blog-footer]',
-  standalone: true,
   imports: [PortableTextComponent],
   template: `<div class="container mx-auto px-5">
-    @if (footer()?.length > 0) {
+    @if ((footer()?.length ?? 0) > 0) {
       <blog-portable-text [value]="$any(footer())" />
     } @else {
       <div class="flex flex-col items-center py-28 lg:flex-row">

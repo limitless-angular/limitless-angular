@@ -50,7 +50,6 @@ export interface VisualEditingProps
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'visual-editing-client',
-  standalone: true,
   template: '',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

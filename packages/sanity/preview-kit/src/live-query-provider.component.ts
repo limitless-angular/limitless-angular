@@ -14,7 +14,6 @@ import { RevalidateService } from './revalidate.service';
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'live-query-provider',
-  standalone: true,
   template: `<ng-content />`,
   providers: [LivePreviewService, RevalidateService, UseDocumentsInUseService],
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -48,7 +48,6 @@ const ptComponents: PortableTextComponents = {
 };
 
 @Component({
-  standalone: true,
   imports: [RouterOutlet, PortableTextComponent],
   selector: 'app-root',
   template: `

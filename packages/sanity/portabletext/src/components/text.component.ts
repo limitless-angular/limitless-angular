@@ -5,7 +5,6 @@ import {
   viewChild,
   ViewEncapsulation,
 } from '@angular/core';
-import { NgComponentOutlet, NgTemplateOutlet } from '@angular/common';
 
 import { ToolkitTextNode } from '@portabletext/toolkit';
 
@@ -13,8 +12,6 @@ import { PortableTextComponents } from '../types';
 
 @Component({
   selector: 'lib-text',
-  standalone: true,
-  imports: [NgTemplateOutlet, NgComponentOutlet],
   // prettier-ignore
   template: `<ng-template #textTmpl let-node let-components="components">
     @if (node.text === '\\n') {

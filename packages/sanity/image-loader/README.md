@@ -38,7 +38,6 @@ export const appConfig: ApplicationConfig = {
 import { SanityImage } from '@limitless-angular/sanity/image-loader';
 
 @Component({
-  standalone: true,
   imports: [SanityImage],
   template: `<img [sanityImage]="imageRef" width="800" height="600" [alt]="imageRef.alt" />`,
 })
@@ -65,7 +64,6 @@ export class ImageComponent {
 import { NgOptimizedImage } from '@angular/common';
 
 @Component({
-  standalone: true,
   imports: [NgOptimizedImage],
   template: `<img ngSrc="image-Tb9Ew8CXIwaY6R1kjMvI0uRR-2000x3000-jpg" width="100" height="100" />`,
 })
@@ -91,7 +89,6 @@ import { getImageDimensions } from '@sanity/asset-utils';
 
 @Component({
   selector: 'app-portable-text-image',
-  standalone: true,
   imports: [SanityImage],
   template: `<img [sanityImage]="value()" [width]="dimensions().width" [height]="dimensions().height" [alt]="value().alt" />`,
 })
@@ -108,7 +105,6 @@ import { PortableTextComponent, PortableTextComponents } from '@limitless-angula
 
 @Component({
   selector: 'app-portable-text',
-  standalone: true,
   imports: [PortableTextComponent],
   template: `<div portable-text [value]="content" [components]="components"></div>`,
 })

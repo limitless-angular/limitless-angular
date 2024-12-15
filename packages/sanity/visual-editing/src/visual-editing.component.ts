@@ -16,7 +16,6 @@ import {
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'visual-editing',
-  standalone: true,
   imports: [VisualEditingClientComponent],
   template: `
     @if (isBrowser) {

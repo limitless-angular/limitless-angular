@@ -1,4 +1,3 @@
-import jsonc_eslint_parser from 'jsonc-eslint-parser';
 import nx from '@nx/eslint-plugin';
 import baseConfig from '../../eslint.config.js';
 

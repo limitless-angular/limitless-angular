@@ -1,7 +1,7 @@
 import {
   type ApplicationConfig,
-  ENVIRONMENT_INITIALIZER,
   provideExperimentalZonelessChangeDetection,
+  provideEnvironmentInitializer,
 } from '@angular/core';
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import { provideClientHydration } from '@angular/platform-browser';
@@ -26,10 +26,6 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(),
     provideHttpClient(withFetch()),
     provideSanity(getClient, withLivePreview()),
-    {
-      provide: ENVIRONMENT_INITIALIZER,
-      multi: true,
-      useValue: () => updateMetaTagsOnRouteChange(),
-    },
+    provideEnvironmentInitializer(() => updateMetaTagsOnRouteChange()),
   ],
 };

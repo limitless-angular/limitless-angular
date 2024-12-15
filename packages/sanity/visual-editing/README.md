@@ -36,7 +36,6 @@ Add the `<visual-editing />` component to your template, typically at the root l
 
 ```typescript
 @Component({
-  standalone: true,
   imports: [VisualEditingComponent],
   template: `
     <main>

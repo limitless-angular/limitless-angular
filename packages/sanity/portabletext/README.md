@@ -42,7 +42,6 @@ import { PortableTextComponent, PortableTextComponents } from '@limitless-angula
 @Component({
   selector: 'app-your-component',
   template: ` <div portable-text [value]="portableTextValue" [components]="customComponents"></div> `,
-  standalone: true,
   imports: [PortableTextComponent],
 })
 export class YourComponent {
@@ -75,14 +74,12 @@ type LinkProps = { _type: 'link'; href: string };
 
 @Component({
   selector: 'a',
-  standalone: true,
   template: `<ng-container #children />`,
 })
 export class LinkComponent extends PortableTextMarkComponent<LinkProps> {}
 
 @Component({
   selector: 'p',
-  standalone: true,
   template: `<ng-container #children />`,
   host: { '[class.text-purple-700]': 'true' },
 })
@@ -90,7 +87,6 @@ export class ParagraphComponent extends PortableTextBlockComponent {}
 
 @Component({
   selector: 'ul',
-  standalone: true,
   template: `<ng-container #children />`,
   host: {
     '[class.font-light]': 'true',
@@ -100,7 +96,6 @@ export class BulletListComponent extends PortableTextListComponent {}
 
 @Component({
   selector: 'li',
-  standalone: true,
   template: `<ng-container #children />`,
   styles: `
     :host {
@@ -116,7 +111,6 @@ export class ListItemComponent extends PortableTextListItemComponent {}
 @Component({
   selector: 'app-your-component',
   template: ` <div portable-text [value]="value" [components]="customComponents"></div> `,
-  standalone: true,
   imports: [PortableTextComponent],
 })
 export class YourComponent {
@@ -151,21 +145,18 @@ type LinkProps = { _type: 'link'; href: string };
 
 @Component({
   selector: 'app-link',
-  standalone: true,
   template: `<a [href]="value()?.href"><ng-container #children /></a>`,
 })
 export class LinkComponent extends PortableTextMarkComponent<LinkProps> {}
 
 @Component({
   selector: 'app-paragraph',
-  standalone: true,
   template: `<p class="text-purple-700"><ng-container #children /></p>`,
 })
 export class ParagraphComponent extends PortableTextBlockComponent {}
 
 @Component({
   selector: 'app-bullet-list',
-  standalone: true,
   template: `<ul class="font-light">
     <ng-container #children />
   </ul>`,
@@ -174,7 +165,6 @@ export class BulletListComponent extends PortableTextListComponent {}
 
 @Component({
   selector: 'app-list-item',
-  standalone: true,
   template: `<li class="text-purple-700" style="list-style-type: disclosure-closed"><ng-container #children /></li>`,
 })
 export class ListItemComponent extends PortableTextListItemComponent {}
@@ -182,7 +172,6 @@ export class ListItemComponent extends PortableTextListItemComponent {}
 @Component({
   selector: 'app-your-component',
   template: ` <div portable-text [value]="value" [components]="customComponents"></div> `,
-  standalone: true,
   imports: [PortableTextComponent],
 })
 export class YourComponent {
@@ -231,7 +220,6 @@ import { getImageDimensions } from '@sanity/asset-utils';
 
 @Component({
   selector: 'img[portableTextImage]',
-  standalone: true,
   template: '',
   host: {
     '[src]': 'imageUrl()',
@@ -260,7 +248,6 @@ export class SampleImageComponent extends PortableTextTypeComponent {
 @Component({
   selector: 'app-your-component',
   template: `<div portable-text [value]="portableTextValue" [components]="components"></div> `,
-  standalone: true,
   imports: [PortableTextComponent],
 })
 export class YourComponent {
@@ -287,7 +274,6 @@ import { getImageDimensions } from '@sanity/asset-utils';
 
 @Component({
   selector: 'app-sample-image',
-  standalone: true,
   template: ` <img [src]="imageUrl()" [alt]="value().alt || ' '" loading="lazy" [style.display]="isInline() ? 'inline-block' : 'block'" [style.aspectRatio]="aspectRatio()" /> `,
 })
 export class SampleImageComponent extends PortableTextTypeComponent {
@@ -309,7 +295,6 @@ export class SampleImageComponent extends PortableTextTypeComponent {
 @Component({
   selector: 'app-your-component',
   template: ` <div portable-text [value]="portableTextValue" [components]="components"></div> `,
-  standalone: true,
   imports: [PortableTextComponent],
 })
 export class YourComponent {
@@ -344,7 +329,6 @@ import { PortableTextComponent, PortableTextComponents, PortableTextMarkComponen
 
 @Component({
   selector: 'em',
-  standalone: true,
   template: `<ng-container #children />`,
   host: {
     '[class.text-gray-600]': 'true',
@@ -355,7 +339,6 @@ export class EmComponent extends PortableTextMarkComponent {}
 
 @Component({
   selector: 'a',
-  standalone: true,
   template: `<ng-container #children />`,
   host: {
     '[href]': 'value()?.href',
@@ -364,19 +347,14 @@ export class EmComponent extends PortableTextMarkComponent {}
   },
 })
 export class LinkComponent extends PortableTextMarkComponent {
-  target = computed(() =>
-    (this.value()?.href ?? '').startsWith('http') ? '_blank' : undefined,
-  );
+  target = computed(() => ((this.value()?.href ?? '').startsWith('http') ? '_blank' : undefined));
 
-  rel = computed(() =>
-    this.target() === '_blank' ? 'noindex nofollow' : undefined,
-  );
+  rel = computed(() => (this.target() === '_blank' ? 'noindex nofollow' : undefined));
 }
 
 @Component({
   selector: 'app-your-component',
   template: ` <div portable-text [value]="portableTextValue" [components]="components"></div> `,
-  standalone: true,
   imports: [PortableTextComponent],
 })
 export class YourComponent {
@@ -401,14 +379,12 @@ import { PortableTextComponent, PortableTextComponents, PortableTextMarkComponen
 
 @Component({
   selector: 'app-em',
-  standalone: true,
   template: `<em class="text-gray-600 font-semibold"><ng-container #children /></em>`,
 })
 export class EmComponent extends PortableTextMarkComponent {}
 
 @Component({
   selector: 'app-link',
-  standalone: true,
   template: `
     <a [href]="value()?.href" [target]="target()" [rel]="rel()">
       <ng-container #children />
@@ -416,19 +392,14 @@ export class EmComponent extends PortableTextMarkComponent {}
   `,
 })
 export class LinkComponent extends PortableTextMarkComponent {
-  target = computed(() =>
-    (this.value()?.href ?? '').startsWith('http') ? '_blank' : undefined,
-  );
+  target = computed(() => ((this.value()?.href ?? '').startsWith('http') ? '_blank' : undefined));
 
-  rel = computed(() =>
-    this.target() === '_blank' ? 'noindex nofollow' : undefined,
-  );
+  rel = computed(() => (this.target() === '_blank' ? 'noindex nofollow' : undefined));
 }
 
 @Component({
   selector: 'app-your-component',
   template: ` <div portable-text [value]="portableTextValue" [components]="components"></div> `,
-  standalone: true,
   imports: [PortableTextComponent],
 })
 export class YourComponent {
@@ -457,7 +428,6 @@ import { PortableTextComponent, PortableTextComponents, PortableTextBlockCompone
 
 @Component({
   selector: 'h1',
-  standalone: true,
   template: `<ng-container #children />`,
   host: { '[class.text-2xl]': 'true' },
 })
@@ -465,7 +435,6 @@ export class H1Component extends PortableTextBlockComponent {}
 
 @Component({
   selector: 'blockquote',
-  standalone: true,
   template: `<ng-container #children />`,
   host: { '[class.border-l-purple-500]': 'true' },
 })
@@ -473,7 +442,6 @@ export class BlockquoteComponent extends PortableTextBlockComponent {}
 
 @Component({
   selector: 'h2[customHeading]',
-  standalone: true,
   template: `<ng-container #children />`,
   host: {
     '[class.text-lg]': 'true',
@@ -486,7 +454,6 @@ export class CustomHeadingComponent extends PortableTextBlockComponent {}
 @Component({
   selector: 'app-your-component',
   template: ` <div portable-text [value]="portableTextValue" [components]="components"></div> `,
-  standalone: true,
   imports: [PortableTextComponent],
 })
 export class YourComponent {
@@ -512,21 +479,18 @@ import { PortableTextComponent, PortableTextComponents, PortableTextBlockCompone
 
 @Component({
   selector: 'app-h1',
-  standalone: true,
   template: `<h1 class="text-2xl"><ng-container #children /></h1>`,
 })
 export class H1Component extends PortableTextBlockComponent {}
 
 @Component({
   selector: 'app-blockquote',
-  standalone: true,
   template: `<blockquote class="border-l-purple-500"><ng-container #children /></blockquote>`,
 })
 export class BlockquoteComponent extends PortableTextBlockComponent {}
 
 @Component({
   selector: 'app-custom-heading',
-  standalone: true,
   template: `<h2 class="text-lg text-primary text-purple-700"><ng-container #children /></h2>`,
 })
 export class CustomHeadingComponent extends PortableTextBlockComponent {}
@@ -534,7 +498,6 @@ export class CustomHeadingComponent extends PortableTextBlockComponent {}
 @Component({
   selector: 'app-your-component',
   template: ` <div portable-text [value]="portableTextValue" [components]="components"></div> `,
-  standalone: true,
   imports: [PortableTextComponent],
 })
 export class YourComponent {
@@ -568,7 +531,6 @@ import { PortableTextComponent, PortableTextComponents, PortableTextListComponen
 
 @Component({
   selector: 'ul',
-  standalone: true,
   template: `<ng-container #children />`,
   host: { '[class.mt-xl]': 'true' },
 })
@@ -576,7 +538,6 @@ export class BulletListComponent extends PortableTextListComponent {}
 
 @Component({
   selector: 'ol',
-  standalone: true,
   template: `<ng-container #children />`,
   host: { '[class.mt-lg]': 'true' },
 })
@@ -584,7 +545,6 @@ export class NumberListComponent extends PortableTextListComponent {}
 
 @Component({
   selector: 'ol[checkmarks]',
-  standalone: true,
   template: `<ng-container #children />`,
   host: {
     '[class.m-auto]': 'true',
@@ -596,7 +556,6 @@ export class CheckmarksListComponent extends PortableTextListComponent {}
 @Component({
   selector: 'app-your-component',
   template: ` <div portable-text [value]="portableTextValue" [components]="components"></div> `,
-  standalone: true,
   imports: [PortableTextComponent],
 })
 export class YourComponent {
@@ -622,7 +581,6 @@ import { PortableTextComponent, PortableTextComponents, PortableTextListComponen
 
 @Component({
   selector: 'app-bullet-list',
-  standalone: true,
   template: `<ul class="mt-xl">
     <ng-container #children />
   </ul>`,
@@ -631,7 +589,6 @@ export class BulletListComponent extends PortableTextListComponent {}
 
 @Component({
   selector: 'app-number-list',
-  standalone: true,
   template: `<ol class="mt-lg">
     <ng-container #children />
   </ol>`,
@@ -640,7 +597,6 @@ export class NumberListComponent extends PortableTextListComponent {}
 
 @Component({
   selector: 'app-checkmarks-list',
-  standalone: true,
   template: `<ol class="m-auto text-lg">
     <ng-container #children />
   </ol>`,
@@ -650,7 +606,6 @@ export class CheckmarksListComponent extends PortableTextListComponent {}
 @Component({
   selector: 'app-your-component',
   template: ` <div portable-text [value]="portableTextValue" [components]="components"></div> `,
-  standalone: true,
   imports: [PortableTextComponent],
 })
 export class YourComponent {
@@ -682,7 +637,6 @@ import { PortableTextComponent, PortableTextComponents, PortableTextListItemComp
 
 @Component({
   selector: 'li[bullet]',
-  standalone: true,
   template: `<ng-container #children />`,
   host: { 'style.list-style-type': '"disclosure-closed"' },
 })
@@ -690,7 +644,6 @@ export class BulletListItemComponent extends PortableTextListItemComponent {}
 
 @Component({
   selector: 'li[checkmarks]',
-  standalone: true,
   template: `✅ <ng-container #children />`,
 })
 export class CheckmarksListItemComponent extends PortableTextListItemComponent {}
@@ -698,7 +651,6 @@ export class CheckmarksListItemComponent extends PortableTextListItemComponent {
 @Component({
   selector: 'app-your-component',
   template: ` <div portable-text [value]="portableTextValue" [components]="components"></div> `,
-  standalone: true,
   imports: [PortableTextComponent],
 })
 export class YourComponent {
@@ -723,14 +675,12 @@ import { PortableTextComponent, PortableTextComponents, PortableTextListItemComp
 
 @Component({
   selector: 'app-bullet-list-item',
-  standalone: true,
   template: `<li style="list-style-type: disclosure-closed"><ng-container #children /></li>`,
 })
 export class BulletListItemComponent extends PortableTextListItemComponent {}
 
 @Component({
   selector: 'app-checkmarks-list-item',
-  standalone: true,
   template: `<li>✅ <ng-container #children /></li>`,
 })
 export class CheckmarksListItemComponent extends PortableTextListItemComponent {}
@@ -738,7 +688,6 @@ export class CheckmarksListItemComponent extends PortableTextListItemComponent {
 @Component({
   selector: 'app-your-component',
   template: `<div portable-text [value]="portableTextValue" [components]="components"></div> `,
-  standalone: true,
   imports: [PortableTextComponent],
 })
 export class YourComponent {
@@ -776,7 +725,6 @@ import slugify from 'slugify';
 
 @Component({
   selector: 'h2',
-  standalone: true,
   template: `<ng-container #children />`,
   host: { '[id]': 'slug()' },
   changeDetection: ChangeDetectionStrategy.OnPush,

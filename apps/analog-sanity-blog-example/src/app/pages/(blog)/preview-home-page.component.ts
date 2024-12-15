@@ -10,7 +10,6 @@ import { createLiveData } from '@limitless-angular/sanity/preview-kit';
 
 @Component({
   selector: 'blog-preview-home-page',
-  standalone: true,
   imports: [HomePageComponent],
   template: `<blog-home-page [data]="liveData()" />`,
   changeDetection: ChangeDetectionStrategy.OnPush,

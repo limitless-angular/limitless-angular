@@ -18,7 +18,6 @@ import { serializeBlock } from '../utils';
 
 @Component({
   selector: 'lib-list-item',
-  standalone: true,
   imports: [NgTemplateOutlet, NgComponentOutlet],
   template: `<ng-template
     #listItemTmpl

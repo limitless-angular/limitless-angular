@@ -37,7 +37,6 @@ function getNoopImageLoader() {
 @Directive({
   // eslint-disable-next-line @angular-eslint/directive-selector
   selector: 'img[sanityImage]',
-  standalone: true,
   providers: [
     {
       provide: IMAGE_LOADER,
@@ -76,7 +75,7 @@ export class SanityImage extends NgOptimizedImage implements OnInit, OnChanges {
     const url = new URL(
       imageUrlBuilder(this.sanityConfig)
         .image(this.sanityImage())
-        .withOptions(this.loaderParams)
+        .withOptions(this._loaderParams)
         .url(),
     );
     if (this.width) {
@@ -105,12 +104,13 @@ export class SanityImage extends NgOptimizedImage implements OnInit, OnChanges {
   // ngSrc is not being updated by NgOptimizedImage, so we need to do it manually
   override ngOnChanges(changes: SimpleChanges) {
     if (changes['sanityImage']) {
+      const ngSrc = this.imageUrl();
       changes['ngSrc'] = new SimpleChange(
         this.ngSrc,
-        this.imageUrl(),
+        ngSrc,
         changes['sanityImage'].isFirstChange(),
       );
-      this.ngSrc = this.imageUrl();
+      this.ngSrc = ngSrc;
     }
 
     super.ngOnChanges(changes);

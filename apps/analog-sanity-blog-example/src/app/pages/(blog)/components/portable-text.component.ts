@@ -60,15 +60,15 @@ export class LinkComponent extends PortableTextMarkComponent<{
 
 @Component({
   selector: 'blog-portable-text',
-  standalone: true,
   imports: [SanityPortableTextComponent],
-  template: `<div
-    portable-text
-    [class]="containerClasses()"
-    [value]="value()"
-    [components]="components"
-  ></div>`,
-  styles: ``,
+  template: `@if (value(); as value) {
+    <div
+      portable-text
+      [class]="containerClasses()"
+      [value]="value"
+      [components]="components"
+    ></div>
+  }`,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PortableTextComponent {

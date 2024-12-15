@@ -40,7 +40,7 @@ export default [
           ignoredFiles: [
             '{projectRoot}/{eslint,tailwind,vite}.config.{js,cjs,mjs,ts}',
           ],
-          ignoredDependencies: ['@limitless-angular/sanity'],
+          ignoredDependencies: ['@limitless-angular/sanity', 'lru-cache'],
         },
       ],
       // TODO: what?

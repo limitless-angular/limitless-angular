@@ -38,16 +38,7 @@ import { trackBy } from '../utils';
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: '[portable-text]',
-  standalone: true,
-  imports: [
-    BlockComponent,
-    ListComponent,
-    SpanComponent,
-    NgTemplateOutlet,
-    NgComponentOutlet,
-    ListItemComponent,
-    TextComponent,
-  ],
+  imports: [NgTemplateOutlet, NgComponentOutlet],
   template: `
     @for (
       block of nestedBlocks();

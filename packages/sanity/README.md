@@ -30,7 +30,8 @@ npm install --save @limitless-angular/sanity
 
 | Angular version | Package version |
 | --------------- | --------------- |
-| ≥18.0.0         | 18.x            |
+| 18.x            | 18.x            |
+| ≥18.0.0         | 19.x            |
 
 ## Quick Start
 

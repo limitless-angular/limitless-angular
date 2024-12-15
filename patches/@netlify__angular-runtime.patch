@@ -1,7 +1,7 @@
-diff --git a/node_modules/@netlify/angular-runtime/src/helpers/fixOutputDir.js b/node_modules/@netlify/angular-runtime/src/helpers/fixOutputDir.js
-index 2b6c701..96cf532 100644
---- a/node_modules/@netlify/angular-runtime/src/helpers/fixOutputDir.js
-+++ b/node_modules/@netlify/angular-runtime/src/helpers/fixOutputDir.js
+diff --git a/src/helpers/fixOutputDir.js b/src/helpers/fixOutputDir.js
+index 2b6c701c9235ea5af28187aec78b44fa057b97f7..96cf532cd352e45e323b3ea32215bc131c5bf671 100644
+--- a/src/helpers/fixOutputDir.js
++++ b/src/helpers/fixOutputDir.js
 @@ -7,9 +7,9 @@ const fixOutputDir = async function ({ failBuild, failPlugin, siteRoot, PUBLISH_
    const angularJson = getAngularJson({ failPlugin, siteRoot })
    const project = getProject(angularJson)
@@ -14,13 +14,13 @@ index 2b6c701..96cf532 100644
    const correctPublishDir = isApplicationBuilder ? join(outputPath, 'browser') : outputPath
    if (correctPublishDir === PUBLISH_DIR) {
      return
-diff --git a/node_modules/@netlify/angular-runtime/src/helpers/getAngularJson.js b/node_modules/@netlify/angular-runtime/src/helpers/getAngularJson.js
-index ba571df..e884763 100644
---- a/node_modules/@netlify/angular-runtime/src/helpers/getAngularJson.js
-+++ b/node_modules/@netlify/angular-runtime/src/helpers/getAngularJson.js
-@@ -4,11 +4,11 @@ const { existsSync, readJsonSync } = require('fs-extra')
- 
- // Get contents of project's angular.json file
+diff --git a/src/helpers/getAngularJson.js b/src/helpers/getAngularJson.js
+index 5140c36fe56734206b2c178d96859c07f8e35ac7..38691cc37af1d6c2c32f35442fa468f9aa6ab6f8 100644
+--- a/src/helpers/getAngularJson.js
++++ b/src/helpers/getAngularJson.js
+@@ -11,11 +11,11 @@ const { existsSync, readJsonSync } = require('fs-extra')
+  * @returns {any}
+  */
  const getAngularJson = function ({ failPlugin, siteRoot }) {
 -  if (!existsSync(join(siteRoot, 'angular.json'))) {
 +  if (!existsSync(join(siteRoot, 'project.json'))) {
@@ -32,10 +32,10 @@ index ba571df..e884763 100644
    } catch {
      return failPlugin(`Could not parse contents of angular.json`)
    }
-diff --git a/node_modules/@netlify/angular-runtime/src/helpers/getAngularRoot.js b/node_modules/@netlify/angular-runtime/src/helpers/getAngularRoot.js
-index ebc7260..95268f6 100644
---- a/node_modules/@netlify/angular-runtime/src/helpers/getAngularRoot.js
-+++ b/node_modules/@netlify/angular-runtime/src/helpers/getAngularRoot.js
+diff --git a/src/helpers/getAngularRoot.js b/src/helpers/getAngularRoot.js
+index ebc726032f6ce052007facf307f17156f1260d56..95268f60b3f3a9ebf125d58f966551b0137201ed 100644
+--- a/src/helpers/getAngularRoot.js
++++ b/src/helpers/getAngularRoot.js
 @@ -7,15 +7,15 @@ const process = require('process')
   * If there's no angular.json in the root, we instead look for it 2 levels up from the publish dir
   */
@@ -55,11 +55,24 @@ index ebc7260..95268f6 100644
        return failBuild(
          `Could not locate your angular.json at your project root or two levels above your publish directory. Make sure your publish directory is set to "{PATH_TO_YOUR_SITE}/dist/{YOUR_PROJECT_NAME}/browser", where {YOUR_PROJECT_NAME} is 'defaultProject' in your angular.json.`,
        )
-diff --git a/node_modules/@netlify/angular-runtime/src/helpers/setUpEdgeFunction.js b/node_modules/@netlify/angular-runtime/src/helpers/setUpEdgeFunction.js
-index 9ef5f0b..b1a7e54 100644
---- a/node_modules/@netlify/angular-runtime/src/helpers/setUpEdgeFunction.js
-+++ b/node_modules/@netlify/angular-runtime/src/helpers/setUpEdgeFunction.js
-@@ -33,15 +33,7 @@ const getProject = (angularJson, failBuild) => {
+diff --git a/src/helpers/serverModuleHelpers.js b/src/helpers/serverModuleHelpers.js
+index facc6da75c349c1444eb3c67d2ba36a84e5e9f93..c18b4d043792aace49e932efd4f8f0162a04f007 100644
+--- a/src/helpers/serverModuleHelpers.js
++++ b/src/helpers/serverModuleHelpers.js
+@@ -95,7 +95,7 @@ const fixServerTs = async function ({ angularVersion, siteRoot, failPlugin, fail
+ 
+   const project = getProject(angularJson)
+   const {
+-    architect: { build },
++    targets: { build },
+   } = project
+ 
+   serverModuleLocation = build?.options?.ssr?.entry
+diff --git a/src/helpers/setUpEdgeFunction.js b/src/helpers/setUpEdgeFunction.js
+index 284555bb53c24d2f4bb47e2b50013f63119e447e..20b92db25c90e9d4f35f069a219560bd73cadfcf 100644
+--- a/src/helpers/setUpEdgeFunction.js
++++ b/src/helpers/setUpEdgeFunction.js
+@@ -34,15 +34,7 @@ const getProject = (angularJson, failBuild) => {
      return project
    }
  
@@ -72,16 +85,20 @@ index 9ef5f0b..b1a7e54 100644
 -  }
 -
 -  return angularJson.projects[projectName]
-+  return angularJson;
++  return angularJson
  }
  
  module.exports.getProject = getProject
-@@ -60,7 +52,7 @@ const getPrerenderedRoutes = async (outputDir) => {
- const setUpEdgeFunction = async ({ angularJson, constants, failBuild }) => {
-   const project = getProject(angularJson)
-   const {
--    architect: { build },
-+    targets: { build },
-   } = project
-   const outputDir = build?.options?.outputPath
-   if (!outputDir || !existsSync(outputDir)) {
+diff --git a/src/index.js b/src/index.js
+index 8a3c807b38575278c116a837023e129228f0ee91..c464c9cd8def9d2865d8ce4f7d22505e3215a72f 100644
+--- a/src/index.js
++++ b/src/index.js
+@@ -53,7 +53,7 @@ module.exports = {
+ 
+     const project = getProject(angularJson)
+     const {
+-      architect: { build },
++      targets: { build },
+     } = project
+     const outputDir = build?.options?.outputPath
+     if (!outputDir || !existsSync(outputDir)) {

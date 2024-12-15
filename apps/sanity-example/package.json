@@ -2,20 +2,22 @@
   "name": "sanity-example",
   "type": "module",
   "dependencies": {
-    "@angular/common": "~18.2.5",
-    "@angular/core": "~18.2.5",
-    "@angular/platform-browser": "~18.2.5",
-    "@angular/platform-server": "~18.2.5",
-    "@angular/router": "~18.2.5",
-    "@angular/ssr": "~18.2.5",
+    "@angular/common": "~19.0.3",
+    "@angular/core": "~19.0.3",
+    "@angular/platform-browser": "~19.0.3",
+    "@angular/platform-server": "~19.0.3",
+    "@angular/router": "~19.0.3",
+    "@angular/ssr": "~19.0.4",
     "@portabletext/types": "^2.0.13",
     "@sanity/asset-utils": "^2.1.0",
     "express": "~4.21.0",
     "leaflet": "^1.9.4",
-    "prismjs": "^1.29.0"
+    "prismjs": "^1.29.0",
+    "@netlify/angular-runtime": "2.2.1"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.12",
-    "@types/prismjs": "^1.26.4"
+    "@types/prismjs": "^1.26.4",
+    "@netlify/angular-runtime": "2.2.1"
   }
 }
