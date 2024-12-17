@@ -14,7 +14,10 @@
     "projects": ["packages/*"],
     "projectsRelationship": "independent",
     "version": {
-      "conventionalCommits": true
+      "conventionalCommits": true,
+      "git": {
+        "commitMessage": "chore(release): publish {version} [skip ci]"
+      }
     },
     "conventionalCommits": {
       "types": {
@@ -25,12 +28,8 @@
     },
     "changelog": {
       "projectChangelogs": {
-        "file": false,
         "createRelease": "github"
       }
-    },
-    "git": {
-      "commitMessage": "chore(release): publish {version} [skip ci]"
     }
   },
   "targetDefaults": {
