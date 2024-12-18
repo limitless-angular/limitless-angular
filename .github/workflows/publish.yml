@@ -50,7 +50,9 @@ jobs:
       - name: Apply updated version to packages
         run: |
           # Use the version from the workflow input if it's set, otherwise use the tag name from the release
-          VERSION=${{ github.event.inputs.version || github.ref_name }}
+          RAW_VERSION=${{ github.event.inputs.version || github.ref_name }}
+          # Extract just the version number if it includes a package name (e.g., "sanity@19.0.0" -> "19.0.0")
+          VERSION=${RAW_VERSION#*@}
           pnpm nx release version $VERSION
 
       - name: Prepare packages for publishing
