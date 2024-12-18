@@ -27,11 +27,11 @@ import { hideBin } from 'yargs/helpers';
       })
       .parseAsync();
 
-    // Prepare the packages for publishing
-    // execSync('pnpm build', {
-    //   stdio: 'inherit',
-    //   maxBuffer: 1024 * 1000000,
-    // });
+    // Build the packages to guarantee there are no errors when publishing
+    execSync('pnpm build', {
+      stdio: 'inherit',
+      maxBuffer: 1024 * 1000000,
+    });
 
     const { workspaceVersion, projectsVersionData } = await releaseVersion({
       specifier: options.version,
