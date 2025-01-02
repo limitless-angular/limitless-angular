@@ -222,7 +222,21 @@ A component that provides the live preview context to its children.
 
 ### createLiveData
 
-A utility function that creates a signal for live-updating data.
+A utility function that creates a signal for live-updating data. Supports both single query and multiple queries configurations.
+
+**Single Query Usage:**
+
+```typescript
+function createLiveData<T>(
+  initialData: () => T,
+  queries: () => {
+    query: string;
+    params?: Record<string, unknown>;
+  },
+): Signal<T>;
+```
+
+**Multiple Queries Usage:**
 
 ```typescript
 function createLiveData<T>(
@@ -239,7 +253,36 @@ function createLiveData<T>(
 **Parameters:**
 
 - `initialData`: Function returning the initial data state
-- `queries`: Function returning an object mapping data keys to their respective queries and parameters
+- `queries`: Function returning either:
+  - A single query configuration with `query` and optional `params`
+  - An object mapping data keys to their respective queries and parameters
+
+**Examples:**
+
+```typescript
+// Single query usage
+const livePost = createLiveData(
+  () => initialPost,
+  () => ({
+    query: postQuery,
+    params: { slug: 'my-post' },
+  }),
+);
+
+// Multiple queries usage
+const liveData = createLiveData(
+  () => initialData,
+  () => ({
+    post: {
+      query: postQuery,
+      params: { slug: 'my-post' },
+    },
+    settings: {
+      query: settingsQuery,
+    },
+  }),
+);
+```
 
 **Returns:**
 

@@ -14,15 +14,40 @@ type QueryConfig = { query: string; params?: Record<string, unknown> };
 
 type QueriesConfig<T> = { [K in keyof T]?: QueryConfig };
 
+// Single query overload
+export function createLiveData<T>(
+  initialData: () => T,
+  queries: () => QueryConfig,
+): Signal<T>;
+
+// Multiple queries overload
 export function createLiveData<
   T extends Record<string, unknown>,
   K extends keyof T,
->(initialData: () => T, queries: () => QueriesConfig<T>): Signal<Pick<T, K>> {
+>(initialData: () => T, queries: () => QueriesConfig<T>): Signal<Pick<T, K>>;
+
+// Implementation
+export function createLiveData<T>(
+  initialData: () => T,
+  queries: () => QueryConfig | QueriesConfig<T>,
+): Signal<T> {
   const livePreviewService = inject(LivePreviewService);
+
   return computedAsync(() => {
-    const queryData = queries();
+    const queryConfig = queries();
     const initial = untracked(initialData);
-    const observables = Object.entries(queryData).reduce(
+
+    // Handle single query configuration
+    if ('query' in queryConfig) {
+      return livePreviewService
+        .listenLiveQuery(initial, queryConfig.query, queryConfig.params)
+        .pipe(startWith(initial));
+    }
+
+    // Handle multiple queries configuration
+    const observables = Object.entries(
+      queryConfig as QueriesConfig<Record<string, unknown>>,
+    ).reduce(
       (acc, [key, config]) => {
         acc[key as keyof T] = livePreviewService.listenLiveQuery(
           initial[key as keyof T],
@@ -37,7 +62,7 @@ export function createLiveData<
     );
 
     return combineLatest(observables).pipe(startWith(initial));
-  }, initialData) as Signal<Pick<T, K>>;
+  }, initialData) as Signal<T>;
 }
 
 function computedAsync<T>(
