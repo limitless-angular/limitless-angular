@@ -1,6 +1,6 @@
 {
   "name": "@limitless-angular/sanity",
-  "version": "19.1.0",
+  "version": "19.1.1",
   "description": "A powerful Angular library for Sanity.io integration, featuring Portable Text rendering and optimized image loading.",
   "author": "Alfonso Andrés López Molina <osnoser3@gmail.com>",
   "license": "MIT",

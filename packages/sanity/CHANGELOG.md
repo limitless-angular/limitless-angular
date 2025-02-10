@@ -1,3 +1,13 @@
+## 19.1.1 (2025-02-10)
+
+### 🩹 Fixes
+
+- **sanity:** live preview service is called before be initialized ([#9](https://github.com/limitless-angular/limitless-angular/pull/9))
+
+### ❤️ Thank You
+
+- Alfonso Andrés López Molina
+
 ## 19.1.0 (2025-02-10)
 
 ### 🚀 Features
