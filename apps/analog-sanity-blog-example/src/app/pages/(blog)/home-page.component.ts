@@ -129,7 +129,7 @@ export class HeroPostComponent {
         </aside>
       }
     </div>
-    <footer blog-footer [footer]="settings().footer"></footer>
+    <footer blog-footer [footer]="settings()?.footer"></footer>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -18,7 +18,7 @@ export const load = async ({ event }: PageServerLoad) => {
   ]);
 
   return {
-    settings: (settings ?? {}) as NonNullable<typeof settings>,
+    settings,
     posts: posts,
     draftMode,
     token: draftMode ? readToken : '',
