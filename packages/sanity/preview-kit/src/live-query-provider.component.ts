@@ -1,7 +1,7 @@
 import {
-  afterNextRender,
   ChangeDetectionStrategy,
   Component,
+  effect,
   inject,
   input,
 } from '@angular/core';
@@ -24,7 +24,7 @@ export class LiveQueryProviderComponent {
   private livePreviewService = inject(LivePreviewService);
 
   constructor() {
-    afterNextRender(() => {
+    effect(() => {
       this.livePreviewService.initialize(this.token());
     });
   }
