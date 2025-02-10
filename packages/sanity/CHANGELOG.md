@@ -1,3 +1,13 @@
+## 19.1.0 (2025-02-10)
+
+### 🚀 Features
+
+- **sanity:** support create live data with single query ([#8](https://github.com/limitless-angular/limitless-angular/pull/8))
+
+### ❤️ Thank You
+
+- Alfonso Andrés López Molina
+
 # 19.0.0 (2024-12-18)
 
 ### 🚀 Features
