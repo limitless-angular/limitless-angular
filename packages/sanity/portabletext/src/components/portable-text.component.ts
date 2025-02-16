@@ -2,7 +2,10 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
+  forwardRef,
   inject,
+  Injector,
   input,
   TemplateRef,
   Type,
@@ -28,12 +31,14 @@ import {
 } from '@portabletext/types';
 
 import { BlockComponent } from './block.component';
-import { PortableTextComponents } from '../types';
+import { MissingComponentHandler, PortableTextComponents } from '../types';
 import { TextComponent } from './text.component';
 import { SpanComponent } from './span.component';
 import { ListComponent } from './list.component';
 import { ListItemComponent } from './list-item.component';
 import { trackBy } from '../utils';
+import { MISSING_COMPONENT_HANDLER } from '../tokens';
+import { printWarning } from '../warnings';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -98,6 +103,13 @@ import { trackBy } from '../utils';
             }
           "
         />
+      } @else if (hasCustomComponentForNode(node)) {
+        <ng-container
+          *ngComponentOutlet="
+            getCustomComponentForNode(node);
+            inputs: { value: node, isInline }
+          "
+        />
       } @else if (isPortableTextBlock(node)) {
         <ng-container
           *ngTemplateOutlet="
@@ -115,7 +127,7 @@ import { trackBy } from '../utils';
       } @else {
         <ng-container
           *ngTemplateOutlet="
-            customBlockTmpl;
+            unknownTypeTmpl;
             context: { node, components, isInline }
           "
         />
@@ -123,23 +135,14 @@ import { trackBy } from '../utils';
     </ng-template>
 
     <ng-template
-      #customBlockTmpl
+      #unknownTypeTmpl
       let-value="node"
       let-components="components"
       let-isInline="isInline"
     >
-      @if (hasCustomComponent(value)) {
-        <ng-container
-          *ngComponentOutlet="
-            getCustomComponent(value);
-            inputs: { value, isInline }
-          "
-        />
-      } @else {
-        <ng-container
-          *ngTemplateOutlet="unknownBlock; context: { node: value, isInline }"
-        />
-      }
+      <ng-container
+        *ngTemplateOutlet="unknownBlock; context: { node: value, isInline }"
+      />
     </ng-template>
 
     <ng-template #unknownBlock let-value="node" let-isInline="isInline">
@@ -160,6 +163,14 @@ import { trackBy } from '../utils';
     }
   `,
   host: { '[class.portable-text]': 'true' },
+  providers: [
+    {
+      provide: MISSING_COMPONENT_HANDLER,
+      useFactory: (component: PortableTextComponent) =>
+        component.onMissingComponent() || noop,
+      deps: [forwardRef(() => PortableTextComponent)],
+    },
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })
@@ -172,22 +183,41 @@ export class PortableTextComponent<
   unknownBlockTmpl =
     viewChild.required<TemplateRef<{ $implicit: TypedObject }>>('unknownBlock');
 
+  onMissingComponent = input<MissingComponentHandler | false>(printWarning);
+
   #container = inject(ViewContainerRef);
 
+  #injector = inject(Injector);
+
   blockTemplate = computed(
-    () => this.#container.createComponent(BlockComponent).instance,
+    () =>
+      this.#container.createComponent(BlockComponent, {
+        injector: this.#injector,
+      }).instance,
   );
   listTemplate = computed(
-    () => this.#container.createComponent(ListComponent).instance,
+    () =>
+      this.#container.createComponent(ListComponent, {
+        injector: this.#injector,
+      }).instance,
   );
   listItemTemplate = computed(
-    () => this.#container.createComponent(ListItemComponent).instance,
+    () =>
+      this.#container.createComponent(ListItemComponent, {
+        injector: this.#injector,
+      }).instance,
   );
   spanTemplate = computed(
-    () => this.#container.createComponent(SpanComponent).instance,
+    () =>
+      this.#container.createComponent(SpanComponent, {
+        injector: this.#injector,
+      }).instance,
   );
   textTemplate = computed(
-    () => this.#container.createComponent(TextComponent).instance,
+    () =>
+      this.#container.createComponent(TextComponent, {
+        injector: this.#injector,
+      }).instance,
   );
 
   nestedBlocks = computed(() => {
@@ -195,11 +225,11 @@ export class PortableTextComponent<
     return nestLists(blocks as TypedObject[], LIST_NEST_MODE_HTML);
   });
 
-  hasCustomComponent = (block: TypedObject): boolean =>
-    !!this.components().types?.[block._type];
+  hasCustomComponentForNode = (node: TypedObject): boolean =>
+    !!this.components().types?.[node._type];
 
-  getCustomComponent = (block: TypedObject): Type<unknown> =>
-    this.components().types?.[block._type] as Type<unknown>;
+  getCustomComponentForNode = (node: TypedObject): Type<unknown> =>
+    this.components().types?.[node._type] as Type<unknown>;
 
   protected readonly isPortableTextToolkitList = isPortableTextToolkitList;
   protected readonly isPortableTextListItemBlock = isPortableTextListItemBlock;
@@ -209,3 +239,7 @@ export class PortableTextComponent<
     isPortableTextToolkitTextNode;
   protected readonly trackBy = trackBy;
 }
+
+const noop = () => {
+  /* empty */
+};

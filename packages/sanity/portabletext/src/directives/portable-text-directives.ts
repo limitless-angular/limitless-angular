@@ -59,6 +59,11 @@ export class PortableTextMarkComponent<
   text = input.required<string>();
 
   /**
+   * Key for this mark. The same key can be used amongst multiple text spans within the same block, so don't rely on this for Angular keys.
+   */
+  markKey = input<string>();
+
+  /**
    * Type of mark - ie value of `_type` in the case of annotations, or the name of the decorator otherwise - eg `em`, `italic`.
    */
   markType = input.required<string>();
