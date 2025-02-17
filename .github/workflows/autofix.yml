@@ -20,6 +20,7 @@ jobs:
           cache: 'pnpm'
 
       - run: pnpm install
+      - uses: nrwl/nx-set-shas@v4
 
       - name: Check if sanity is affected
         id: check-sanity
