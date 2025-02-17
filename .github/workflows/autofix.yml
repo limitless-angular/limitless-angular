@@ -4,6 +4,8 @@ on:
   pull_request:
     branches:
       - main
+permissions:
+  contents: read
 
 jobs:
   autofix:
@@ -39,3 +41,8 @@ jobs:
           pnpm nx run sanity:build
           echo "Running pkg-pr-new publish"
           pnpx pkg-pr-new publish --compact './dist/packages/sanity'
+
+      - run: pnpm nx affected -t lint --fix
+      - run: pnpm nx format:write
+
+      - uses: autofix-ci/action@551dded8c6cc8a1054039c8bc0b8b48c51dfc6ef
