@@ -1,3 +1,4 @@
+import { expect } from 'vitest';
 import { ComponentInput, render } from '@testing-library/angular';
 import { PortableTextComponent } from '../components/portable-text.component';
 

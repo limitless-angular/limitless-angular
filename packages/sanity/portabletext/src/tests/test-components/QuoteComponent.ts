@@ -1,3 +1,4 @@
+import { expect } from 'vitest';
 import { Component, effect } from '@angular/core';
 import { PortableTextTypeComponent } from '../../directives/portable-text-directives';
 

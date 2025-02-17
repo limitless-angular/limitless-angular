@@ -1,4 +1,21 @@
-import { setupZonelessTestEnv } from 'jest-preset-angular/setup-env/zoneless';
-import '@testing-library/jest-dom';
+import '@analogjs/vitest-angular/setup-snapshots';
 
-setupZonelessTestEnv();
+import {
+  provideExperimentalZonelessChangeDetection,
+  NgModule,
+} from '@angular/core';
+import {
+  BrowserDynamicTestingModule,
+  platformBrowserDynamicTesting,
+} from '@angular/platform-browser-dynamic/testing';
+import { getTestBed } from '@angular/core/testing';
+
+@NgModule({
+  providers: [provideExperimentalZonelessChangeDetection()],
+})
+export class ZonelessTestModule {}
+
+getTestBed().initTestEnvironment(
+  [BrowserDynamicTestingModule, ZonelessTestModule],
+  platformBrowserDynamicTesting(),
+);

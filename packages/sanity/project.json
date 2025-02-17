@@ -24,6 +24,9 @@
     },
     "lint": {
       "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@analogjs/vitest-angular:test"
     }
   }
 }

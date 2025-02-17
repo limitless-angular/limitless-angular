@@ -1,3 +1,4 @@
+import { expect, test, describe } from 'vitest';
 import * as fixtures from './fixtures';
 import { MissingComponentHandler, PortableTextComponents } from '../types';
 import { renderPortableText, assertHTML } from './helpers';
