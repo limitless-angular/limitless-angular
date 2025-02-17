@@ -1,4 +1,4 @@
-import type {ArbitraryTypedObject} from '@portabletext/types'
+import type { ArbitraryTypedObject } from '@portabletext/types';
 
 const input: ArbitraryTypedObject[] = [
   {
@@ -7,7 +7,7 @@ const input: ArbitraryTypedObject[] = [
     language: 'javascript',
     code: "const foo = require('foo')\n\nfoo('hi there', (err, thing) => {\n  console.log(err)\n})\n",
   },
-]
+];
 
 export default {
   input,
@@ -20,4 +20,4 @@ export default {
     '})\n',
     '</code></pre>',
   ].join(''),
-}
+};

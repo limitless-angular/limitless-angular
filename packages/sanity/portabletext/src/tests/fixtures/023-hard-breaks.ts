@@ -1,4 +1,4 @@
-import type {PortableTextBlock} from '@portabletext/types'
+import type { PortableTextBlock } from '@portabletext/types';
 
 const input: PortableTextBlock[] = [
   {
@@ -14,9 +14,9 @@ const input: PortableTextBlock[] = [
       },
     ],
   },
-]
+];
 
 export default {
   input,
   output: '<p>A paragraph<br/>can have hard<br/><br/>breaks.</p>',
-}
+};

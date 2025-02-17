@@ -1,4 +1,4 @@
-import type {PortableTextBlock} from '@portabletext/types'
+import type { PortableTextBlock } from '@portabletext/types';
 
 const input: PortableTextBlock[] = [
   {
@@ -117,7 +117,7 @@ const input: PortableTextBlock[] = [
       },
     ],
   },
-]
+];
 
 export default {
   input,
@@ -132,4 +132,4 @@ export default {
     '<p>Plain old normal block</p>',
     '<p>Default to &quot;normal&quot; style</p>',
   ].join(''),
-}
+};
