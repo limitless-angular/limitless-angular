@@ -20,12 +20,23 @@ export interface PortableTextComponents {
   marks?: Record<string, Type<PortableTextMarkComponent> | undefined>;
   block?: Record<PortableTextBlockStyle, Type<PortableTextBlockComponent>>;
   list?: Record<PortableTextListItemType, Type<PortableTextListComponent>>;
-  listItem?: Record<
-    PortableTextListItemType,
-    Type<PortableTextListItemComponent>
-  >;
-  hardBreak?: false;
+  listItem?:
+    | Record<PortableTextListItemType, Type<PortableTextListItemComponent>>
+    | Type<PortableTextListItemComponent>;
+  hardBreak?: Type<unknown> | false;
 }
+
+export type NodeType =
+  | 'block'
+  | 'mark'
+  | 'blockStyle'
+  | 'listStyle'
+  | 'listItemStyle';
+
+export type MissingComponentHandler = (
+  message: string,
+  options: { type: string; nodeType: NodeType },
+) => void;
 
 export interface Serializable<T> {
   node: T;

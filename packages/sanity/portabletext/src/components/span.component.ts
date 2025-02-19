@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  inject,
   TemplateRef,
   viewChild,
   ViewEncapsulation,
@@ -13,6 +14,9 @@ import {
 } from '@portabletext/toolkit';
 
 import { TemplateContext } from '../types';
+import { trackBy } from '../utils';
+import { MISSING_COMPONENT_HANDLER } from '../tokens';
+import { unknownMarkWarning } from '../warnings';
 
 @Component({
   selector: 'lib-span',
@@ -44,6 +48,7 @@ import { TemplateContext } from '../types';
               },
               text: spanToPlainText(node),
               value: node.markDef,
+              markKey: node.markKey,
               markType: node.markType,
             }
           "
@@ -60,10 +65,12 @@ import { TemplateContext } from '../types';
             <code><ng-container *ngTemplateOutlet="children" /></code>
           }
           @case ('underline') {
-            <u><ng-container *ngTemplateOutlet="children" /></u>
+            <span style="text-decoration: underline"
+              ><ng-container *ngTemplateOutlet="children"
+            /></span>
           }
           @case ('strike-through') {
-            <s><ng-container *ngTemplateOutlet="children" /></s>
+            <del><ng-container *ngTemplateOutlet="children" /></del>
           }
           @case ('link') {
             <a [href]="node.markDef?.href"
@@ -71,7 +78,8 @@ import { TemplateContext } from '../types';
             /></a>
           }
           @default {
-            <span [class]="'unknown__pt__mark__' + node.markType"
+            {{ handleMissingComponent(node.markType)
+            }}<span [class]="'unknown__pt__mark__' + node.markType"
               ><ng-container *ngTemplateOutlet="children"
             /></span>
           }
@@ -93,7 +101,11 @@ import { TemplateContext } from '../types';
           "
         />
       } @else {
-        @for (child of node.children; track child._key; let index = $index) {
+        @for (
+          child of node.children;
+          track trackBy(child._key, index);
+          let index = $index
+        ) {
           <ng-container
             *ngTemplateOutlet="
               renderNode;
@@ -112,5 +124,16 @@ export class SpanComponent {
     viewChild.required<
       TemplateRef<TemplateContext<ToolkitNestedPortableTextSpan>>
     >('spanTmpl');
+
+  #missingHandler = inject(MISSING_COMPONENT_HANDLER);
+
+  handleMissingComponent(markType: string) {
+    this.#missingHandler(unknownMarkWarning(markType), {
+      type: markType,
+      nodeType: 'mark',
+    });
+  }
+
   protected readonly spanToPlainText = spanToPlainText;
+  protected readonly trackBy = trackBy;
 }

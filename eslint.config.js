@@ -38,9 +38,14 @@ export default [
         'error',
         {
           ignoredFiles: [
-            '{projectRoot}/{eslint,tailwind,vite}.config.{js,cjs,mjs,ts}',
+            '{projectRoot}/{eslint,tailwind,vite,vitest}.config.{js,cjs,mjs,ts,mts}',
           ],
-          ignoredDependencies: ['@limitless-angular/sanity', 'lru-cache'],
+          ignoredDependencies: [
+            '@limitless-angular/sanity',
+            'lru-cache',
+            'vitest',
+            '@testing-library/angular',
+          ],
         },
       ],
       // TODO: what?

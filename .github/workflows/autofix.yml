@@ -1,0 +1,48 @@
+name: autofix.ci
+
+on:
+  pull_request:
+    branches:
+      - main
+permissions:
+  contents: read
+
+jobs:
+  autofix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: 'pnpm'
+
+      - run: pnpm install
+      - uses: nrwl/nx-set-shas@v4
+
+      - name: Check if sanity is affected
+        id: check-sanity
+        run: |
+          AFFECTED=$(pnpm nx show projects --affected --base=origin/main)
+          if echo "$AFFECTED" | grep -q "^sanity$"; then
+            echo "is_affected=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_affected=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run pkg-pr-new publish
+        if: steps.check-sanity.outputs.is_affected == 'true'
+        run: |
+          echo "Building sanity"
+          pnpm nx run sanity:build
+          echo "Running pkg-pr-new publish"
+          pnpx pkg-pr-new publish --compact './dist/packages/sanity'
+
+      - run: pnpm nx affected -t lint --fix
+      - run: pnpm nx format:write
+
+      - uses: autofix-ci/action@551dded8c6cc8a1054039c8bc0b8b48c51dfc6ef

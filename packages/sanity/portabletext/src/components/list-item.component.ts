@@ -27,16 +27,30 @@ import { serializeBlock } from '../utils';
     let-renderNode="renderNode"
   >
     <ng-template #listItemChildren>
-      @for (
-        child of serializeBlock({ node, isInline: false }).children;
-        track child._key
-      ) {
+      @if (node.style && node.style !== 'normal') {
         <ng-container
           *ngTemplateOutlet="
             renderNode;
-            context: { $implicit: child, isInline: true, components }
+            context: {
+              $implicit: getNodeWithoutListItem(node),
+              index,
+              isInline: false,
+              components,
+            }
           "
         />
+      } @else {
+        @for (
+          child of serializeBlock({ node, isInline: false }).children;
+          track child._key
+        ) {
+          <ng-container
+            *ngTemplateOutlet="
+              renderNode;
+              context: { $implicit: child, isInline: true, components }
+            "
+          />
+        }
       }
     </ng-template>
 
@@ -76,6 +90,13 @@ export class ListItemComponent {
         > & { index: number }
       >
     >('listItemTmpl');
+
+  getNodeWithoutListItem = (node: PortableTextListItemBlock) => {
+    // Wrap any other style in whatever the block serializer says to use
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { listItem, ...blockNode } = node;
+    return blockNode;
+  };
 
   protected readonly serializeBlock = serializeBlock;
 }

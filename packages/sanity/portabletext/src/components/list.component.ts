@@ -1,14 +1,17 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  inject,
   TemplateRef,
   viewChild,
   ViewEncapsulation,
 } from '@angular/core';
 import { NgComponentOutlet, NgTemplateOutlet } from '@angular/common';
 
-import { PortableTextListBlock, TemplateContext } from '../types';
+import { MISSING_COMPONENT_HANDLER } from '../tokens';
+import { TemplateContext, PortableTextListBlock } from '../types';
 import { trackBy } from '../utils';
+import { unknownListStyleWarning } from '../warnings';
 
 @Component({
   selector: 'lib-list',
@@ -55,9 +58,10 @@ import { trackBy } from '../utils';
             </ol>
           }
           @default {
-            <!-- TODO: remove class when warning msg be implemented -->
-            <ul [class]="'unknown__pt__list__' + node.listItem">
-              <ng-container *ngTemplateOutlet="children" />
+            <ul>
+              <ng-container *ngTemplateOutlet="children" />{{
+                handleMissingComponent(node)
+              }}
             </ul>
           }
         }
@@ -97,6 +101,16 @@ export class ListComponent {
     viewChild.required<TemplateRef<TemplateContext<PortableTextListBlock>>>(
       'listTmpl',
     );
+
+  missingHandler = inject(MISSING_COMPONENT_HANDLER);
+
+  handleMissingComponent(node: PortableTextListBlock) {
+    const style = node.listItem || 'bullet';
+    this.missingHandler(unknownListStyleWarning(style), {
+      nodeType: 'listStyle',
+      type: style,
+    });
+  }
 
   protected getChildNode(
     child: PortableTextListBlock['children'][0],
