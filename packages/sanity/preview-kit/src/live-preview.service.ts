@@ -86,11 +86,15 @@ export class LivePreviewService {
   private docsInUse = new Map<string, ContentSourceMap['documents'][number]>();
   private lastMutatedDocumentId$ = new BehaviorSubject<string | null>(null);
   private turboIds$ = new BehaviorSubject<string[]>([]);
-  private isInitialized = false;
+  #isInitialized = false;
   private warnedAboutCrossDatasetReference = false;
 
+  get isInitialized(): boolean {
+    return this.#isInitialized;
+  }
+
   initialize(token: string): void {
-    if (this.isInitialized) {
+    if (this.#isInitialized) {
       console.warn('LiveStoreService is already initialized');
       return;
     }
@@ -126,11 +130,11 @@ export class LivePreviewService {
       this.syncWithPresentationToolIfPresent();
     }
 
-    this.isInitialized = true;
+    this.#isInitialized = true;
   }
 
   private checkInitialization(): void {
-    if (!this.isInitialized) {
+    if (!this.#isInitialized) {
       throw new Error(
         'LiveStoreService is not initialized. Call initialize(token) first.',
       );
