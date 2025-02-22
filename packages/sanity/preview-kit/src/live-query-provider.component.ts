@@ -1,4 +1,5 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   effect,
@@ -24,8 +25,18 @@ export class LiveQueryProviderComponent {
   private livePreviewService = inject(LivePreviewService);
 
   constructor() {
+    // Initialization for Angular v18
+    afterNextRender(() => {
+      if (!this.livePreviewService.isInitialized) {
+        this.livePreviewService.initialize(this.token());
+      }
+    });
+
+    // Initialization for Angular v19
     effect(() => {
-      this.livePreviewService.initialize(this.token());
+      if (!this.livePreviewService.isInitialized) {
+        this.livePreviewService.initialize(this.token());
+      }
     });
   }
 }
