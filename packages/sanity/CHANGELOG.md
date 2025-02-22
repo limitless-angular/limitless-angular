@@ -1,3 +1,17 @@
+## 19.2.0 (2025-02-22)
+
+### 🚀 Features
+
+- test suite and bugfixes ([#11](https://github.com/limitless-angular/limitless-angular/pull/11))
+
+### 🩹 Fixes
+
+- **sanity:** live preview service is called before be initialized in v18 ([#12](https://github.com/limitless-angular/limitless-angular/pull/12))
+
+### ❤️ Thank You
+
+- Alfonso Andrés López Molina
+
 ## 19.1.1 (2025-02-10)
 
 ### 🩹 Fixes
