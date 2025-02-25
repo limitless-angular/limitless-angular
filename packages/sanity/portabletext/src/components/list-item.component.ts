@@ -17,34 +17,25 @@ import {
 import { TemplateContext } from '../types';
 import { serializeBlock } from '../utils';
 import { PortableTextComponent } from './portable-text.component';
+import { RenderNodeDirective } from '../directives/render-node.directive';
 
 @Component({
   selector: 'lib-list-item',
-  imports: [NgTemplateOutlet, NgComponentOutlet],
+  imports: [NgTemplateOutlet, NgComponentOutlet, RenderNodeDirective],
   template: `<ng-template #listItemTmpl let-node let-index="index">
     <ng-template #listItemChildren>
       @if (node.style && node.style !== 'normal') {
         <ng-container
-          *ngTemplateOutlet="
-            renderNode();
-            context: {
-              $implicit: getNodeWithoutListItem(node),
-              index,
-              isInline: false,
-            }
-          "
+          [renderNode]="getNodeWithoutListItem(node)"
+          [isInline]="false"
+          [index]="index"
         />
       } @else {
         @for (
           child of serializeBlock({ node, isInline: false }).children;
           track child._key
         ) {
-          <ng-container
-            *ngTemplateOutlet="
-              renderNode();
-              context: { $implicit: child, isInline: true }
-            "
-          />
+          <ng-container [renderNode]="child" [isInline]="true" />
         }
       }
     </ng-template>
@@ -86,7 +77,6 @@ export class ListItemComponent {
       >
     >('listItemTmpl');
   components = inject(PortableTextComponent).components;
-  renderNode = inject(PortableTextComponent).renderNode;
 
   getNodeWithoutListItem = (node: PortableTextListItemBlock) => {
     // Wrap any other style in whatever the block serializer says to use

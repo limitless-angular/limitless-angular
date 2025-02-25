@@ -11,10 +11,11 @@ import { PortableTextBlock } from '@portabletext/types';
 import { TemplateContext } from '../types';
 import { serializeBlock } from '../utils';
 import { PortableTextComponent } from './portable-text.component';
+import { RenderNodeDirective } from '../directives/render-node.directive';
 
 @Component({
   selector: 'lib-block',
-  imports: [NgTemplateOutlet, NgComponentOutlet],
+  imports: [NgTemplateOutlet, NgComponentOutlet, RenderNodeDirective],
   template: `
     <ng-template #blockTmpl let-node let-isInline="isInline">
       <ng-template #children>
@@ -93,14 +94,9 @@ import { PortableTextComponent } from './portable-text.component';
       @for (
         child of serializeBlock({ node, isInline: false }).children;
         track child._key;
-        let childIndex = $index
+        let idx = $index
       ) {
-        <ng-container
-          *ngTemplateOutlet="
-            renderNode();
-            context: { $implicit: child, index: childIndex, isInline: true }
-          "
-        />
+        <ng-container [renderNode]="child" [isInline]="true" [index]="idx" />
       }
     </ng-template>
   `,
@@ -113,6 +109,5 @@ export class BlockComponent {
       'blockTmpl',
     );
   components = inject(PortableTextComponent).components;
-  renderNode = inject(PortableTextComponent).renderNode;
   protected readonly serializeBlock = serializeBlock;
 }

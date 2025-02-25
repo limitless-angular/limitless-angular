@@ -18,10 +18,11 @@ import { trackBy } from '../utils';
 import { MISSING_COMPONENT_HANDLER } from '../tokens';
 import { unknownMarkWarning } from '../warnings';
 import { PortableTextComponent } from './portable-text.component';
+import { RenderNodeDirective } from '../directives/render-node.directive';
 
 @Component({
   selector: 'lib-span',
-  imports: [NgTemplateOutlet, NgComponentOutlet],
+  imports: [NgTemplateOutlet, NgComponentOutlet, RenderNodeDirective],
   template: `
     <ng-template #spanTmpl let-node>
       <ng-template #children>
@@ -82,24 +83,14 @@ import { PortableTextComponent } from './portable-text.component';
 
     <ng-template #nodeChildren let-node>
       @if (!node.children) {
-        <ng-container
-          *ngTemplateOutlet="
-            renderNode();
-            context: { $implicit: node, isInline: true }
-          "
-        />
+        <ng-container [renderNode]="node" [isInline]="true" />
       } @else {
         @for (
           child of node.children;
           track trackBy(child._key, index);
           let index = $index
         ) {
-          <ng-container
-            *ngTemplateOutlet="
-              renderNode();
-              context: { $implicit: child, isInline: true }
-            "
-          />
+          <ng-container [renderNode]="child" [isInline]="true" />
         }
       }
     </ng-template>
@@ -113,7 +104,6 @@ export class SpanComponent {
       TemplateRef<TemplateContext<ToolkitNestedPortableTextSpan>>
     >('spanTmpl');
   components = inject(PortableTextComponent).components;
-  renderNode = inject(PortableTextComponent).renderNode;
 
   #missingHandler = inject(MISSING_COMPONENT_HANDLER);
 

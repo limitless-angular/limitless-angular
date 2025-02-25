@@ -13,18 +13,20 @@ import { TemplateContext, PortableTextListBlock } from '../types';
 import { trackBy } from '../utils';
 import { unknownListStyleWarning } from '../warnings';
 import { PortableTextComponent } from './portable-text.component';
+import { RenderNodeDirective } from '../directives/render-node.directive';
+
 @Component({
   selector: 'lib-list',
-  imports: [NgTemplateOutlet, NgComponentOutlet],
+  imports: [NgTemplateOutlet, NgComponentOutlet, RenderNodeDirective],
   template: `
     <ng-template #listTmpl let-node>
       <ng-template #children>
         <ng-container *ngTemplateOutlet="listChildren; context: { node }" />
       </ng-template>
-      @if (components().list?.[node.listItem]) {
+      @if (components().list?.[node.listItem]; as listItem) {
         <ng-container
           *ngComponentOutlet="
-            components().list?.[node.listItem]!;
+            listItem;
             inputs: {
               childrenData: {
                 template: listChildren,
@@ -65,14 +67,9 @@ import { PortableTextComponent } from './portable-text.component';
         let index = $index
       ) {
         <ng-container
-          *ngTemplateOutlet="
-            renderNode();
-            context: {
-              $implicit: getChildNode(child, index),
-              index,
-              isInline: false,
-            }
-          "
+          [renderNode]="getChildNode(child, index)"
+          [isInline]="false"
+          [index]="index"
         />
       }
     </ng-template>
@@ -86,7 +83,6 @@ export class ListComponent {
       'listTmpl',
     );
   components = inject(PortableTextComponent).components;
-  renderNode = inject(PortableTextComponent).renderNode;
 
   missingHandler = inject(MISSING_COMPONENT_HANDLER);
 
