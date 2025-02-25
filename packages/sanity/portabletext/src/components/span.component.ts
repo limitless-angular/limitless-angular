@@ -17,34 +17,27 @@ import { TemplateContext } from '../types';
 import { trackBy } from '../utils';
 import { MISSING_COMPONENT_HANDLER } from '../tokens';
 import { unknownMarkWarning } from '../warnings';
+import { PortableTextComponent } from './portable-text.component';
 
 @Component({
   selector: 'lib-span',
   imports: [NgTemplateOutlet, NgComponentOutlet],
   template: `
-    <ng-template
-      #spanTmpl
-      let-node
-      let-components="components"
-      let-renderNode="renderNode"
-    >
+    <ng-template #spanTmpl let-node>
       <ng-template #children>
         <ng-container
-          *ngTemplateOutlet="
-            nodeChildren;
-            context: { $implicit: node, components, renderNode }
-          "
+          *ngTemplateOutlet="nodeChildren; context: { $implicit: node }"
         />
       </ng-template>
 
-      @if (components.marks?.[node.markType]) {
+      @if (components().marks?.[node.markType]) {
         <ng-container
           *ngComponentOutlet="
-            components.marks?.[node.markType];
+            components().marks?.[node.markType]!;
             inputs: {
               childrenData: {
                 template: nodeChildren,
-                context: { $implicit: node, components, renderNode },
+                context: { $implicit: node },
               },
               text: spanToPlainText(node),
               value: node.markDef,
@@ -87,17 +80,12 @@ import { unknownMarkWarning } from '../warnings';
       }
     </ng-template>
 
-    <ng-template
-      #nodeChildren
-      let-node
-      let-components="components"
-      let-renderNode="renderNode"
-    >
+    <ng-template #nodeChildren let-node>
       @if (!node.children) {
         <ng-container
           *ngTemplateOutlet="
-            renderNode;
-            context: { $implicit: node, isInline: true, components }
+            renderNode();
+            context: { $implicit: node, isInline: true }
           "
         />
       } @else {
@@ -108,8 +96,8 @@ import { unknownMarkWarning } from '../warnings';
         ) {
           <ng-container
             *ngTemplateOutlet="
-              renderNode;
-              context: { $implicit: child, isInline: true, components }
+              renderNode();
+              context: { $implicit: child, isInline: true }
             "
           />
         }
@@ -124,6 +112,8 @@ export class SpanComponent {
     viewChild.required<
       TemplateRef<TemplateContext<ToolkitNestedPortableTextSpan>>
     >('spanTmpl');
+  components = inject(PortableTextComponent).components;
+  renderNode = inject(PortableTextComponent).renderNode;
 
   #missingHandler = inject(MISSING_COMPONENT_HANDLER);
 

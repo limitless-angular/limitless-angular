@@ -52,16 +52,24 @@ export interface SerializedBlock {
 }
 
 export interface RenderNodeContext<Node extends TypedObject = TypedObject> {
+  /**
+   * Data associated with this portable text node, eg the raw JSON value of a block/type
+   */
   $implicit: Node;
+  /**
+   * Index within its parent
+   */
+  index?: number;
+  /**
+   * Whether or not this node is "inline" - ie as a child of a text block,
+   * alongside text spans, or a block in and of itself.
+   */
   isInline: boolean;
-  components: Partial<PortableTextComponents>;
 }
 
 export interface TemplateContext<Node extends TypedObject> {
   $implicit: Node;
   isInline?: boolean;
-  components: Partial<PortableTextComponents>;
-  renderNode: TemplateRef<RenderNodeContext>;
 }
 
 // Re-exporting these as we don't want to refer to "toolkit" outside of this module

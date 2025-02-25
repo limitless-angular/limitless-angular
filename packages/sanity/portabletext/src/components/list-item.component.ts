@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  inject,
   TemplateRef,
   viewChild,
   ViewEncapsulation,
@@ -15,27 +16,21 @@ import {
 
 import { TemplateContext } from '../types';
 import { serializeBlock } from '../utils';
+import { PortableTextComponent } from './portable-text.component';
 
 @Component({
   selector: 'lib-list-item',
   imports: [NgTemplateOutlet, NgComponentOutlet],
-  template: `<ng-template
-    #listItemTmpl
-    let-node
-    let-index="index"
-    let-components="components"
-    let-renderNode="renderNode"
-  >
+  template: `<ng-template #listItemTmpl let-node let-index="index">
     <ng-template #listItemChildren>
       @if (node.style && node.style !== 'normal') {
         <ng-container
           *ngTemplateOutlet="
-            renderNode;
+            renderNode();
             context: {
               $implicit: getNodeWithoutListItem(node),
               index,
               isInline: false,
-              components,
             }
           "
         />
@@ -46,22 +41,22 @@ import { serializeBlock } from '../utils';
         ) {
           <ng-container
             *ngTemplateOutlet="
-              renderNode;
-              context: { $implicit: child, isInline: true, components }
+              renderNode();
+              context: { $implicit: child, isInline: true }
             "
           />
         }
       }
     </ng-template>
 
-    @if (components.listItem?.[node.listItem]) {
+    @if ($any(components()).listItem?.[node.listItem]) {
       <ng-container
         *ngComponentOutlet="
-          components.listItem?.[node.listItem];
+          $any(components()).listItem?.[node.listItem]!;
           inputs: {
             childrenData: {
               template: listItemChildren,
-              context: { node, index, components, renderNode },
+              context: { node, index },
             },
             value: node,
             index,
@@ -90,6 +85,8 @@ export class ListItemComponent {
         > & { index: number }
       >
     >('listItemTmpl');
+  components = inject(PortableTextComponent).components;
+  renderNode = inject(PortableTextComponent).renderNode;
 
   getNodeWithoutListItem = (node: PortableTextListItemBlock) => {
     // Wrap any other style in whatever the block serializer says to use

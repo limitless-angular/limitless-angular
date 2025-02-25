@@ -30,7 +30,11 @@ import {
 } from '@portabletext/types';
 
 import { BlockComponent } from './block.component';
-import { MissingComponentHandler, PortableTextComponents } from '../types';
+import {
+  MissingComponentHandler,
+  PortableTextComponents,
+  RenderNodeContext,
+} from '../types';
 import { TextComponent } from './text.component';
 import { SpanComponent } from './span.component';
 import { ListComponent } from './list.component';
@@ -52,54 +56,31 @@ import { printWarning } from '../warnings';
       <ng-container
         *ngTemplateOutlet="
           renderNode;
-          context: {
-            $implicit: block,
-            isInline: false,
-            components: components(),
-          }
+          context: { $implicit: block, isInline: false }
         "
       />
     }
 
-    <ng-template
-      #renderNode
-      let-node
-      let-index="index"
-      let-isInline="isInline"
-      let-components="components"
-    >
+    <ng-template #renderNode let-node let-index="index" let-isInline="isInline">
       @if (isPortableTextToolkitList(node)) {
         <ng-container
           *ngTemplateOutlet="
             listTemplate().template();
-            context: {
-              $implicit: node,
-              components,
-              renderNode,
-            }
+            context: { $implicit: node }
           "
         />
       } @else if (isPortableTextListItemBlock(node)) {
         <ng-container
           *ngTemplateOutlet="
             listItemTemplate().template();
-            context: {
-              $implicit: node,
-              index,
-              components,
-              renderNode,
-            }
+            context: { $implicit: node, index }
           "
         />
       } @else if (isPortableTextToolkitSpan(node)) {
         <ng-container
           *ngTemplateOutlet="
             spanTemplate().template();
-            context: {
-              $implicit: node,
-              components,
-              renderNode,
-            }
+            context: { $implicit: node }
           "
         />
       } @else if (hasCustomComponentForNode(node)) {
@@ -113,32 +94,24 @@ import { printWarning } from '../warnings';
         <ng-container
           *ngTemplateOutlet="
             blockTemplate().template();
-            context: { $implicit: node, isInline, components, renderNode }
+            context: { $implicit: node, isInline }
           "
         />
       } @else if (isPortableTextToolkitTextNode(node)) {
         <ng-container
           *ngTemplateOutlet="
             textTemplate().template();
-            context: { $implicit: node, components }
+            context: { $implicit: node }
           "
         />
       } @else {
         <ng-container
-          *ngTemplateOutlet="
-            unknownTypeTmpl;
-            context: { node, components, isInline }
-          "
+          *ngTemplateOutlet="unknownTypeTmpl; context: { node, isInline }"
         />
       }
     </ng-template>
 
-    <ng-template
-      #unknownTypeTmpl
-      let-value="node"
-      let-components="components"
-      let-isInline="isInline"
-    >
+    <ng-template #unknownTypeTmpl let-value="node" let-isInline="isInline">
       <ng-container
         *ngTemplateOutlet="unknownBlock; context: { node: value, isInline }"
       />
@@ -178,6 +151,9 @@ export class PortableTextComponent<
 > {
   value = input.required<B | B[]>();
   components = input<Partial<PortableTextComponents>>({});
+
+  renderNode =
+    viewChild.required<TemplateRef<RenderNodeContext<B>>>('renderNode');
 
   unknownBlockTmpl =
     viewChild.required<TemplateRef<{ $implicit: TypedObject }>>('unknownBlock');

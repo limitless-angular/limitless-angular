@@ -12,33 +12,23 @@ import { MISSING_COMPONENT_HANDLER } from '../tokens';
 import { TemplateContext, PortableTextListBlock } from '../types';
 import { trackBy } from '../utils';
 import { unknownListStyleWarning } from '../warnings';
-
+import { PortableTextComponent } from './portable-text.component';
 @Component({
   selector: 'lib-list',
   imports: [NgTemplateOutlet, NgComponentOutlet],
   template: `
-    <ng-template
-      #listTmpl
-      let-node
-      let-components="components"
-      let-renderNode="renderNode"
-    >
+    <ng-template #listTmpl let-node>
       <ng-template #children>
-        <ng-container
-          *ngTemplateOutlet="
-            listChildren;
-            context: { node, components, renderNode }
-          "
-        />
+        <ng-container *ngTemplateOutlet="listChildren; context: { node }" />
       </ng-template>
-      @if (components.list?.[node.listItem]) {
+      @if (components().list?.[node.listItem]) {
         <ng-container
           *ngComponentOutlet="
-            components.list?.[node.listItem];
+            components().list?.[node.listItem]!;
             inputs: {
               childrenData: {
                 template: listChildren,
-                context: { node, components, renderNode },
+                context: { node },
               },
               value: node,
               isInline: false,
@@ -68,12 +58,7 @@ import { unknownListStyleWarning } from '../warnings';
       }
     </ng-template>
 
-    <ng-template
-      #listChildren
-      let-node="node"
-      let-components="components"
-      let-renderNode="renderNode"
-    >
+    <ng-template #listChildren let-node="node">
       @for (
         child of node.children;
         track trackBy(child._key, index, 'li');
@@ -81,12 +66,11 @@ import { unknownListStyleWarning } from '../warnings';
       ) {
         <ng-container
           *ngTemplateOutlet="
-            renderNode;
+            renderNode();
             context: {
               $implicit: getChildNode(child, index),
               index,
               isInline: false,
-              components,
             }
           "
         />
@@ -101,6 +85,8 @@ export class ListComponent {
     viewChild.required<TemplateRef<TemplateContext<PortableTextListBlock>>>(
       'listTmpl',
     );
+  components = inject(PortableTextComponent).components;
+  renderNode = inject(PortableTextComponent).renderNode;
 
   missingHandler = inject(MISSING_COMPONENT_HANDLER);
 

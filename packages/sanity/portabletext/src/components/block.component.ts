@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  inject,
   TemplateRef,
   viewChild,
   ViewEncapsulation,
@@ -9,35 +10,27 @@ import { NgComponentOutlet, NgTemplateOutlet } from '@angular/common';
 import { PortableTextBlock } from '@portabletext/types';
 import { TemplateContext } from '../types';
 import { serializeBlock } from '../utils';
+import { PortableTextComponent } from './portable-text.component';
 
 @Component({
   selector: 'lib-block',
   imports: [NgTemplateOutlet, NgComponentOutlet],
   template: `
-    <ng-template
-      #blockTmpl
-      let-node
-      let-isInline="isInline"
-      let-components="components"
-      let-renderNode="renderNode"
-    >
+    <ng-template #blockTmpl let-node let-isInline="isInline">
       <ng-template #children>
         <ng-container
-          *ngTemplateOutlet="
-            blockChildren;
-            context: { node, isInline, components, renderNode }
-          "
+          *ngTemplateOutlet="blockChildren; context: { node, isInline }"
         />
       </ng-template>
 
-      @if (components.block?.[node.style ?? 'normal']) {
+      @if (components().block?.[node.style ?? 'normal']) {
         <ng-container
           *ngComponentOutlet="
-            components.block?.[node.style ?? 'normal'];
+            components().block?.[node.style ?? 'normal']!;
             inputs: {
               childrenData: {
                 template: blockChildren,
-                context: { node, isInline, components, renderNode },
+                context: { node, isInline },
               },
               value: node,
               isInline,
@@ -96,13 +89,7 @@ import { serializeBlock } from '../utils';
       }
     </ng-template>
 
-    <ng-template
-      #blockChildren
-      let-node="node"
-      let-isInline="isInline"
-      let-components="components"
-      let-renderNode="renderNode"
-    >
+    <ng-template #blockChildren let-node="node" let-isInline="isInline">
       @for (
         child of serializeBlock({ node, isInline: false }).children;
         track child._key;
@@ -110,13 +97,8 @@ import { serializeBlock } from '../utils';
       ) {
         <ng-container
           *ngTemplateOutlet="
-            renderNode;
-            context: {
-              $implicit: child,
-              index: childIndex,
-              isInline: true,
-              components,
-            }
+            renderNode();
+            context: { $implicit: child, index: childIndex, isInline: true }
           "
         />
       }
@@ -130,5 +112,7 @@ export class BlockComponent {
     viewChild.required<TemplateRef<TemplateContext<PortableTextBlock>>>(
       'blockTmpl',
     );
+  components = inject(PortableTextComponent).components;
+  renderNode = inject(PortableTextComponent).renderNode;
   protected readonly serializeBlock = serializeBlock;
 }
