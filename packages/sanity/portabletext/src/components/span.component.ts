@@ -25,19 +25,13 @@ import { RenderNode } from '../directives/render-node.directive';
   imports: [NgTemplateOutlet, NgComponentOutlet, RenderNode],
   template: `
     <ng-template #spanTmpl let-node>
-      <ng-template #children>
-        <ng-container
-          *ngTemplateOutlet="nodeChildren; context: { $implicit: node }"
-        />
-      </ng-template>
-
       @if (components().marks?.[node.markType]; as MarkComponent) {
         <ng-container
           *ngComponentOutlet="
             MarkComponent;
             inputs: {
-              template: nodeChildren,
-              context: { $implicit: node },
+              template: children,
+              context: { children: node.children },
               text: spanToPlainText(node),
               value: node.markDef,
               markKey: node.markKey,
@@ -48,22 +42,19 @@ import { RenderNode } from '../directives/render-node.directive';
       } @else {
         {{ handleMissingComponent(node.markType)
         }}<span [class]="'unknown__pt__mark__' + node.markType"
-          ><ng-container *ngTemplateOutlet="children"
+          ><ng-container
+            *ngTemplateOutlet="children; context: { children: node.children }"
         /></span>
       }
     </ng-template>
 
-    <ng-template #nodeChildren let-node>
-      @if (!node.children) {
-        <ng-container [renderNode]="node" [isInline]="true" />
-      } @else {
-        @for (
-          child of node.children;
-          track trackBy(child._key, index);
-          let index = $index
-        ) {
-          <ng-container [renderNode]="child" [isInline]="true" />
-        }
+    <ng-template #children let-children="children">
+      @for (
+        child of children;
+        track trackBy(child._key, $index);
+        let index = $index
+      ) {
+        <ng-container [renderNode]="child" [isInline]="true" [index]="index" />
       }
     </ng-template>
   `,

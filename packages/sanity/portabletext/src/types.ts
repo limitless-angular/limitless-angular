@@ -16,7 +16,7 @@ import {
 } from './directives/portable-text-directives';
 
 export interface PortableTextComponents {
-  types?: Record<string, Type<PortableTextTypeComponent>>;
+  types: Record<string, Type<PortableTextTypeComponent>>;
   marks?: Record<string, Type<PortableTextMarkComponent> | undefined>;
   block?: Record<
     PortableTextBlockStyle,
@@ -43,6 +43,7 @@ export type MissingComponentHandler = (
 
 export interface Serializable<T> {
   node: T;
+  index: number;
   isInline: boolean;
 }
 
@@ -72,6 +73,7 @@ export interface RenderNodeContext<Node extends TypedObject = TypedObject> {
 
 export interface TemplateContext<Node extends TypedObject> {
   $implicit: Node;
+  index?: number;
   isInline?: boolean;
 }
 

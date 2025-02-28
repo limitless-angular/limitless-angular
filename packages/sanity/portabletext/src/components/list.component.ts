@@ -25,8 +25,8 @@ import { RenderNode } from '../directives/render-node.directive';
           *ngComponentOutlet="
             ListItem;
             inputs: {
-              template: listChildren,
-              context: { node },
+              template: children,
+              context: { children: node.children },
               value: node,
               isInline: false,
             }
@@ -34,24 +34,22 @@ import { RenderNode } from '../directives/render-node.directive';
         />
       } @else {
         <ul>
-          <ng-container *ngTemplateOutlet="listChildren; context: { node }" />{{
+          <ng-container
+            *ngTemplateOutlet="children; context: { children: node.children }"
+          />{{
             handleMissingComponent(node)
           }}
         </ul>
       }
     </ng-template>
 
-    <ng-template #listChildren let-node="node">
+    <ng-template #children let-children="children">
       @for (
-        child of node.children;
+        child of children;
         track trackBy(child._key, index, 'li');
         let index = $index
       ) {
-        <ng-container
-          [renderNode]="getChildNode(child, index)"
-          [isInline]="false"
-          [index]="index"
-        />
+        <ng-container [renderNode]="child" [isInline]="false" [index]="index" />
       }
     </ng-template>
   `,
@@ -73,13 +71,6 @@ export class ListComponent {
       nodeType: 'listStyle',
       type: style,
     });
-  }
-
-  protected getChildNode(
-    child: PortableTextListBlock['children'][0],
-    index: number,
-  ) {
-    return child._key ? child : { ...child, _key: `li-${index}` };
   }
 
   protected readonly trackBy = trackBy;

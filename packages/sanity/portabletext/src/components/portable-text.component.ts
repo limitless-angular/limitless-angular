@@ -58,7 +58,7 @@ import { defaultComponents } from './defaults/default-components';
       <ng-container
         *ngTemplateOutlet="
           renderNode;
-          context: { $implicit: block, isInline: false }
+          context: { $implicit: block, index, isInline: false }
         "
       />
     }
@@ -90,7 +90,7 @@ import { defaultComponents } from './defaults/default-components';
         <ng-container
           *ngTemplateOutlet="
             blockTemplate();
-            context: { $implicit: node, isInline }
+            context: { $implicit: node, index, isInline }
           "
         />
       } @else if (isPortableTextToolkitTextNode(node)) {
@@ -197,7 +197,7 @@ export class PortableTextComponent<
   });
 
   hasCustomComponentForNode = (node: TypedObject): boolean =>
-    !!this.components().types?.[node._type];
+    node._type in this.components().types;
 
   getCustomComponentForNode = (node: TypedObject): Type<unknown> =>
     this.components().types?.[node._type] as Type<unknown>;

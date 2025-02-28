@@ -27,9 +27,10 @@ export class DynamicPortableTextContent<Node extends TypedObject = TypedObject>
   children = viewChild<ViewContainerRef, ViewContainerRef>('children', {
     read: ViewContainerRef,
   });
-  _ = effect(() =>
-    this.children()?.createEmbeddedView(this.template(), this.context()),
-  );
+  _ = effect(() => {
+    this.children()?.clear();
+    this.children()?.createEmbeddedView(this.template(), this.context());
+  });
 
   /**
    * @deprecated empty hook that is used just to avoid a breaking change, it will be removed in a major version
