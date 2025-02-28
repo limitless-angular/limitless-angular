@@ -11,11 +11,11 @@ import { PortableTextBlock } from '@portabletext/types';
 import { TemplateContext } from '../types';
 import { serializeBlock } from '../utils';
 import { PortableTextComponent } from './portable-text.component';
-import { RenderNodeDirective } from '../directives/render-node.directive';
+import { RenderNode } from '../directives/render-node.directive';
 
 @Component({
   selector: 'lib-block',
-  imports: [NgTemplateOutlet, NgComponentOutlet, RenderNodeDirective],
+  imports: [NgTemplateOutlet, NgComponentOutlet, RenderNode],
   template: `
     <ng-template #blockTmpl let-node let-isInline="isInline">
       @if (components().block?.[node.style ?? 'normal']; as BlockComponent) {

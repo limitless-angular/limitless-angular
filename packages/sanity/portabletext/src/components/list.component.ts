@@ -13,11 +13,11 @@ import { TemplateContext, PortableTextListBlock } from '../types';
 import { trackBy } from '../utils';
 import { unknownListStyleWarning } from '../warnings';
 import { PortableTextComponent } from './portable-text.component';
-import { RenderNodeDirective } from '../directives/render-node.directive';
+import { RenderNode } from '../directives/render-node.directive';
 
 @Component({
   selector: 'lib-list',
-  imports: [NgTemplateOutlet, NgComponentOutlet, RenderNodeDirective],
+  imports: [NgTemplateOutlet, NgComponentOutlet, RenderNode],
   template: `
     <ng-template #listTmpl let-node>
       @if (components().list?.[node.listItem]; as ListItem) {

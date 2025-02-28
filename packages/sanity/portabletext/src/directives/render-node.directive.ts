@@ -12,7 +12,8 @@ import { PortableTextComponent } from '../components/portable-text.component';
 
 // eslint-disable-next-line @angular-eslint/directive-selector
 @Directive({ selector: '[renderNode]' })
-export class RenderNodeDirective {
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
+export class RenderNode {
   node = input.required<TypedObject>({ alias: 'renderNode' });
   index = input<number>();
   isInline = input.required<boolean>();

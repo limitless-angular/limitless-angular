@@ -17,11 +17,11 @@ import {
 import { TemplateContext } from '../types';
 import { serializeBlock } from '../utils';
 import { PortableTextComponent } from './portable-text.component';
-import { RenderNodeDirective } from '../directives/render-node.directive';
+import { RenderNode } from '../directives/render-node.directive';
 
 @Component({
   selector: 'lib-list-item',
-  imports: [NgTemplateOutlet, NgComponentOutlet, RenderNodeDirective],
+  imports: [NgTemplateOutlet, NgComponentOutlet, RenderNode],
   template: `<ng-template #listItemTmpl let-node let-index="index">
     <ng-template #listItemChildren>
       @if (node.style && node.style !== 'normal') {

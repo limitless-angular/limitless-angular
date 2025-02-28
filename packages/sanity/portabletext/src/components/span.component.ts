@@ -18,11 +18,11 @@ import { trackBy } from '../utils';
 import { MISSING_COMPONENT_HANDLER } from '../tokens';
 import { unknownMarkWarning } from '../warnings';
 import { PortableTextComponent } from './portable-text.component';
-import { RenderNodeDirective } from '../directives/render-node.directive';
+import { RenderNode } from '../directives/render-node.directive';
 
 @Component({
   selector: 'lib-span',
-  imports: [NgTemplateOutlet, NgComponentOutlet, RenderNodeDirective],
+  imports: [NgTemplateOutlet, NgComponentOutlet, RenderNode],
   template: `
     <ng-template #spanTmpl let-node>
       <ng-template #children>
