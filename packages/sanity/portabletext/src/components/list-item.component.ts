@@ -40,15 +40,13 @@ import { RenderNodeDirective } from '../directives/render-node.directive';
       }
     </ng-template>
 
-    @if ($any(components()).listItem?.[node.listItem]) {
+    @if ($any(components()).listItem?.[node.listItem]; as ListItemComponent) {
       <ng-container
         *ngComponentOutlet="
-          $any(components()).listItem?.[node.listItem]!;
+          ListItemComponent;
           inputs: {
-            childrenData: {
-              template: listItemChildren,
-              context: { node, index },
-            },
+            template: listItemChildren,
+            context: { node, index },
             value: node,
             index,
             isInline: false,
@@ -56,6 +54,7 @@ import { RenderNodeDirective } from '../directives/render-node.directive';
         "
       />
     } @else {
+      <!-- TODO: this should be a unknown list item component -->
       <li>
         <ng-container *ngTemplateOutlet="listItemChildren" />
       </li>

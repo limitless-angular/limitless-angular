@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Directive,
+  effect,
   input,
   TemplateRef,
   viewChild,
@@ -21,20 +22,21 @@ import { PortableTextListBlock, RenderNodeContext } from '../types';
 export class DynamicPortableTextContent<Node extends TypedObject = TypedObject>
   implements AfterViewInit
 {
-  childrenData = input.required<{
-    template: TemplateRef<RenderNodeContext<Node>>;
-    context: RenderNodeContext<Node>;
-  }>();
-
+  template = input.required<TemplateRef<RenderNodeContext<Node>>>();
+  context = input.required<RenderNodeContext<Node>>();
   children = viewChild<ViewContainerRef, ViewContainerRef>('children', {
     read: ViewContainerRef,
   });
+  _ = effect(() =>
+    this.children()?.createEmbeddedView(this.template(), this.context()),
+  );
 
+  /**
+   * @deprecated empty hook that is used just to avoid a breaking change, it will be removed in a major version
+   */
+  // eslint-disable-next-line @angular-eslint/no-empty-lifecycle-method
   ngAfterViewInit() {
-    this.children()?.createEmbeddedView(
-      this.childrenData().template,
-      this.childrenData().context,
-    );
+    /* empty */
   }
 }
 

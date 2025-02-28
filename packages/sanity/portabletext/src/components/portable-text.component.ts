@@ -42,6 +42,8 @@ import { ListItemComponent } from './list-item.component';
 import { trackBy } from '../utils';
 import { MISSING_COMPONENT_HANDLER } from '../tokens';
 import { printWarning } from '../warnings';
+import { mergeComponents } from '../utils/merge';
+import { defaultComponents } from './defaults/default-components';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -64,24 +66,18 @@ import { printWarning } from '../warnings';
     <ng-template #renderNode let-node let-index="index" let-isInline="isInline">
       @if (isPortableTextToolkitList(node)) {
         <ng-container
-          *ngTemplateOutlet="
-            listTemplate().template();
-            context: { $implicit: node }
-          "
+          *ngTemplateOutlet="listTemplate(); context: { $implicit: node }"
         />
       } @else if (isPortableTextListItemBlock(node)) {
         <ng-container
           *ngTemplateOutlet="
-            listItemTemplate().template();
+            listItemTemplate();
             context: { $implicit: node, index }
           "
         />
       } @else if (isPortableTextToolkitSpan(node)) {
         <ng-container
-          *ngTemplateOutlet="
-            spanTemplate().template();
-            context: { $implicit: node }
-          "
+          *ngTemplateOutlet="spanTemplate(); context: { $implicit: node }"
         />
       } @else if (hasCustomComponentForNode(node)) {
         <ng-container
@@ -93,16 +89,13 @@ import { printWarning } from '../warnings';
       } @else if (isPortableTextBlock(node)) {
         <ng-container
           *ngTemplateOutlet="
-            blockTemplate().template();
+            blockTemplate();
             context: { $implicit: node, isInline }
           "
         />
       } @else if (isPortableTextToolkitTextNode(node)) {
         <ng-container
-          *ngTemplateOutlet="
-            textTemplate().template();
-            context: { $implicit: node }
-          "
+          *ngTemplateOutlet="textTemplate(); context: { $implicit: node }"
         />
       } @else {
         <ng-container
@@ -150,7 +143,11 @@ export class PortableTextComponent<
   B extends TypedObject = PortableTextBlock | ArbitraryTypedObject,
 > {
   value = input.required<B | B[]>();
-  components = input<Partial<PortableTextComponents>>({});
+  componentOverrides = input<Partial<PortableTextComponents>>(
+    {},
+    // eslint-disable-next-line @angular-eslint/no-input-rename
+    { alias: 'components' },
+  );
 
   renderNode =
     viewChild.required<TemplateRef<RenderNodeContext<B>>>('renderNode');
@@ -160,39 +157,38 @@ export class PortableTextComponent<
 
   onMissingComponent = input<MissingComponentHandler | false>(printWarning);
 
-  #container = inject(ViewContainerRef);
+  #vcr = inject(ViewContainerRef);
 
   #injector = inject(Injector);
 
-  blockTemplate = computed(
-    () =>
-      this.#container.createComponent(BlockComponent, {
-        injector: this.#injector,
-      }).instance,
+  components = computed(() =>
+    mergeComponents(defaultComponents, this.componentOverrides()),
   );
-  listTemplate = computed(
-    () =>
-      this.#container.createComponent(ListComponent, {
-        injector: this.#injector,
-      }).instance,
+
+  blockTemplate = computed(() =>
+    this.#vcr
+      .createComponent(BlockComponent, { injector: this.#injector })
+      .instance.template(),
   );
-  listItemTemplate = computed(
-    () =>
-      this.#container.createComponent(ListItemComponent, {
-        injector: this.#injector,
-      }).instance,
+  listTemplate = computed(() =>
+    this.#vcr
+      .createComponent(ListComponent, { injector: this.#injector })
+      .instance.template(),
   );
-  spanTemplate = computed(
-    () =>
-      this.#container.createComponent(SpanComponent, {
-        injector: this.#injector,
-      }).instance,
+  listItemTemplate = computed(() =>
+    this.#vcr
+      .createComponent(ListItemComponent, { injector: this.#injector })
+      .instance.template(),
   );
-  textTemplate = computed(
-    () =>
-      this.#container.createComponent(TextComponent, {
-        injector: this.#injector,
-      }).instance,
+  spanTemplate = computed(() =>
+    this.#vcr
+      .createComponent(SpanComponent, { injector: this.#injector })
+      .instance.template(),
+  );
+  textTemplate = computed(() =>
+    this.#vcr
+      .createComponent(TextComponent, { injector: this.#injector })
+      .instance.template(),
   );
 
   nestedBlocks = computed(() => {

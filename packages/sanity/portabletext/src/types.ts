@@ -1,5 +1,5 @@
-import { TemplateRef, Type } from '@angular/core';
-import {
+import type { Type } from '@angular/core';
+import type {
   PortableTextBlock,
   PortableTextBlockStyle,
   PortableTextListItemBlock,
@@ -18,7 +18,10 @@ import {
 export interface PortableTextComponents {
   types?: Record<string, Type<PortableTextTypeComponent>>;
   marks?: Record<string, Type<PortableTextMarkComponent> | undefined>;
-  block?: Record<PortableTextBlockStyle, Type<PortableTextBlockComponent>>;
+  block?: Record<
+    PortableTextBlockStyle,
+    Type<PortableTextBlockComponent> | undefined
+  >;
   list?: Record<PortableTextListItemType, Type<PortableTextListComponent>>;
   listItem?:
     | Record<PortableTextListItemType, Type<PortableTextListItemComponent>>

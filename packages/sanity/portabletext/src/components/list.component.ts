@@ -20,43 +20,24 @@ import { RenderNodeDirective } from '../directives/render-node.directive';
   imports: [NgTemplateOutlet, NgComponentOutlet, RenderNodeDirective],
   template: `
     <ng-template #listTmpl let-node>
-      <ng-template #children>
-        <ng-container *ngTemplateOutlet="listChildren; context: { node }" />
-      </ng-template>
-      @if (components().list?.[node.listItem]; as listItem) {
+      @if (components().list?.[node.listItem]; as ListItem) {
         <ng-container
           *ngComponentOutlet="
-            listItem;
+            ListItem;
             inputs: {
-              childrenData: {
-                template: listChildren,
-                context: { node },
-              },
+              template: listChildren,
+              context: { node },
               value: node,
               isInline: false,
             }
           "
         />
       } @else {
-        @switch (node.listItem) {
-          @case ('bullet') {
-            <ul>
-              <ng-container *ngTemplateOutlet="children" />
-            </ul>
-          }
-          @case ('number') {
-            <ol>
-              <ng-container *ngTemplateOutlet="children" />
-            </ol>
-          }
-          @default {
-            <ul>
-              <ng-container *ngTemplateOutlet="children" />{{
-                handleMissingComponent(node)
-              }}
-            </ul>
-          }
-        }
+        <ul>
+          <ng-container *ngTemplateOutlet="listChildren; context: { node }" />{{
+            handleMissingComponent(node)
+          }}
+        </ul>
       }
     </ng-template>
 

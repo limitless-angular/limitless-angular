@@ -18,75 +18,25 @@ import { RenderNodeDirective } from '../directives/render-node.directive';
   imports: [NgTemplateOutlet, NgComponentOutlet, RenderNodeDirective],
   template: `
     <ng-template #blockTmpl let-node let-isInline="isInline">
-      <ng-template #children>
-        <ng-container
-          *ngTemplateOutlet="blockChildren; context: { node, isInline }"
-        />
-      </ng-template>
-
-      @if (components().block?.[node.style ?? 'normal']) {
+      @if (components().block?.[node.style ?? 'normal']; as BlockComponent) {
         <ng-container
           *ngComponentOutlet="
-            components().block?.[node.style ?? 'normal']!;
+            BlockComponent;
             inputs: {
-              childrenData: {
-                template: blockChildren,
-                context: { node, isInline },
-              },
+              template: blockChildren,
+              context: { node, isInline },
               value: node,
               isInline,
             }
           "
         />
       } @else {
-        @switch (node.style ?? 'normal') {
-          @case ('normal') {
-            <p>
-              <ng-container *ngTemplateOutlet="children" />
-            </p>
-          }
-          @case ('h1') {
-            <h1>
-              <ng-container *ngTemplateOutlet="children" />
-            </h1>
-          }
-          @case ('h2') {
-            <h2>
-              <ng-container *ngTemplateOutlet="children" />
-            </h2>
-          }
-          @case ('h3') {
-            <h3>
-              <ng-container *ngTemplateOutlet="children" />
-            </h3>
-          }
-          @case ('h4') {
-            <h4>
-              <ng-container *ngTemplateOutlet="children" />
-            </h4>
-          }
-          @case ('h5') {
-            <h5>
-              <ng-container *ngTemplateOutlet="children" />
-            </h5>
-          }
-          @case ('h6') {
-            <h6>
-              <ng-container *ngTemplateOutlet="children" />
-            </h6>
-          }
-          @case ('blockquote') {
-            <blockquote>
-              <ng-container *ngTemplateOutlet="children" />
-            </blockquote>
-          }
-          @default {
-            <!-- TODO: remove class when warning msg be implemented -->
-            <p [class]="'unknown__pt__block__' + node.style">
-              <ng-container *ngTemplateOutlet="children" />
-            </p>
-          }
-        }
+        <!-- TODO: remove class when warning msg be implemented -->
+        <p [class]="'unknown__pt__block__' + node.style">
+          <ng-container
+            *ngTemplateOutlet="blockChildren; context: { node, isInline }"
+          />
+        </p>
       }
     </ng-template>
 

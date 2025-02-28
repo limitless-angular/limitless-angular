@@ -31,15 +31,13 @@ import { RenderNodeDirective } from '../directives/render-node.directive';
         />
       </ng-template>
 
-      @if (components().marks?.[node.markType]) {
+      @if (components().marks?.[node.markType]; as MarkComponent) {
         <ng-container
           *ngComponentOutlet="
-            components().marks?.[node.markType]!;
+            MarkComponent;
             inputs: {
-              childrenData: {
-                template: nodeChildren,
-                context: { $implicit: node },
-              },
+              template: nodeChildren,
+              context: { $implicit: node },
               text: spanToPlainText(node),
               value: node.markDef,
               markKey: node.markKey,
@@ -48,36 +46,10 @@ import { RenderNodeDirective } from '../directives/render-node.directive';
           "
         />
       } @else {
-        @switch (node.markType) {
-          @case ('strong') {
-            <strong><ng-container *ngTemplateOutlet="children" /></strong>
-          }
-          @case ('em') {
-            <em><ng-container *ngTemplateOutlet="children" /></em>
-          }
-          @case ('code') {
-            <code><ng-container *ngTemplateOutlet="children" /></code>
-          }
-          @case ('underline') {
-            <span style="text-decoration: underline"
-              ><ng-container *ngTemplateOutlet="children"
-            /></span>
-          }
-          @case ('strike-through') {
-            <del><ng-container *ngTemplateOutlet="children" /></del>
-          }
-          @case ('link') {
-            <a [href]="node.markDef?.href"
-              ><ng-container *ngTemplateOutlet="children"
-            /></a>
-          }
-          @default {
-            {{ handleMissingComponent(node.markType)
-            }}<span [class]="'unknown__pt__mark__' + node.markType"
-              ><ng-container *ngTemplateOutlet="children"
-            /></span>
-          }
-        }
+        {{ handleMissingComponent(node.markType)
+        }}<span [class]="'unknown__pt__mark__' + node.markType"
+          ><ng-container *ngTemplateOutlet="children"
+        /></span>
       }
     </ng-template>
 
