@@ -7,7 +7,7 @@ import { RenderNode } from '../directives/render-node.directive';
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'pt-children',
   imports: [RenderNode],
-  template: `<ng-template let-children="children">
+  template: `<ng-template let-children="children" let-isInline="isInline">
     @for (
       child of children;
       track trackBy(child._key, $index);
@@ -15,16 +15,18 @@ import { RenderNode } from '../directives/render-node.directive';
     ) {
       <ng-container
         [renderNode]="child"
-        [isInline]="child.isInline ?? true"
+        [isInline]="child.isInline ?? isInline ?? true"
         [index]="index"
       />
     }
   </ng-template>`,
 })
 export class ChildrenComponent {
-  template =
-    viewChild.required<
-      TemplateRef<{ children: (TypedObject & { isInline?: boolean })[] }>
-    >(TemplateRef);
+  template = viewChild.required<
+    TemplateRef<{
+      children: (TypedObject & { isInline?: boolean })[];
+      isInline?: boolean;
+    }>
+  >(TemplateRef);
   protected readonly trackBy = trackBy;
 }

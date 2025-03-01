@@ -63,18 +63,12 @@ import { ChildrenComponent } from './children.component';
   selector: '[portable-text]',
   imports: [NgTemplateOutlet, NgComponentOutlet],
   template: `
-    @for (
-      block of nestedBlocks();
-      track trackBy(block._key, index);
-      let index = $index
-    ) {
-      <ng-container
-        *ngTemplateOutlet="
-          renderNode;
-          context: { $implicit: block, index, isInline: false }
-        "
-      />
-    }
+    <ng-container
+      *ngTemplateOutlet="
+        childrenTmpl();
+        context: { children: nestedBlocks(), isInline: false }
+      "
+    />
 
     <ng-template #renderNode let-node let-index="index" let-isInline="isInline">
       @if (isPortableTextToolkitList(node)) {
@@ -118,12 +112,6 @@ import { ChildrenComponent } from './children.component';
     </ng-template>
 
     <ng-template #unknownTypeTmpl let-value="node" let-isInline="isInline">
-      <ng-container
-        *ngTemplateOutlet="unknownBlock; context: { node: value, isInline }"
-      />
-    </ng-template>
-
-    <ng-template #unknownBlock let-value="node" let-isInline="isInline">
       @if (isInline) {
         <span style="display: none" aria-hidden="true">{{
           'Unknown block type: ' + value._type
@@ -176,12 +164,6 @@ export class PortableTextComponent<
    */
   renderNode =
     viewChild.required<TemplateRef<RenderNodeContext<B>>>('renderNode');
-
-  /**
-   * Template reference for rendering unknown blocks
-   */
-  unknownBlockTmpl =
-    viewChild.required<TemplateRef<{ $implicit: TypedObject }>>('unknownBlock');
 
   /**
    * Handler for missing components.
