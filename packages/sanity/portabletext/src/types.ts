@@ -16,7 +16,7 @@ import {
 } from './directives/portable-text-directives';
 
 export interface PortableTextComponents {
-  types: Record<string, Type<PortableTextTypeComponent>>;
+  types?: Record<string, Type<PortableTextTypeComponent>>;
   marks?: Record<string, Type<PortableTextMarkComponent> | undefined>;
   block?: Record<
     PortableTextBlockStyle,
@@ -27,7 +27,19 @@ export interface PortableTextComponents {
     | Record<PortableTextListItemType, Type<PortableTextListItemComponent>>
     | Type<PortableTextListItemComponent>;
   hardBreak?: Type<unknown> | false;
+  unknownMark?: Type<PortableTextMarkComponent>;
+  unknownBlockStyle?: Type<PortableTextBlockComponent>;
+  unknownList?: Type<PortableTextListComponent>;
+  unknownListItem?: Type<PortableTextListItemComponent>;
 }
+
+/**
+ * Any node type that we can't identify - eg it has an `_type`,
+ * but we don't know anything about its other properties
+ */
+export type UnknownNodeType =
+  | { [key: string]: unknown; _type: string }
+  | TypedObject;
 
 export type NodeType =
   | 'block'

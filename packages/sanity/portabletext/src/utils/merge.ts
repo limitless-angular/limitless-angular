@@ -3,7 +3,7 @@ import type { PortableTextComponents } from '../types';
 export function mergeComponents(
   parent: PortableTextComponents,
   overrides: Partial<PortableTextComponents>,
-): PortableTextComponents {
+): Required<PortableTextComponents> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { block, list, listItem, marks, types, ...rest } = overrides;
   return {
@@ -14,7 +14,7 @@ export function mergeComponents(
     marks: mergeDeeply(parent, overrides, 'marks'),
     types: mergeDeeply(parent, overrides, 'types'),
     ...rest,
-  };
+  } as Required<PortableTextComponents>;
 }
 
 function mergeDeeply<

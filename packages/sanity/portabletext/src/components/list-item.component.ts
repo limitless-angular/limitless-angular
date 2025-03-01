@@ -6,7 +6,7 @@ import {
   viewChild,
   ViewEncapsulation,
 } from '@angular/core';
-import { NgComponentOutlet, NgTemplateOutlet } from '@angular/common';
+import { NgComponentOutlet } from '@angular/common';
 
 import {
   PortableTextListItemBlock,
@@ -15,54 +15,27 @@ import {
 } from '@portabletext/types';
 
 import { Serializable, TemplateContext } from '../types';
-import { serializeBlock, trackBy } from '../utils';
+import { serializeBlock } from '../utils';
 import { PortableTextComponent } from './portable-text.component';
-import { RenderNode } from '../directives/render-node.directive';
 import { memoize } from 'lodash-es';
+import { unknownListItemStyleWarning } from '../warnings';
+import { MISSING_COMPONENT_HANDLER } from '../tokens';
 
 @Component({
   selector: 'lib-list-item',
-  imports: [NgTemplateOutlet, NgComponentOutlet, RenderNode],
-  template: `<ng-template #listItemTmpl let-node let-index="index">
-      @if ($any(components()).listItem?.[node.listItem]; as ListItemComponent) {
-        <ng-container
-          *ngComponentOutlet="
-            ListItemComponent;
-            inputs: {
-              template: children,
-              context: { children: getChildren({ node, index }) },
-              value: node,
-              index,
-              isInline: false,
-            }
-          "
-        />
-      } @else {
-        <!-- TODO: this should be a unknown list item component -->
-        <li>
-          <ng-container
-            *ngTemplateOutlet="
-              children;
-              context: { children: getChildren({ node, index }) }
-            "
-          />
-        </li>
-      }
-    </ng-template>
-
-    <ng-template #children let-children="children">
-      @for (
-        child of children;
-        track trackBy(child._key, index);
-        let index = $index
-      ) {
-        <ng-container
-          [renderNode]="child"
-          [isInline]="child.isInline"
-          [index]="index"
-        />
-      }
-    </ng-template>`,
+  imports: [NgComponentOutlet],
+  template: `<ng-template #listItemTmpl let-node let-index="index"
+    ><ng-container
+      *ngComponentOutlet="
+        getListItemComponent(node);
+        inputs: {
+          children: getChildren({ node, index }),
+          value: node,
+          index,
+          isInline: false,
+        }
+      "
+  /></ng-template>`,
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })
@@ -79,6 +52,7 @@ export class ListItemComponent {
       >
     >('listItemTmpl');
   components = inject(PortableTextComponent).components;
+  #missingHandler = inject(MISSING_COMPONENT_HANDLER);
 
   getChildren: (
     opts: Omit<Serializable<PortableTextListItemBlock>, 'isInline'>,
@@ -96,5 +70,19 @@ export class ListItemComponent {
     return children;
   });
 
-  protected readonly trackBy = trackBy;
+  getListItemComponent = (node: PortableTextListItemBlock) => {
+    const renderer = this.components().listItem;
+    const handler =
+      typeof renderer === 'function' ? renderer : renderer[node.listItem];
+    const Li = handler ?? this.components().unknownListItem;
+    if (Li === this.components().unknownListItem) {
+      const style = node.listItem || 'bullet';
+      this.#missingHandler(unknownListItemStyleWarning(style), {
+        nodeType: 'listItemStyle',
+        type: style,
+      });
+    }
+
+    return Li;
+  };
 }

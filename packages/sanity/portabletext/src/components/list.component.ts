@@ -6,52 +6,28 @@ import {
   viewChild,
   ViewEncapsulation,
 } from '@angular/core';
-import { NgComponentOutlet, NgTemplateOutlet } from '@angular/common';
+import { NgComponentOutlet } from '@angular/common';
 
 import { MISSING_COMPONENT_HANDLER } from '../tokens';
 import { TemplateContext, PortableTextListBlock } from '../types';
-import { trackBy } from '../utils';
 import { unknownListStyleWarning } from '../warnings';
 import { PortableTextComponent } from './portable-text.component';
-import { RenderNode } from '../directives/render-node.directive';
 
 @Component({
   selector: 'lib-list',
-  imports: [NgTemplateOutlet, NgComponentOutlet, RenderNode],
+  imports: [NgComponentOutlet],
   template: `
-    <ng-template #listTmpl let-node>
-      @if (components().list?.[node.listItem]; as ListItem) {
-        <ng-container
-          *ngComponentOutlet="
-            ListItem;
-            inputs: {
-              template: children,
-              context: { children: node.children },
-              value: node,
-              isInline: false,
-            }
-          "
-        />
-      } @else {
-        <ul>
-          <ng-container
-            *ngTemplateOutlet="children; context: { children: node.children }"
-          />{{
-            handleMissingComponent(node)
-          }}
-        </ul>
-      }
-    </ng-template>
-
-    <ng-template #children let-children="children">
-      @for (
-        child of children;
-        track trackBy(child._key, index, 'li');
-        let index = $index
-      ) {
-        <ng-container [renderNode]="child" [isInline]="false" [index]="index" />
-      }
-    </ng-template>
+    <ng-template #listTmpl let-node
+      ><ng-container
+        *ngComponentOutlet="
+          getListComponent(node);
+          inputs: {
+            children: node.children,
+            value: node,
+            isInline: false,
+          }
+        "
+    /></ng-template>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
@@ -62,8 +38,21 @@ export class ListComponent {
       'listTmpl',
     );
   components = inject(PortableTextComponent).components;
-
   missingHandler = inject(MISSING_COMPONENT_HANDLER);
+
+  getListComponent = (node: PortableTextListBlock) => {
+    const List =
+      this.components().list?.[node.listItem] ?? this.components().unknownList;
+    if (List === this.components().unknownList) {
+      const style = node.listItem || 'bullet';
+      this.missingHandler(unknownListStyleWarning(style), {
+        nodeType: 'listStyle',
+        type: style,
+      });
+    }
+
+    return List;
+  };
 
   handleMissingComponent(node: PortableTextListBlock) {
     const style = node.listItem || 'bullet';
@@ -72,6 +61,4 @@ export class ListComponent {
       type: style,
     });
   }
-
-  protected readonly trackBy = trackBy;
 }

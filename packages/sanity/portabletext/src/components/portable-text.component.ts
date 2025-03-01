@@ -44,6 +44,7 @@ import { MISSING_COMPONENT_HANDLER } from '../tokens';
 import { printWarning } from '../warnings';
 import { mergeComponents } from '../utils/merge';
 import { defaultComponents } from './defaults/default-components';
+import { ChildrenComponent } from './children.component';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -170,6 +171,13 @@ export class PortableTextComponent<
       .createComponent(BlockComponent, { injector: this.#injector })
       .instance.template(),
   );
+
+  childrenTmpl = computed(() =>
+    this.#vcr
+      .createComponent(ChildrenComponent, { injector: this.#injector })
+      .instance.template(),
+  );
+
   listTemplate = computed(() =>
     this.#vcr
       .createComponent(ListComponent, { injector: this.#injector })

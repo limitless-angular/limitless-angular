@@ -45,7 +45,7 @@ export const assertHTML = (container: Element, expectedHTML: string) => {
 
 export const renderPortableText = (
   input: ComponentInput<PortableTextComponent>['value'],
-  components: ComponentInput<PortableTextComponent>['components'] = {},
+  components: Partial<ComponentInput<PortableTextComponent>['components']> = {},
   onMissingComponent: ComponentInput<PortableTextComponent>['onMissingComponent'] = false,
 ) => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
