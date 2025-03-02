@@ -2,7 +2,6 @@ import { NgComponentOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
-  inject,
   TemplateRef,
   viewChild,
   ViewEncapsulation,
@@ -10,16 +9,17 @@ import {
 
 import { ToolkitTextNode } from '@portabletext/toolkit';
 
-import { PortableTextComponent } from './portable-text.component';
+import { PortableTextComponents } from '../types';
 
 @Component({
-  selector: 'lib-text',
+  // eslint-disable-next-line @angular-eslint/component-selector
+  selector: 'pt-text',
   // prettier-ignore
-  template: `<ng-template #textTmpl let-node>
+  template: `<ng-template let-node let-components="components">
     @if (node.text === '\\n') {
-      @if (components().hardBreak === undefined) {<br />}
-      @else if (components().hardBreak === false) {{{ '\\n' }}}
-      @else {<ng-container *ngComponentOutlet="$any(components().hardBreak)" />}
+      @if (components.hardBreak === undefined) {<br />}
+      @else if (components.hardBreak === false) {{{ '\\n' }}}
+      @else {<ng-container *ngComponentOutlet="components.hardBreak" />}
     } @else {{{ node.text }}}
   </ng-template>`,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,7 +27,10 @@ import { PortableTextComponent } from './portable-text.component';
   imports: [NgComponentOutlet],
 })
 export class TextComponent {
-  template =
-    viewChild.required<TemplateRef<{ $implicit: ToolkitTextNode }>>('textTmpl');
-  components = inject(PortableTextComponent).components;
+  template = viewChild.required<
+    TemplateRef<{
+      $implicit: ToolkitTextNode;
+      components: PortableTextComponents;
+    }>
+  >(TemplateRef);
 }

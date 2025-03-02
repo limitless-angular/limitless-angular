@@ -2,7 +2,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  forwardRef,
   inject,
   Injector,
   input,
@@ -12,39 +11,27 @@ import {
   ViewContainerRef,
   ViewEncapsulation,
 } from '@angular/core';
-import { NgComponentOutlet, NgTemplateOutlet } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 
-import {
-  isPortableTextBlock,
-  isPortableTextListItemBlock,
-  isPortableTextToolkitList,
-  isPortableTextToolkitSpan,
-  isPortableTextToolkitTextNode,
-  LIST_NEST_MODE_HTML,
-  nestLists,
-} from '@portabletext/toolkit';
+import { LIST_NEST_MODE_HTML, nestLists } from '@portabletext/toolkit';
 import {
   ArbitraryTypedObject,
   PortableTextBlock,
   TypedObject,
 } from '@portabletext/types';
 
-import { BlockComponent } from './block.component';
 import {
   MissingComponentHandler,
   PortableTextComponents,
   RenderNodeContext,
 } from '../types';
-import { TextComponent } from './text.component';
-import { SpanComponent } from './span.component';
-import { ListComponent } from './list.component';
-import { ListItemComponent } from './list-item.component';
-import { trackBy } from '../utils';
-import { MISSING_COMPONENT_HANDLER } from '../tokens';
 import { printWarning } from '../warnings';
 import { mergeComponents } from '../utils/merge';
 import { defaultComponents } from './defaults/default-components';
 import { ChildrenComponent } from './children.component';
+import { NodeRendererComponent } from './node-renderer.component';
+import { NodeResolverService } from '../services/node-resolver.service';
+import { TextComponent } from './text.component';
 
 /**
  * PortableTextComponent is the main component for rendering Portable Text content.
@@ -61,7 +48,7 @@ import { ChildrenComponent } from './children.component';
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: '[portable-text]',
-  imports: [NgTemplateOutlet, NgComponentOutlet],
+  imports: [NgTemplateOutlet],
   template: `
     <ng-container
       *ngTemplateOutlet="
@@ -71,55 +58,24 @@ import { ChildrenComponent } from './children.component';
     />
 
     <ng-template #renderNode let-node let-index="index" let-isInline="isInline">
-      @if (isPortableTextToolkitList(node)) {
+      @if (resolveNode(node, index, isInline); as nodeRendering) {
         <ng-container
-          *ngTemplateOutlet="listTemplate(); context: { $implicit: node }"
-        />
-      } @else if (isPortableTextListItemBlock(node)) {
-        <ng-container
-          *ngTemplateOutlet="
-            listItemTemplate();
-            context: { $implicit: node, index }
-          "
-        />
-      } @else if (isPortableTextToolkitSpan(node)) {
-        <ng-container
-          *ngTemplateOutlet="spanTemplate(); context: { $implicit: node }"
-        />
-      } @else if (hasCustomComponentForNode(node)) {
-        <ng-container
-          *ngComponentOutlet="
-            getCustomComponentForNode(node);
-            inputs: { value: node, isInline }
-          "
-        />
-      } @else if (isPortableTextBlock(node)) {
-        <ng-container
-          *ngTemplateOutlet="
-            blockTemplate();
-            context: { $implicit: node, index, isInline }
-          "
-        />
-      } @else if (isPortableTextToolkitTextNode(node)) {
-        <ng-container
-          *ngTemplateOutlet="textTemplate(); context: { $implicit: node }"
-        />
-      } @else {
-        <ng-container
-          *ngTemplateOutlet="unknownTypeTmpl; context: { node, isInline }"
+          [ngTemplateOutlet]="nodeRendering.template"
+          [ngTemplateOutletContext]="nodeRendering.context"
         />
       }
     </ng-template>
 
-    <ng-template #unknownTypeTmpl let-value="node" let-isInline="isInline">
+    <ng-template #unknownTmpl let-node="node" let-isInline="isInline">
       @if (isInline) {
         <span style="display: none" aria-hidden="true">{{
-          'Unknown block type: ' + value._type
+          'Unknown block type: ' + node._type
         }}</span>
       } @else {
-        <div style="display: none" aria-hidden="true">
-          {{ 'Unknown block type: ' + value._type }}
-        </div>
+        <!-- display: inline -->
+        <div style="display: none" aria-hidden="true">{{
+          'Unknown block type: ' + node._type
+        }}</div>
       }
     </ng-template>
   `,
@@ -129,14 +85,6 @@ import { ChildrenComponent } from './children.component';
     }
   `,
   host: { '[class.portable-text]': 'true' },
-  providers: [
-    {
-      provide: MISSING_COMPONENT_HANDLER,
-      useFactory: (component: PortableTextComponent) =>
-        component.onMissingComponent() || noop,
-      deps: [forwardRef(() => PortableTextComponent)],
-    },
-  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })
@@ -173,18 +121,22 @@ export class PortableTextComponent<
 
   #vcr = inject(ViewContainerRef);
   #injector = inject(Injector);
+  #nodeResolver = inject(NodeResolverService);
 
   /**
    * Merged components from default and overrides
    */
-  components = computed(() =>
+  availableComponents = computed(() =>
     mergeComponents(defaultComponents, this.componentOverrides()),
   );
 
   /**
-   * Creates a template for rendering blocks
+   * Template reference for rendering unknown block types
    */
-  blockTemplate = computed(() => this.#createComponent(BlockComponent));
+  unknownTmpl =
+    viewChild.required<TemplateRef<{ node: TypedObject; isInline: boolean }>>(
+      'unknownTmpl',
+    );
 
   /**
    * Creates a template for rendering children
@@ -192,24 +144,16 @@ export class PortableTextComponent<
   childrenTmpl = computed(() => this.#createComponent(ChildrenComponent));
 
   /**
-   * Creates a template for rendering lists
-   */
-  listTemplate = computed(() => this.#createComponent(ListComponent));
-
-  /**
-   * Creates a template for rendering list items
-   */
-  listItemTemplate = computed(() => this.#createComponent(ListItemComponent));
-
-  /**
-   * Creates a template for rendering spans
-   */
-  spanTemplate = computed(() => this.#createComponent(SpanComponent));
-
-  /**
    * Creates a template for rendering text
    */
-  textTemplate = computed(() => this.#createComponent(TextComponent));
+  textTmpl = computed(() => this.#createComponent(TextComponent));
+
+  /**
+   * Creates a template for the node renderer
+   */
+  nodeRendererTmpl = computed(() =>
+    this.#createComponent(NodeRendererComponent),
+  );
 
   /**
    * Computes the nested blocks from the input value
@@ -221,22 +165,27 @@ export class PortableTextComponent<
   });
 
   /**
-   * Checks if a custom component exists for the given node
+   * Resolves the template and context for rendering a node
    *
-   * @param node The node to check
-   * @returns True if a custom component exists for the node
+   * @param node The node to resolve
+   * @param index The index of the node
+   * @param isInline Whether the node is inline
+   * @returns An object containing the template and context for rendering the node
    */
-  hasCustomComponentForNode = (node: TypedObject): boolean =>
-    node._type in this.components().types;
-
-  /**
-   * Gets the custom component for the given node
-   *
-   * @param node The node to get the component for
-   * @returns The component type for the node
-   */
-  getCustomComponentForNode = (node: TypedObject): Type<unknown> =>
-    this.components().types?.[node._type] as Type<unknown>;
+  resolveNode(node: TypedObject, index?: number, isInline = false) {
+    return this.#nodeResolver.resolveNode(
+      node,
+      this.availableComponents(),
+      this.onMissingComponent() || noop,
+      {
+        nodeRenderer: this.nodeRendererTmpl(),
+        text: this.textTmpl(),
+        unknown: this.unknownTmpl(),
+      },
+      index,
+      isInline,
+    );
+  }
 
   /**
    * Creates a component instance and returns its template
@@ -251,15 +200,6 @@ export class PortableTextComponent<
       .createComponent(componentType, { injector: this.#injector })
       .instance.template();
   }
-
-  // Type guards for template use
-  protected readonly isPortableTextToolkitList = isPortableTextToolkitList;
-  protected readonly isPortableTextListItemBlock = isPortableTextListItemBlock;
-  protected readonly isPortableTextBlock = isPortableTextBlock;
-  protected readonly isPortableTextToolkitSpan = isPortableTextToolkitSpan;
-  protected readonly isPortableTextToolkitTextNode =
-    isPortableTextToolkitTextNode;
-  protected readonly trackBy = trackBy;
 }
 
 const noop = () => {

@@ -18,7 +18,7 @@ import { PortableTextListBlock } from '../types';
 import { PortableTextComponent } from '../components/portable-text.component';
 
 // eslint-disable-next-line @angular-eslint/directive-selector
-@Directive({ selector: '[portableTextContent]', standalone: true })
+@Directive({ selector: '[portableTextContent]' })
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class DynamicPortableTextContent<Node extends TypedObject = TypedObject>
   implements AfterViewInit
@@ -29,7 +29,8 @@ export class DynamicPortableTextContent<Node extends TypedObject = TypedObject>
   });
   template = inject(PortableTextComponent).childrenTmpl;
 
-  _ = effect(() => {
+  // eslint-disable-next-line no-unused-private-class-members
+  #_ = effect(() => {
     this.container()?.clear();
     this.container()?.createEmbeddedView(this.template(), {
       children: this.children(),

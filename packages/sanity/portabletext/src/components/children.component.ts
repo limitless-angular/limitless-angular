@@ -1,4 +1,10 @@
-import { Component, TemplateRef, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  TemplateRef,
+  viewChild,
+  ViewEncapsulation,
+} from '@angular/core';
 import { TypedObject } from '@portabletext/types';
 import { trackBy } from '../utils';
 import { RenderNode } from '../directives/render-node.directive';
@@ -20,6 +26,8 @@ import { RenderNode } from '../directives/render-node.directive';
       />
     }
   </ng-template>`,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
 })
 export class ChildrenComponent {
   template = viewChild.required<

@@ -12,23 +12,22 @@ The portable-text implementation is an Angular component library for rendering s
 
 1. **PortableTextComponent**: The main entry point that orchestrates the rendering of portable text blocks. It uses a recursive approach to render nested structures.
 
-2. **Block Components**:
-   - **BlockComponent**: Renders block-level elements like paragraphs, headings, etc.
-   - **ListComponent**: Renders list containers (ul/ol)
-   - **ListItemComponent**: Renders list items (li)
-   - **SpanComponent**: Renders text spans with marks (bold, italic, links, etc.)
-   - **TextComponent**: Renders plain text nodes
+2. **Supporting Components**:
+   - **TextComponent**: Renders plain text nodes with special handling for line breaks
+   - **NodeRendererComponent**: A generic component that dynamically renders different node types
    - **ChildrenComponent**: Manages rendering of child nodes
+
+### Handler Services
+
+1. **NodeResolverService**: Central service that determines the appropriate template and context for each node type
+2. **BlockHandlerService**: Handles block-level elements like paragraphs, headings, etc.
+3. **ListHandlerService**: Handles list containers (ul/ol)
+4. **ListItemHandlerService**: Handles list items (li)
+5. **SpanHandlerService**: Handles text spans with marks (bold, italic, links, etc.)
 
 ### Directives
 
 1. **RenderNode**: A directive that handles the rendering of individual nodes in the portable text tree
-2. **PortableTextDirectives**: A set of directives that define the component interfaces for different node types:
-   - PortableTextTypeComponent
-   - PortableTextMarkComponent
-   - PortableTextBlockComponent
-   - PortableTextListComponent
-   - PortableTextListItemComponent
 
 ### Default Components
 
@@ -65,22 +64,25 @@ The library provides default implementations for common elements:
 
 1. The `value` input accepts Portable Text blocks
 2. Blocks are processed and nested lists are created
-3. Each node is rendered based on its type using the appropriate component
+3. Each node is resolved to a template and context by the `NodeResolverService`
+4. Nodes are rendered using the appropriate template and context
 
 ### Component Resolution
 
-1. Components are resolved based on node type and style
-2. Custom components can be provided through the `componentOverrides` input
-3. Default components are used as fallbacks
+1. The `NodeResolverService` determines the appropriate component type for each node
+2. Handler services provide the component type and input properties for their respective node types
+3. Custom components can be provided through the `componentOverrides` input
+4. Default components are used as fallbacks
 
-### Template References
+### Template Selection
 
-1. Each component exposes its template through a `template()` method
-2. Templates are composed together to create the final output
+1. The `NodeResolverService` selects the appropriate template for each node type
+2. Text nodes use the specialized `TextComponent` template
+3. All other node types use the `NodeRendererComponent` template
 
 ### Dependency Injection
 
-1. Components communicate through dependency injection
+1. Components and services communicate through dependency injection
 2. The `MISSING_COMPONENT_HANDLER` token allows customizing error handling
 
 ## Integration with External Libraries
@@ -105,12 +107,17 @@ The implementation showcases several modern Angular patterns:
 ### Main Components
 
 - `portable-text.component.ts`: The main component that orchestrates rendering
-- `block.component.ts`: Renders block-level elements
-- `list.component.ts`: Renders list containers
-- `list-item.component.ts`: Renders list items
-- `span.component.ts`: Renders text spans with marks
 - `text.component.ts`: Renders plain text nodes
+- `node-renderer.component.ts`: Generic component for rendering different node types
 - `children.component.ts`: Manages rendering of child nodes
+
+### Handler Services
+
+- `node-resolver.service.ts`: Central service for resolving nodes to templates and contexts
+- `block-handler.service.ts`: Handles block-level elements
+- `list-handler.service.ts`: Handles list containers
+- `list-item-handler.service.ts`: Handles list items
+- `span-handler.service.ts`: Handles text spans with marks
 
 ### Utilities
 
@@ -130,23 +137,38 @@ The implementation showcases several modern Angular patterns:
 - `defaults/list.ts`: Default list components
 - `defaults/unknown.ts`: Fallback components for unknown types
 
-## Rendering Process
+## Node Rendering Process
 
-1. The `PortableTextComponent` receives Portable Text blocks through the `value` input
-2. The blocks are processed and nested lists are created using `nestLists` from `@portabletext/toolkit`
-3. Each block is rendered recursively based on its type:
-   - Blocks are rendered using the appropriate block component
-   - Lists are rendered using the list component
-   - List items are rendered using the list item component
-   - Spans are rendered using the span component
-   - Text nodes are rendered using the text component
-4. Custom components can be provided through the `componentOverrides` input
-5. If a component is not found, a warning is displayed and a fallback component is used
+The Portable Text implementation uses a streamlined approach to render different node types:
 
-## Customization Points
+1. **Node Resolution**: The `NodeResolverService` is the central coordinator that:
 
-The library provides several customization points:
+   - Takes a node, components, templates, and other parameters
+   - Delegates to the appropriate handler service based on node type
+   - Returns an object with `template` and `context` properties
 
-1. **Component Overrides**: Custom components can be provided for any node type
-2. **Missing Component Handler**: Custom error handling for missing components
-3. **Custom Styling**: Components can be styled using CSS
+2. **Handler Services**: Each handler service is responsible for:
+
+   - Determining the appropriate component type for its node type
+   - Creating the input properties for the component
+   - Providing this information back to the `NodeResolverService`
+
+3. **Template Selection**: The `NodeResolverService` selects between different templates:
+
+   - Text nodes use the specialized `TextComponent` template
+   - All other node types use the `NodeRendererComponent` template
+
+4. **Context Creation**: The service creates the appropriate context for each template:
+
+   - For text nodes, it provides the node as the implicit context variable
+   - For other nodes, it provides the component type and input properties
+
+5. **Rendering**: The `PortableTextComponent` uses the template and context from the `NodeResolverService` to render the node using Angular's `ngTemplateOutlet` directive.
+
+This architecture provides several benefits:
+
+- **Clear Separation of Concerns**: Each service has a specific responsibility
+- **Centralized Logic**: Node resolution logic is centralized in the `NodeResolverService`
+- **Reduced Complexity**: Fewer components means simpler code and better performance
+- **Flexibility**: Easy to add support for new node types or customize existing ones
+- **Maintainability**: Clear boundaries between components and services
