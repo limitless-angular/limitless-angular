@@ -12,8 +12,6 @@ import { ToolkitTextNode } from '@portabletext/toolkit';
 import { PortableTextComponents } from '../types';
 
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
-  selector: 'pt-text',
   // prettier-ignore
   template: `<ng-template let-node let-components="components">
     @if (node.text === '\\n') {

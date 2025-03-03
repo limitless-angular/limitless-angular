@@ -13,8 +13,6 @@ import { NgComponentOutlet } from '@angular/common';
  * This component serves as a base for rendering various node types with a consistent pattern
  */
 @Component({
-  // eslint-disable-next-line @angular-eslint/component-selector
-  selector: 'pt-node-renderer',
   imports: [NgComponentOutlet],
   template: `<ng-template
     let-componentType="componentType"
