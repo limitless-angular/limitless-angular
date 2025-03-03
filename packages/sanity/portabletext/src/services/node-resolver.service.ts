@@ -1,4 +1,4 @@
-import { Injectable, TemplateRef, Type, inject } from '@angular/core';
+import { TemplateRef, Type, inject } from '@angular/core';
 import { TypedObject } from '@portabletext/types';
 import {
   isPortableTextToolkitTextNode,
@@ -25,12 +25,8 @@ const CustomComponentHandler = {
   }),
 };
 
-/**
- * Service for resolving node types to their appropriate handlers
- */
-@Injectable({ providedIn: 'root' })
-export class NodeResolverService {
-  #handlers = [
+export function injectResolveNode() {
+  const handlers = [
     inject(ListHandlerService),
     inject(ListItemHandlerService),
     inject(SpanHandlerService),
@@ -49,7 +45,7 @@ export class NodeResolverService {
    * @param isInline Whether the node is inline
    * @returns An object containing the template and context for rendering the node
    */
-  resolveNode(
+  return (
     node: TypedObject,
     components: Required<PortableTextComponents>,
     missingHandler: MissingComponentHandler,
@@ -60,11 +56,8 @@ export class NodeResolverService {
     },
     index?: number,
     isInline = false,
-  ): {
-    template: TemplateRef<unknown>;
-    context: Record<string, unknown>;
-  } {
-    for (const handler of this.#handlers) {
+  ) => {
+    for (const handler of handlers) {
       if (!handler.canHandle(node, components)) {
         continue;
       }
@@ -95,7 +88,7 @@ export class NodeResolverService {
     });
 
     return { template: templates.unknown, context: { node, isInline } };
-  }
+  };
 }
 
 /**

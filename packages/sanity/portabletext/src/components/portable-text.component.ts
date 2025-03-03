@@ -30,7 +30,7 @@ import { mergeComponents } from '../utils/merge';
 import { defaultComponents } from './defaults/default-components';
 import { ChildrenComponent } from './children.component';
 import { NodeRendererComponent } from './node-renderer.component';
-import { NodeResolverService } from '../services/node-resolver.service';
+import { injectResolveNode } from '../services/node-resolver.service';
 import { TextComponent } from './text.component';
 
 /**
@@ -121,7 +121,7 @@ export class PortableTextComponent<
 
   #vcr = inject(ViewContainerRef);
   #injector = inject(Injector);
-  #nodeResolver = inject(NodeResolverService);
+  #resolveNode = injectResolveNode();
 
   /**
    * Merged components from default and overrides
@@ -173,7 +173,7 @@ export class PortableTextComponent<
    * @returns An object containing the template and context for rendering the node
    */
   resolveNode(node: TypedObject, index?: number, isInline = false) {
-    return this.#nodeResolver.resolveNode(
+    return this.#resolveNode(
       node,
       this.availableComponents(),
       this.onMissingComponent() || noop,
