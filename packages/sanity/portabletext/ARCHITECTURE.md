@@ -20,9 +20,22 @@ The portable-text implementation is an Angular component library for rendering s
 ### Handler Services
 
 1. **NodeResolverService**: Central service that determines the appropriate template and context for each node type
+
+   - Now implemented as a functional service using `injectResolveNode()` for better tree-shaking and performance
+   - Provides standardized node resolution logic that delegates to specialized handlers
+
 2. **BlockHandlerService**: Handles block-level elements like paragraphs, headings, etc.
+
+   - Implements `canHandle` method using `isPortableTextBlock` for type detection
+
 3. **ListHandlerService**: Handles list containers (ul/ol)
+
+   - Implements `canHandle` method using `isPortableTextToolkitList` for type detection
+
 4. **ListItemHandlerService**: Handles list items (li)
+
+   - Implements `canHandle` method using `isPortableTextListItemBlock` for type detection
+
 5. **SpanHandlerService**: Handles text spans with marks (bold, italic, links, etc.)
 
 ### Directives
@@ -50,6 +63,7 @@ The library provides default implementations for common elements:
    - Standalone components
    - Template-based rendering with the new control flow syntax (`@if`, `@for`)
    - Dependency injection for component communication
+   - Functional approach for services that benefit from it (improved tree-shaking)
 
 4. **Error Handling**: Provides graceful fallbacks for unknown components with customizable warning handlers.
 
@@ -57,6 +71,8 @@ The library provides default implementations for common elements:
    - Memoization for expensive operations
    - OnPush change detection
    - Efficient tracking with `trackBy`
+   - Reduction of selector usage for internal components
+   - Functional services for better tree-shaking
 
 ## Implementation Details
 
@@ -64,26 +80,26 @@ The library provides default implementations for common elements:
 
 1. The `value` input accepts Portable Text blocks
 2. Blocks are processed and nested lists are created
-3. Each node is resolved to a template and context by the `NodeResolverService`
+3. Each node is resolved to a template and context by the functional `resolveNode` service
 4. Nodes are rendered using the appropriate template and context
 
 ### Component Resolution
 
-1. The `NodeResolverService` determines the appropriate component type for each node
-2. Handler services provide the component type and input properties for their respective node types
+1. The node resolution logic determines the appropriate component type for each node
+2. Handler services provide the component type and input properties for their respective node types with standardized `canHandle` methods
 3. Custom components can be provided through the `componentOverrides` input
 4. Default components are used as fallbacks
 
 ### Template Selection
 
-1. The `NodeResolverService` selects the appropriate template for each node type
+1. The node resolution logic selects the appropriate template for each node type
 2. Text nodes use the specialized `TextComponent` template
 3. All other node types use the `NodeRendererComponent` template
 
 ### Dependency Injection
 
 1. Components and services communicate through dependency injection
-2. The `MISSING_COMPONENT_HANDLER` token allows customizing error handling
+2. Functional services are used where appropriate for better performance and tree-shaking
 
 ## Integration with External Libraries
 
@@ -100,7 +116,8 @@ The implementation showcases several modern Angular patterns:
 2. **Standalone Components**: All components are standalone
 3. **Template References**: Used for dynamic template composition
 4. **Dependency Injection**: Used for component communication
-5. **OnPush Change Detection**: Used for performance optimization
+5. **Functional Services**: Improved tree-shaking by using functional approach where appropriate
+6. **OnPush Change Detection**: Used for performance optimization
 
 ## Code Organization
 
@@ -113,16 +130,17 @@ The implementation showcases several modern Angular patterns:
 
 ### Handler Services
 
-- `node-resolver.service.ts`: Central service for resolving nodes to templates and contexts
-- `block-handler.service.ts`: Handles block-level elements
-- `list-handler.service.ts`: Handles list containers
-- `list-item-handler.service.ts`: Handles list items
+- `node-resolver.service.ts`: Functional service for resolving nodes to templates and contexts
+- `block-handler.service.ts`: Handles block-level elements with standardized type detection
+- `list-handler.service.ts`: Handles list containers with standardized type detection
+- `list-item-handler.service.ts`: Handles list items with standardized type detection
 - `span-handler.service.ts`: Handles text spans with marks
 
 ### Utilities
 
 - `merge.ts`: Merges default and custom components
 - `utils.ts`: Provides utility functions for serializing blocks and tracking
+- `angular-versions.ts`: Provides version detection for compatibility
 
 ### Types and Tokens
 
@@ -141,19 +159,20 @@ The implementation showcases several modern Angular patterns:
 
 The Portable Text implementation uses a streamlined approach to render different node types:
 
-1. **Node Resolution**: The `NodeResolverService` is the central coordinator that:
+1. **Node Resolution**: The functional `resolveNode` service is the central coordinator that:
 
    - Takes a node, components, templates, and other parameters
-   - Delegates to the appropriate handler service based on node type
+   - Delegates to the appropriate handler service based on standardized `canHandle` methods
    - Returns an object with `template` and `context` properties
 
 2. **Handler Services**: Each handler service is responsible for:
 
+   - Determining if it can handle a given node type via the `canHandle` method
    - Determining the appropriate component type for its node type
    - Creating the input properties for the component
-   - Providing this information back to the `NodeResolverService`
+   - Providing this information back to the node resolution logic
 
-3. **Template Selection**: The `NodeResolverService` selects between different templates:
+3. **Template Selection**: The node resolution logic selects between different templates:
 
    - Text nodes use the specialized `TextComponent` template
    - All other node types use the `NodeRendererComponent` template
@@ -163,12 +182,12 @@ The Portable Text implementation uses a streamlined approach to render different
    - For text nodes, it provides the node as the implicit context variable
    - For other nodes, it provides the component type and input properties
 
-5. **Rendering**: The `PortableTextComponent` uses the template and context from the `NodeResolverService` to render the node using Angular's `ngTemplateOutlet` directive.
+5. **Rendering**: The `PortableTextComponent` uses the template and context from the node resolution logic to render the node using Angular's `ngTemplateOutlet` directive.
 
 This architecture provides several benefits:
 
 - **Clear Separation of Concerns**: Each service has a specific responsibility
-- **Centralized Logic**: Node resolution logic is centralized in the `NodeResolverService`
-- **Reduced Complexity**: Fewer components means simpler code and better performance
+- **Centralized Logic**: Node resolution logic is centralized in a functional service
+- **Reduced Complexity**: Fewer components and no selectors means simpler code and better performance
 - **Flexibility**: Easy to add support for new node types or customize existing ones
 - **Maintainability**: Clear boundaries between components and services
