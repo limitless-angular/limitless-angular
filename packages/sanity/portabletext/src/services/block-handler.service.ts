@@ -9,12 +9,21 @@ import {
 } from '../types';
 import { serializeBlock } from '../utils';
 import { unknownBlockStyleWarning } from '../warnings';
+import { isPortableTextBlock } from '@portabletext/toolkit';
 
 /**
  * Service for handling block nodes in Portable Text
  */
 @Injectable({ providedIn: 'root' })
 export class BlockHandlerService {
+  /**
+   * Checks if the service can handle the given node
+   *
+   * @param node The node to check
+   * @returns True if the service can handle the node
+   */
+  canHandle = isPortableTextBlock;
+
   /**
    * Gets the appropriate component for a block based on its style
    *
@@ -50,12 +59,13 @@ export class BlockHandlerService {
    */
   getInputProps(
     node: PortableTextBlock,
-    index: number,
+    index: number | undefined,
     isInline: boolean,
   ): Record<string, unknown> {
     return {
       value: node,
-      children: this.#getChildren({ node, index, isInline }),
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      children: this.#getChildren({ node, index: index!, isInline }),
       isInline,
     };
   }

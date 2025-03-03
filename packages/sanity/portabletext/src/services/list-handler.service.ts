@@ -5,12 +5,21 @@ import {
   PortableTextListBlock,
 } from '../types';
 import { unknownListStyleWarning } from '../warnings';
+import { isPortableTextToolkitList } from '@portabletext/toolkit';
 
 /**
  * Service for handling list nodes in Portable Text
  */
 @Injectable({ providedIn: 'root' })
 export class ListHandlerService {
+  /**
+   * Checks if the service can handle the given node
+   *
+   * @param node The node to check
+   * @returns True if the service can handle the node
+   */
+  canHandle = isPortableTextToolkitList;
+
   /**
    * Gets the appropriate component for a list based on its style
    *

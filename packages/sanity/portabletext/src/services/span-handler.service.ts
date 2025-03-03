@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import {
   ToolkitNestedPortableTextSpan,
+  isPortableTextToolkitSpan,
   spanToPlainText,
 } from '@portabletext/toolkit';
 
@@ -12,6 +13,14 @@ import { MissingComponentHandler, PortableTextComponents } from '../types';
  */
 @Injectable({ providedIn: 'root' })
 export class SpanHandlerService {
+  /**
+   * Checks if the service can handle the given node
+   *
+   * @param node The node to check
+   * @returns True if the service can handle the node
+   */
+  canHandle = isPortableTextToolkitSpan;
+
   /**
    * Gets the appropriate component for a span based on its mark type
    *
@@ -42,7 +51,11 @@ export class SpanHandlerService {
    * @param node The span node
    * @returns The input properties for the component
    */
-  getInputProps(node: ToolkitNestedPortableTextSpan): Record<string, unknown> {
+  getInputProps(
+    node: ToolkitNestedPortableTextSpan,
+    _index: number | undefined,
+    _isInline: boolean,
+  ): Record<string, unknown> {
     return {
       children: node.children,
       text: spanToPlainText(node),

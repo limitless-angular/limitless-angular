@@ -1,10 +1,6 @@
 import { Injectable, TemplateRef, Type, inject } from '@angular/core';
 import { TypedObject } from '@portabletext/types';
 import {
-  isPortableTextBlock,
-  isPortableTextListItemBlock,
-  isPortableTextToolkitList,
-  isPortableTextToolkitSpan,
   isPortableTextToolkitTextNode,
   ToolkitTextNode,
 } from '@portabletext/toolkit';
@@ -16,15 +12,31 @@ import { SpanHandlerService } from './span-handler.service';
 import { MissingComponentHandler, PortableTextComponents } from '../types';
 import { unknownTypeWarning } from '../warnings';
 
+const CustomComponentHandler = {
+  canHandle: hasCustomComponentForNode,
+  getComponent: (
+    node: TypedObject,
+    _: unknown,
+    components: Required<PortableTextComponents>,
+  ) => getCustomComponentForNode(node, components),
+  getInputProps: (node: TypedObject, _: unknown, isInline: boolean) => ({
+    value: node,
+    isInline,
+  }),
+};
+
 /**
  * Service for resolving node types to their appropriate handlers
  */
 @Injectable({ providedIn: 'root' })
 export class NodeResolverService {
-  #blockHandler = inject(BlockHandlerService);
-  #listHandler = inject(ListHandlerService);
-  #listItemHandler = inject(ListItemHandlerService);
-  #spanHandler = inject(SpanHandlerService);
+  #handlers = [
+    inject(ListHandlerService),
+    inject(ListItemHandlerService),
+    inject(SpanHandlerService),
+    CustomComponentHandler,
+    inject(BlockHandlerService),
+  ] as const;
 
   /**
    * Resolves a node to its appropriate template and context for rendering
@@ -52,71 +64,17 @@ export class NodeResolverService {
     template: TemplateRef<unknown>;
     context: Record<string, unknown>;
   } {
-    if (isPortableTextToolkitList(node)) {
-      const componentType = this.#listHandler.getComponent(
-        node,
+    for (const handler of this.#handlers) {
+      if (!handler.canHandle(node, components)) {
+        continue;
+      }
+
+      const componentType = handler.getComponent(
+        node as never,
         missingHandler,
         components,
       );
-      const inputProps = this.#listHandler.getInputProps(node, index, isInline);
-      return {
-        template: templates.nodeRenderer,
-        context: { componentType, inputProps },
-      };
-    }
-
-    if (isPortableTextListItemBlock(node)) {
-      const componentType = this.#listItemHandler.getComponent(
-        node,
-        missingHandler,
-        components,
-      );
-      const inputProps = this.#listItemHandler.getInputProps(
-        node,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        index!,
-        isInline,
-      );
-      return {
-        template: templates.nodeRenderer,
-        context: { componentType, inputProps },
-      };
-    }
-
-    if (isPortableTextToolkitSpan(node)) {
-      const componentType = this.#spanHandler.getComponent(
-        node,
-        missingHandler,
-        components,
-      );
-      const inputProps = this.#spanHandler.getInputProps(node);
-      return {
-        template: templates.nodeRenderer,
-        context: { componentType, inputProps },
-      };
-    }
-
-    if (this.hasCustomComponentForNode(node, components)) {
-      const componentType = this.getCustomComponentForNode(node, components);
-      const inputProps = { value: node, isInline };
-      return {
-        template: templates.nodeRenderer,
-        context: { componentType, inputProps },
-      };
-    }
-
-    if (isPortableTextBlock(node)) {
-      const componentType = this.#blockHandler.getComponent(
-        node,
-        missingHandler,
-        components,
-      );
-      const inputProps = this.#blockHandler.getInputProps(
-        node,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        index!,
-        isInline,
-      );
+      const inputProps = handler.getInputProps(node as never, index, isInline);
       return {
         template: templates.nodeRenderer,
         context: { componentType, inputProps },
@@ -138,32 +96,32 @@ export class NodeResolverService {
 
     return { template: templates.unknown, context: { node, isInline } };
   }
+}
 
-  /**
-   * Checks if a custom component exists for the given node
-   *
-   * @param node The node to check
-   * @param components The available components
-   * @returns True if a custom component exists for the node
-   */
-  hasCustomComponentForNode(
-    node: TypedObject,
-    components: Required<PortableTextComponents>,
-  ): boolean {
-    return node._type in components.types;
-  }
+/**
+ * Gets the custom component for the given node
+ *
+ * @param node The node to get the component for
+ * @param components The available components
+ * @returns The component type for the node
+ */
+function getCustomComponentForNode(
+  node: TypedObject,
+  components: Required<PortableTextComponents>,
+): Type<unknown> {
+  return components.types[node._type] as Type<unknown>;
+}
 
-  /**
-   * Gets the custom component for the given node
-   *
-   * @param node The node to get the component for
-   * @param components The available components
-   * @returns The component type for the node
-   */
-  getCustomComponentForNode(
-    node: TypedObject,
-    components: Required<PortableTextComponents>,
-  ): Type<unknown> {
-    return components.types[node._type] as Type<unknown>;
-  }
+/**
+ * Checks if a custom component exists for the given node
+ *
+ * @param node The node to check
+ * @param components The available components
+ * @returns True if a custom component exists for the node
+ */
+function hasCustomComponentForNode(
+  node: TypedObject,
+  components: Required<PortableTextComponents>,
+): boolean {
+  return node._type in components.types;
 }

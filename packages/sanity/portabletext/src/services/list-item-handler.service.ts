@@ -13,12 +13,21 @@ import {
 } from '../types';
 import { serializeBlock } from '../utils';
 import { unknownListItemStyleWarning } from '../warnings';
+import { isPortableTextListItemBlock } from '@portabletext/toolkit';
 
 /**
  * Service for handling list item nodes in Portable Text
  */
 @Injectable({ providedIn: 'root' })
 export class ListItemHandlerService {
+  /**
+   * Checks if the service can handle the given node
+   *
+   * @param node The node to check
+   * @returns True if the service can handle the node
+   */
+  canHandle = isPortableTextListItemBlock;
+
   /**
    * Gets the appropriate component for a list item based on its style
    *
@@ -86,11 +95,12 @@ export class ListItemHandlerService {
       PortableTextMarkDefinition,
       PortableTextSpan
     >,
-    index: number,
+    index: number | undefined,
     isInline: boolean,
   ): Record<string, unknown> {
     return {
-      children: this.getChildren({ node, index }),
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      children: this.getChildren({ node, index: index! }),
       value: node,
       index,
       isInline,
