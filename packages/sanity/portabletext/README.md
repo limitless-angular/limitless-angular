@@ -24,6 +24,7 @@ You can also see example project in the monorepo: [`apps/sanity-example`](/apps/
   - [list](#list)
   - [listItem](#listitem)
   - [hardBreak](#hardbreak)
+- [Architecture Documentation](./ARCHITECTURE.md)
 
 ## Installation
 

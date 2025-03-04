@@ -1,5 +1,5 @@
-import { TemplateRef, Type } from '@angular/core';
-import {
+import type { Type } from '@angular/core';
+import type {
   PortableTextBlock,
   PortableTextBlockStyle,
   PortableTextListItemBlock,
@@ -18,13 +18,28 @@ import {
 export interface PortableTextComponents {
   types?: Record<string, Type<PortableTextTypeComponent>>;
   marks?: Record<string, Type<PortableTextMarkComponent> | undefined>;
-  block?: Record<PortableTextBlockStyle, Type<PortableTextBlockComponent>>;
+  block?: Record<
+    PortableTextBlockStyle,
+    Type<PortableTextBlockComponent> | undefined
+  >;
   list?: Record<PortableTextListItemType, Type<PortableTextListComponent>>;
   listItem?:
     | Record<PortableTextListItemType, Type<PortableTextListItemComponent>>
     | Type<PortableTextListItemComponent>;
   hardBreak?: Type<unknown> | false;
+  unknownMark?: Type<PortableTextMarkComponent>;
+  unknownBlockStyle?: Type<PortableTextBlockComponent>;
+  unknownList?: Type<PortableTextListComponent>;
+  unknownListItem?: Type<PortableTextListItemComponent>;
 }
+
+/**
+ * Any node type that we can't identify - eg it has an `_type`,
+ * but we don't know anything about its other properties
+ */
+export type UnknownNodeType =
+  | { [key: string]: unknown; _type: string }
+  | TypedObject;
 
 export type NodeType =
   | 'block'
@@ -40,6 +55,7 @@ export type MissingComponentHandler = (
 
 export interface Serializable<T> {
   node: T;
+  index: number;
   isInline: boolean;
 }
 
@@ -52,16 +68,25 @@ export interface SerializedBlock {
 }
 
 export interface RenderNodeContext<Node extends TypedObject = TypedObject> {
+  /**
+   * Data associated with this portable text node, eg the raw JSON value of a block/type
+   */
   $implicit: Node;
+  /**
+   * Index within its parent
+   */
+  index?: number;
+  /**
+   * Whether or not this node is "inline" - ie as a child of a text block,
+   * alongside text spans, or a block in and of itself.
+   */
   isInline: boolean;
-  components: Partial<PortableTextComponents>;
 }
 
 export interface TemplateContext<Node extends TypedObject> {
   $implicit: Node;
+  index?: number;
   isInline?: boolean;
-  components: Partial<PortableTextComponents>;
-  renderNode: TemplateRef<RenderNodeContext>;
 }
 
 // Re-exporting these as we don't want to refer to "toolkit" outside of this module

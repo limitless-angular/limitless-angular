@@ -12,9 +12,8 @@ import { ToolkitTextNode } from '@portabletext/toolkit';
 import { PortableTextComponents } from '../types';
 
 @Component({
-  selector: 'lib-text',
   // prettier-ignore
-  template: `<ng-template #textTmpl let-node let-components="components">
+  template: `<ng-template let-node let-components="components">
     @if (node.text === '\\n') {
       @if (components.hardBreak === undefined) {<br />}
       @else if (components.hardBreak === false) {{{ '\\n' }}}
@@ -29,7 +28,7 @@ export class TextComponent {
   template = viewChild.required<
     TemplateRef<{
       $implicit: ToolkitTextNode;
-      components: Partial<PortableTextComponents>;
+      components: PortableTextComponents;
     }>
-  >('textTmpl');
+  >(TemplateRef);
 }

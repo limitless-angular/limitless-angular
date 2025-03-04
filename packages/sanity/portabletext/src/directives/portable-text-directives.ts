@@ -1,8 +1,9 @@
 import {
   AfterViewInit,
   Directive,
+  effect,
+  inject,
   input,
-  TemplateRef,
   viewChild,
   ViewContainerRef,
 } from '@angular/core';
@@ -13,33 +14,44 @@ import {
   TypedObject,
 } from '@portabletext/types';
 
-import { PortableTextListBlock, RenderNodeContext } from '../types';
+import { isAngularVersionLessThan19 } from '@limitless-angular/sanity/shared';
+import { PortableTextListBlock } from '../types';
+import { PortableTextComponent } from '../components/portable-text.component';
 
 // eslint-disable-next-line @angular-eslint/directive-selector
-@Directive({ selector: '[portableTextContent]', standalone: true })
+@Directive({ selector: '[portableTextContent]' })
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class DynamicPortableTextContent<Node extends TypedObject = TypedObject>
   implements AfterViewInit
 {
-  childrenData = input.required<{
-    template: TemplateRef<RenderNodeContext<Node>>;
-    context: RenderNodeContext<Node>;
-  }>();
-
-  children = viewChild<ViewContainerRef, ViewContainerRef>('children', {
+  children = input.required<(TypedObject & { isInline?: boolean })[]>();
+  container = viewChild<ViewContainerRef, ViewContainerRef>('children', {
     read: ViewContainerRef,
   });
+  template = inject(PortableTextComponent).childrenTmpl;
 
+  // eslint-disable-next-line no-unused-private-class-members
+  #_ = effect(
+    () => {
+      this.container()?.clear();
+      this.container()?.createEmbeddedView(this.template(), {
+        children: this.children(),
+      });
+    },
+    isAngularVersionLessThan19() ? { allowSignalWrites: true } : undefined,
+  );
+
+  /**
+   * @deprecated empty hook that is used just to avoid a breaking change, it will be removed in a major version
+   */
+  // eslint-disable-next-line @angular-eslint/no-empty-lifecycle-method
   ngAfterViewInit() {
-    this.children()?.createEmbeddedView(
-      this.childrenData().template,
-      this.childrenData().context,
-    );
+    /* empty */
   }
 }
 
 // eslint-disable-next-line @angular-eslint/directive-selector
-@Directive({ selector: '[portableTextMark]', standalone: true })
+@Directive({ selector: '[portableTextMark]' })
 /**
  * @template M Shape describing the data associated with this mark, if it is an annotation
  */
@@ -70,7 +82,7 @@ export class PortableTextMarkComponent<
 }
 
 // eslint-disable-next-line @angular-eslint/directive-selector
-@Directive({ selector: '[portableTextType]', standalone: true })
+@Directive({ selector: '[portableTextType]' })
 /**
  * Data associated with this portable text node, eg the raw JSON value of a block/type
  */
@@ -89,17 +101,17 @@ export class PortableTextTypeComponent<
 }
 
 // eslint-disable-next-line @angular-eslint/directive-selector
-@Directive({ selector: '[portableTextBlock]', standalone: true })
+@Directive({ selector: '[portableTextBlock]' })
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class PortableTextBlockComponent extends PortableTextTypeComponent<PortableTextBlock> {}
 
 // eslint-disable-next-line @angular-eslint/directive-selector
-@Directive({ selector: '[portableTextListItem]', standalone: true })
+@Directive({ selector: '[portableTextListItem]' })
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class PortableTextListComponent extends PortableTextTypeComponent<PortableTextListBlock> {}
 
 // eslint-disable-next-line @angular-eslint/directive-selector
-@Directive({ selector: '[portableTextListItem]', standalone: true })
+@Directive({ selector: '[portableTextListItem]' })
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class PortableTextListItemComponent extends PortableTextTypeComponent<PortableTextListItemBlock> {
   index = input.required<number>();

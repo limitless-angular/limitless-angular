@@ -5,18 +5,16 @@ import { buildMarksTree } from '@portabletext/toolkit';
 export function serializeBlock(
   options: Serializable<PortableTextBlock>,
 ): SerializedBlock {
-  const { node, isInline } = options;
-
+  const { node, index, isInline } = options;
   const tree = buildMarksTree(node);
   const children = tree.map((child, i) => ({
     ...child,
-    // TODO: check this _key generation
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    _key: (child as any)._key ?? `block-${i}`,
+    isInline: true,
+    index: i,
   }));
 
   return {
-    _key: node._key,
+    _key: trackBy(node._key, index, 'block'),
     children,
     isInline,
     node,
