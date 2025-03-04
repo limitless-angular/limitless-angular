@@ -34,8 +34,8 @@ export default {
   input,
   output: [
     '<p>',
-    '<span style="border: 1px solid;">',
-    '<span style="border: 3px solid;">',
+    '<span style="border: 1px solid;" class="highlight">',
+    '<span style="border: 3px solid;" class="highlight">',
     '<em>Sanity FTW</em>',
     '</span>',
     '</span>',

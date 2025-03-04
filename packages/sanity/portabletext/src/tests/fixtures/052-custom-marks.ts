@@ -21,5 +21,6 @@ const input: PortableTextBlock = {
 
 export default {
   input,
-  output: '<p><span style="border: 5px solid;">Sanity</span></p>',
+  output:
+    '<p><span style="border: 5px solid;" class="highlight">Sanity</span></p>',
 };

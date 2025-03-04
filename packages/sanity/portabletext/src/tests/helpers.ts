@@ -1,6 +1,8 @@
 import { expect } from 'vitest';
-import { ComponentInput, render } from '@testing-library/angular';
+import { aliasedInput, render } from '@testing-library/angular';
 import { PortableTextComponent } from '../components/portable-text.component';
+import { TypedObject } from '@portabletext/types';
+import { PortableTextComponents, MissingComponentHandler } from '../types';
 
 const cleanAngularHTML = (html: string) => {
   const doc = new DOMParser().parseFromString(html, 'text/html');
@@ -44,12 +46,14 @@ export const assertHTML = (container: Element, expectedHTML: string) => {
 };
 
 export const renderPortableText = (
-  input: ComponentInput<PortableTextComponent>['value'],
-  components: Partial<ComponentInput<PortableTextComponent>['components']> = {},
-  onMissingComponent: ComponentInput<PortableTextComponent>['onMissingComponent'] = false,
-) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return render(PortableTextComponent as any, {
-    inputs: { value: input, components, onMissingComponent },
+  input: TypedObject | TypedObject[],
+  components: Partial<PortableTextComponents> = {},
+  onMissingComponent: MissingComponentHandler | false = false,
+) =>
+  render(PortableTextComponent, {
+    inputs: {
+      value: input,
+      ...aliasedInput('components', components),
+      onMissingComponent,
+    },
   });
-};

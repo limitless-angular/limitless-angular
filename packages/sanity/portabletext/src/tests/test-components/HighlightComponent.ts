@@ -5,7 +5,10 @@ import { PortableTextMarkComponent } from '../../directives/portable-text-direct
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'span',
   template: '<ng-container #children />',
-  host: { '[style.border]': 'value().thickness + "px solid"' },
+  host: {
+    '[style.border]': 'value().thickness + "px solid"',
+    '[class.highlight]': 'true',
+  },
 })
 export class HighlightComponent extends PortableTextMarkComponent<{
   _type: 'highlight';
