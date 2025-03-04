@@ -1,0 +1,152 @@
+name: Release and Publish
+
+on:
+  # Run manually using the GitHub UI
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (optional - will use conventional commits if not specified)'
+        required: false
+        default: ''
+      dryRun:
+        description: 'Perform a dry run without publishing'
+        required: false
+        default: false
+        type: boolean
+      verbose:
+        description: 'Enable verbose logging'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  release-and-publish:
+    # prevents this action from running on forks
+    if: github.repository == 'limitless-angular/limitless-angular'
+    name: Release and Publish to npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # needed for creating GitHub releases
+      id-token: write # needed for provenance data generation
+    outputs:
+      release_successful: ${{ steps.release.outcome == 'success' }}
+      build_successful: ${{ steps.build.outcome == 'success' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # include tags
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          run_install: false
+
+      - name: Install Node.js per package.json
+        uses: actions/setup-node@v4
+        with:
+          # Use the .nvmrc file as the source of truth
+          node-version-file: .nvmrc
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Verify environment
+        run: |
+          echo "Node version: $(node -v)"
+          echo "pnpm version: $(pnpm -v)"
+          echo "Workspace directory: $(pwd)"
+
+      - name: Run tests
+        run: pnpm nx run-many -t test
+
+      - name: Check for lint errors
+        run: pnpm nx lint sanity
+
+      - name: Set up Git user
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Execute release process
+        id: release
+        run: |
+          # Prepare version argument if specified
+          VERSION_ARG="${{ github.event.inputs.version != '' && format('--version={0}', github.event.inputs.version) || '' }}"
+
+          # Prepare dry run argument
+          DRY_RUN_ARG="${{ github.event.inputs.dryRun && '--dryRun=true' || '--dryRun=false' }}"
+
+          # Prepare verbose argument
+          VERBOSE_ARG="${{ github.event.inputs.verbose && '--verbose=true' || '' }}"
+
+          # Run the release script and capture its output
+          RELEASE_OUTPUT=$(pnpm tsx tools/scripts/release.ts $VERSION_ARG $DRY_RUN_ARG $VERBOSE_ARG)
+
+          # Extract the released version from the script output
+          RELEASED_VERSION=$(echo "$RELEASE_OUTPUT" | grep "RELEASED_VERSION=" | cut -d'=' -f2)
+
+          # If we got a version, save it as an environment variable
+          if [ -n "$RELEASED_VERSION" ]; then
+            echo "RELEASED_VERSION=$RELEASED_VERSION" >> $GITHUB_ENV
+            echo "Release version detected: $RELEASED_VERSION"
+          else
+            echo "::error::Failed to extract released version from script output"
+            exit 1
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Only proceed with building if release was successful
+      - name: Build sanity project
+        id: build
+        if: steps.release.outcome == 'success'
+        run: pnpm nx build sanity
+
+      # Validate build artifacts
+      - name: Validate build artifacts
+        if: steps.build.outcome == 'success'
+        run: |
+          # Validate that the output directory exists
+          if [ ! -d "dist/packages/sanity" ]; then
+            echo "::error::Build artifacts not found at dist/packages/sanity"
+            exit 1
+          fi
+
+          # Validate package.json version matches the released version
+          if [ -f "dist/packages/sanity/package.json" ]; then
+            ARTIFACT_VERSION=$(jq -r '.version' dist/packages/sanity/package.json)
+            echo "Built package version: $ARTIFACT_VERSION"
+            echo "Expected version from release step: ${{ env.RELEASED_VERSION }}"
+            
+            if [ "$ARTIFACT_VERSION" != "${{ env.RELEASED_VERSION }}" ]; then
+              echo "::error::Version mismatch! Package.json version ($ARTIFACT_VERSION) doesn't match the released version (${{ env.RELEASED_VERSION }})"
+              exit 1
+            fi
+          else
+            echo "::error::package.json not found in build artifacts"
+            exit 1
+          fi
+
+          echo "Build artifacts validated successfully"
+
+      # Publish packages to npm if all previous steps succeeded and not a dry run
+      - name: Publish packages to npm
+        id: publish
+        if: ${{ !github.event.inputs.dryRun && steps.release.outcome == 'success' && steps.build.outcome == 'success' }}
+        run: pnpm nx release publish --registry https://registry.npmjs.org
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
+
+      # Create a summary of the release
+      - name: Generate release summary
+        if: always()
+        run: |
+          echo "## Release Process Summary" > $GITHUB_STEP_SUMMARY
+          echo "- Release step: ${{ steps.release.outcome }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Build step: ${{ steps.build.outcome }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Publish step: ${{ steps.publish.outcome || 'skipped' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Released version: ${{ env.RELEASED_VERSION || 'unknown' }}" >> $GITHUB_STEP_SUMMARY
