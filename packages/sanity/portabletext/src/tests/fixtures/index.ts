@@ -29,6 +29,8 @@ import overrideDefaultMarks from './053-override-default-marks';
 import listIssue from './060-list-issue';
 import missingMarkComponent from './061-missing-mark-component';
 import customBlockTypeWithChildren from './062-custom-block-type-with-children';
+import malformedData from './070-malformed-data';
+import * as complexRealWorld from './080-complex-real-world';
 
 export {
   allBasicMarks,
@@ -38,6 +40,7 @@ export {
   basicMarkNestedMarks,
   basicMarkSingleSpan,
   basicNumberedList,
+  complexRealWorld,
   customBlockType,
   customBlockTypeWithChildren,
   customListItemType,
@@ -53,6 +56,7 @@ export {
   linkMarkDef,
   listIssue,
   listWithoutLevel,
+  malformedData,
   marksAllTheWayDown,
   messyLinkText,
   missingMarkComponent,

@@ -1,3 +1,5 @@
+import { Component } from '@angular/core';
+import { render } from '@testing-library/angular';
 import { expect, test, describe } from 'vitest';
 import * as fixtures from './fixtures';
 import { MissingComponentHandler, PortableTextComponents } from '../types';
@@ -13,6 +15,8 @@ import { CustomListItemComponent } from './test-components/CustomListItemCompone
 import { QuoteComponent } from './test-components/QuoteComponent';
 import { LinkComponent } from './test-components/LinkComponent';
 import { CodeComponent } from './test-components/CodeComponent';
+import { PortableTextComponent } from '../components/portable-text.component';
+import { PortableTextMarkComponent } from '../directives/portable-text-directives';
 
 describe('PortableTextComponent', () => {
   test('builds empty tree on empty block', async () => {
@@ -265,16 +269,105 @@ describe('PortableTextComponent', () => {
     assertHTML(result.container, output);
   });
 
+  test('uses default warning handler for missing components', async () => {
+    // Mock console.warn
+    const originalWarn = console.warn;
+    const mockWarn = vi.fn();
+    console.warn = mockWarn;
+
+    try {
+      const { input } = fixtures.missingMarkComponent;
+      await render(PortableTextComponent, { inputs: { value: input } });
+
+      // Verify warning was printed
+      expect(mockWarn).toHaveBeenCalledWith(
+        expect.stringContaining('Unknown mark type "abc"'),
+      );
+    } finally {
+      // Restore console.warn
+      console.warn = originalWarn;
+    }
+  });
+
   test('can register custom `missing component` handler', async () => {
-    let warning = '<never called>';
-    const onMissingComponent: MissingComponentHandler = (message) => {
-      warning = message;
-    };
+    const onMissingComponent: MissingComponentHandler = vi.fn();
 
     const { input } = fixtures.missingMarkComponent;
     await renderPortableText(input, {}, onMissingComponent);
-    expect(warning).toBe(
+    expect(onMissingComponent).toHaveBeenCalledWith(
       '[@limitless-angular/sanity/portabletext] Unknown mark type "abc", specify a component for it in the `components.marks` prop',
+      expect.anything(),
+    );
+  });
+
+  test('can disable missing component warnings', async () => {
+    // Mock console.warn
+    const originalWarn = console.warn;
+    const mockWarn = vi.fn();
+    console.warn = mockWarn;
+
+    try {
+      const { input } = fixtures.missingMarkComponent;
+      await render(PortableTextComponent, {
+        inputs: { value: input, onMissingComponent: false },
+      });
+
+      // Verify no warning was printed
+      expect(mockWarn).not.toHaveBeenCalled();
+    } finally {
+      // Restore console.warn
+      console.warn = originalWarn;
+    }
+  });
+
+  // Malformed data tests
+  test('handles blocks with missing span children', async () => {
+    const { input, output } = fixtures.malformedData.missingSpanChildren;
+    const result = await renderPortableText(input);
+    assertHTML(result.container, output);
+  });
+
+  test('handles blocks with invalid mark references', async () => {
+    const { input, output } = fixtures.malformedData.invalidMarkReferences;
+    const result = await renderPortableText(input);
+    assertHTML(result.container, output);
+  });
+
+  test('handles invalid block types', async () => {
+    const { input, output } = fixtures.malformedData.invalidBlockType;
+    const result = await renderPortableText(input);
+    assertHTML(result.container, output);
+  });
+
+  test('can override unknown mark component', async () => {
+    // Create a custom component for handling unknown marks
+    @Component({
+      // eslint-disable-next-line @angular-eslint/component-selector
+      selector: 'span,span[data-unknown="true"]',
+      template: `Unknown ({{ markType() }}): <ng-container #children />`,
+      host: { '[class]': '"unknown"' },
+    })
+    class CustomUnknownMarkComponent extends PortableTextMarkComponent {}
+
+    // Create test input with unknown marks (both decorator and mark definition)
+    const input = {
+      _type: 'block',
+      markDefs: [{ _key: 'unknown-mark', _type: 'unknown-mark' }],
+      children: [
+        { _type: 'span', marks: ['unknown-deco'], text: 'simple' },
+        { _type: 'span', marks: ['unknown-mark'], text: 'advanced' },
+      ],
+    };
+
+    // Render with custom unknown mark component
+    const result = await renderPortableText(input, {
+      unknownMark: CustomUnknownMarkComponent,
+    });
+
+    // Verify output HTML matches expectations
+    assertHTML(
+      result.container,
+      '<p><span class="unknown">Unknown (unknown-deco): simple</span><span class="unknown">Unknown (unknown-mark): advanced</span></p>',
     );
   });
 });
