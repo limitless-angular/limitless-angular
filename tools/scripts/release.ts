@@ -1,4 +1,3 @@
-import { execSync } from 'node:child_process';
 import { releaseChangelog, releaseVersion } from 'nx/src/command-line/release';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
@@ -27,12 +26,6 @@ import { hideBin } from 'yargs/helpers';
       })
       .parseAsync();
 
-    // Build the packages to guarantee there are no errors when publishing
-    execSync('pnpm build', {
-      stdio: 'inherit',
-      maxBuffer: 1024 * 1000000,
-    });
-
     const { workspaceVersion, projectsVersionData } = await releaseVersion({
       specifier: options.version,
       // stage package.json updates to be committed later by the changelog command
@@ -49,6 +42,9 @@ import { hideBin } from 'yargs/helpers';
       dryRun: options.dryRun,
       verbose: options.verbose,
     });
+
+    // Output the final version to be captured by the workflow
+    console.log(`RELEASED_VERSION=${workspaceVersion}`);
 
     process.exit(0);
   } catch (err) {
