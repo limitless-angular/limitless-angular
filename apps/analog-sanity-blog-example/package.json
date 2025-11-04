@@ -1,6 +1,15 @@
 {
-  "name": "analog-sanity-blog-example",
+  "name": "@repo/analog-sanity-blog-example",
   "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "lint": "ng lint",
+    "check-types": "tsc --noEmit"
+  },
+  "imports": {
+    "#sanity": "./src/sanity/lib/index.ts"
+  },
   "dependencies": {
     "@analogjs/router": "1.10.1",
     "@angular/common": "~19.0.3",
@@ -22,7 +31,8 @@
   "devDependencies": {
     "@analogjs/content": "1.10.1",
     "@analogjs/platform": "1.10.1",
-    "@nx/vite": "20.2.2",
+    "@analogjs/vite-plugin-angular": "1.10.1",
+    "@angular-devkit/build-angular": "19.0.3",
     "marked-highlight": "^2.1.4",
     "rollup-plugin-typescript-paths": "^1.5.0",
     "vite": "^5.4.0",

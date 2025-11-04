@@ -12,7 +12,6 @@ originalEnforceModuleBoundaries[1].allow.push(
 
 export default [
   ...baseConfig,
-  ...nx.configs['flat/angular'],
   ...nx.configs['flat/angular-template'],
   {
     files: ['**/*.ts'],

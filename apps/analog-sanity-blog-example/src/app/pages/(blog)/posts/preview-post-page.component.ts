@@ -6,7 +6,7 @@ import {
   moreStoriesQuery,
   postBySlugQuery,
   settingsQuery,
-} from '@/analog-sanity-blog-example/sanity';
+} from '#sanity';
 import { createLiveData } from '@limitless-angular/sanity/preview-kit';
 
 @Component({

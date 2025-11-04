@@ -1,19 +1,18 @@
 import analog from '@analogjs/platform';
 import { defineConfig, splitVendorChunkPlugin } from 'vite';
 import webfontDownload from 'vite-plugin-webfont-dl';
-import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
+import tsconfigPaths from 'vite-tsconfig-paths';
 import { typescriptPaths } from 'rollup-plugin-typescript-paths';
 
 // https://vitejs.dev/config/
 export default defineConfig(() => {
   return {
-    root: __dirname,
-    cacheDir: `../../node_modules/.vite`,
-
     build: {
-      outDir: '../../dist/apps/analog-sanity-blog-example/client',
-      reportCompressedSize: true,
+      outDir: './dist/client', // TODO: remove this when we can run it through the Angular CLI
       target: ['es2022'],
+    },
+    resolve: {
+      mainFields: ['module'],
     },
     plugins: [
       analog({
@@ -30,7 +29,7 @@ export default defineConfig(() => {
           rollupConfig: {
             plugins: [
               typescriptPaths({
-                tsConfigPath: 'tsconfig.base.json',
+                tsConfigPath: '../../tsconfig.base.json',
                 preserveExtensions: true,
               }),
             ],
@@ -38,7 +37,7 @@ export default defineConfig(() => {
         },
         useAPIMiddleware: false,
       }),
-      nxViteTsPaths(),
+      tsconfigPaths(),
       splitVendorChunkPlugin(),
       webfontDownload(),
     ],

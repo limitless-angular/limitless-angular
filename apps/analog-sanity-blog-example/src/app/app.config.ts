@@ -13,7 +13,7 @@ import {
 import { provideFileRouter } from '@analogjs/router';
 import { provideSanity, withLivePreview } from '@limitless-angular/sanity';
 
-import { getClient } from '@/analog-sanity-blog-example/sanity';
+import { getClient } from '#sanity';
 import { updateMetaTagsOnRouteChange } from './utils/meta-tags';
 
 export const appConfig: ApplicationConfig = {

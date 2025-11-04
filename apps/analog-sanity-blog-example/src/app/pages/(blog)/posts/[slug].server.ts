@@ -6,7 +6,7 @@ import {
   getMoreStories,
   getPostBySlug,
   getSettings,
-} from '@/analog-sanity-blog-example/sanity';
+} from '#sanity';
 
 import { readToken } from '../../../../sanity/lib/token';
 
