@@ -23,19 +23,21 @@
     "cms"
   ],
   "scripts": {
-    "build": "ng build",
+    "build": "vite build",
     "lint": "ng lint",
     "test": "ng test --watch=false",
     "check-types": "tsc --noEmit"
   },
   "peerDependencies": {
-    "@angular/common": "^18.0.0 || ^19.0.0",
-    "@angular/core": "^18.0.0 || ^19.0.0",
-    "@angular/router": "^18.0.0 || ^19.0.0",
+    "@angular/common": "^18.0.0 || ^19.0.0 || ^20.0.0",
+    "@angular/core": "^18.0.0 || ^19.0.0 || ^20.0.0",
+    "@angular/router": "^18.0.0 || ^19.0.0 || ^20.0.0",
     "@portabletext/toolkit": "^2.0.15",
     "@portabletext/types": "^2.0.13",
     "@sanity/client": "^6.21.3",
+    "@sanity/comlink": "^1.1.2",
     "@sanity/image-url": "^1.0.2",
+    "@sanity/types": "^3.64.1",
     "@sanity/visual-editing": "^2.7.0",
     "rxjs": "^7.8.0"
   },
@@ -51,12 +53,61 @@
     "mendoza": "^3.0.7"
   },
   "devDependencies": {
+    "@analogjs/vite-plugin-angular": "2.0.3",
     "@types/lodash-es": "^4.17.12",
-    "ng-packagr": "~19.0.1"
+    "vite": "7.2.3",
+    "vitest": "^4.0.0"
   },
   "sideEffects": false,
   "type": "module",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "exports": {
+      ".": "./dist/index.mjs",
+      "./image-loader": "./dist/image-loader/index.mjs",
+      "./portabletext": "./dist/portabletext/index.mjs",
+      "./preview-kit": "./dist/preview-kit/index.mjs",
+      "./preview-kit-compat": "./dist/preview-kit-compat/index.mjs",
+      "./visual-editing": "./dist/visual-editing/index.mjs",
+      "./visual-editing-helpers": "./dist/visual-editing-helpers/index.mjs",
+      "./visual-editing-helpers/types": "./dist/visual-editing-helpers/types/index.mjs",
+      "./package.json": "./package.json"
+    }
+  },
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "imports": {
+    "#image-loader": {
+      "default": "./src/image-loader/index.ts"
+    },
+    "#portabletext": {
+      "default": "./src/portabletext/index.ts"
+    },
+    "#preview-kit-compat": {
+      "default": "./src/preview-kit-compat/index.ts"
+    },
+    "#preview-kit": {
+      "default": "./src/preview-kit/index.ts"
+    },
+    "#visual-editing-helpers": {
+      "default": "./src/visual-editing-helpers/index.ts"
+    },
+    "#visual-editing": {
+      "default": "./src/visual-editing/index.ts"
+    },
+    "#*": {
+      "default": "./src/*"
+    }
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./image-loader": "./src/image-loader/index.ts",
+    "./portabletext": "./src/portabletext/index.ts",
+    "./preview-kit": "./src/preview-kit/index.ts",
+    "./preview-kit-compat": "./src/preview-kit-compat/index.ts",
+    "./visual-editing": "./src/visual-editing/index.ts",
+    "./visual-editing-helpers": "./src/visual-editing-helpers/index.ts",
+    "./visual-editing-helpers/types": "./src/visual-editing-helpers/types/index.ts",
+    "./package.json": "./package.json"
   }
 }

@@ -1,31 +1,24 @@
 {
+  "compileOnSave": false,
   "compilerOptions": {
-    "target": "es2022",
-    "useDefineForClassFields": false,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    "outDir": "./dist/out-tsc",
     "strict": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "moduleResolution": "bundler",
+    "importHelpers": true,
+    "target": "es2022",
+    "module": "es2022"
   },
-  "files": [],
-  "include": [],
-  "references": [
-    {
-      "path": "./tsconfig.editor.json"
-    },
-    {
-      "path": "./tsconfig.app.json"
-    }
-  ],
-  "extends": "../../tsconfig.base.json",
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
-    "strictStandalone": true,
     "strictTemplates": true
   }
 }

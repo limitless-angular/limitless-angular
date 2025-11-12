@@ -1,6 +1,6 @@
 import {
   type ApplicationConfig,
-  provideExperimentalZonelessChangeDetection,
+  provideZonelessChangeDetection,
   provideEnvironmentInitializer,
 } from '@angular/core';
 import { provideHttpClient, withFetch } from '@angular/common/http';
@@ -16,9 +16,11 @@ import { provideSanity, withLivePreview } from '@limitless-angular/sanity';
 import { getClient } from '#sanity';
 import { updateMetaTagsOnRouteChange } from './utils/meta-tags';
 
+console.log('getClient', getClient, withLivePreview);
+
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideExperimentalZonelessChangeDetection(),
+    provideZonelessChangeDetection(),
     provideFileRouter(
       withComponentInputBinding(),
       withNavigationErrorHandler(console.error),

@@ -11,35 +11,7 @@
     "lib": ["es2022", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "#sanity": ["apps/analog-sanity-blog-example/src/sanity/lib/index.ts"],
-      "@limitless-angular/sanity": ["packages/sanity/src/index.ts"],
-      "@limitless-angular/sanity/channels": [
-        "packages/sanity/channels/src/index.ts"
-      ],
-      "@limitless-angular/sanity/image-loader": [
-        "packages/sanity/image-loader/src/index.ts"
-      ],
-      "@limitless-angular/sanity/portabletext": [
-        "packages/sanity/portabletext/src/index.ts"
-      ],
-      "@limitless-angular/sanity/preview-kit": [
-        "packages/sanity/preview-kit/src/index.ts"
-      ],
-      "@limitless-angular/sanity/preview-kit-compat": [
-        "packages/sanity/preview-kit-compat/src/index.ts"
-      ],
-      "@limitless-angular/sanity/shared": [
-        "packages/sanity/shared/src/index.ts"
-      ],
-      "@limitless-angular/sanity/visual-editing": [
-        "packages/sanity/visual-editing/src/index.ts"
-      ],
-      "@limitless-angular/sanity/visual-editing-helpers": [
-        "packages/sanity/visual-editing-helpers/src/index.ts"
-      ]
-    }
+    "baseUrl": "."
   },
   "exclude": ["node_modules", "tmp"]
 }

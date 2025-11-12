@@ -1,0 +1,4 @@
+{"timestamp":1762837160259,"action":"BuildStart","build_id":"${build_id}","session_id":"sid_0_1762837160240"}
+{"timestamp":1762837160259,"action":"BuildStart","build_id":"${build_id}","session_id":"sid_0_1762837160240"}
+{"timestamp":1762837160265,"action":"HookResolveIdCallStart","importer":"rolldown:runtime","module_request":"node:module","import_kind":"import-statement","plugin_name":"builtin:oxc-runtime","plugin_id":0,"trigger":"${hook_resolve_id_trigger}","call_id":"c11f7cb1-cf96-4f4c-9e1f-443f61d84b00","build_id":"bid_0_count_1","session_id":"sid_0_1762837160240"}
+{"timestamp":1762837160265,"action":"HookResolveIdCallEnd","resolved_id":null,"is_external":null,"plugin_name":"builtin:oxc-runtime","plugin_id":0,"trigger

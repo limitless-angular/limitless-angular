@@ -5,14 +5,11 @@ import {
   type Provider,
 } from '@angular/core';
 
-import { LIVE_PREVIEW_REFRESH_INTERVAL } from '@limitless-angular/sanity/preview-kit';
+import { LIVE_PREVIEW_REFRESH_INTERVAL } from '#preview-kit/tokens.ts';
 
-import {
-  SANITY_CLIENT_FACTORY,
-  SANITY_CONFIG,
-  type SanityClientFactory,
-  type SanityConfig,
-} from '@limitless-angular/sanity/shared';
+import { SANITY_CLIENT_FACTORY, SANITY_CONFIG } from '#shared/tokens.ts';
+
+import type { SanityClientFactory, SanityConfig } from '#shared/types.ts';
 
 const DEFAULT_LIVE_PREVIEW_REFRESH_INTERVAL = 10000;
 
