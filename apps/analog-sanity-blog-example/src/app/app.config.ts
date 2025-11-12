@@ -16,8 +16,6 @@ import { provideSanity, withLivePreview } from '@limitless-angular/sanity';
 import { getClient } from '#sanity';
 import { updateMetaTagsOnRouteChange } from './utils/meta-tags';
 
-console.log('getClient', getClient, withLivePreview);
-
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),

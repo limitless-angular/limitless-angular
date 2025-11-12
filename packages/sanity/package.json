@@ -39,7 +39,8 @@
     "@sanity/image-url": "^1.0.2",
     "@sanity/types": "^3.64.1",
     "@sanity/visual-editing": "^2.7.0",
-    "rxjs": "^7.8.0"
+    "rxjs": "^7.8.0",
+    "tslib": "^2.3.0"
   },
   "peerDependenciesMeta": {
     "@sanity/client": {
@@ -55,7 +56,7 @@
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "2.0.3",
     "@types/lodash-es": "^4.17.12",
-    "vite": "7.2.3",
+    "vite": "7.2.2",
     "vitest": "^4.0.0"
   },
   "sideEffects": false,

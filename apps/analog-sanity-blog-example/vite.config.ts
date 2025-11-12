@@ -1,18 +1,22 @@
 import analog from '@analogjs/platform';
 import { defineConfig } from 'vite';
 import webfontDownload from 'vite-plugin-webfont-dl';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 // https://vitejs.dev/config/
-export default defineConfig(() => {
+export default defineConfig(({ command, mode }) => {
+  const isSSR = process.env.BUILD_SSR === 'true';
+  
   return {
     build: {
-      outDir: './dist/client', // TODO: remove this when we can run it through the Angular CLI
-      target: ['es2022'],
+      target: ['es2020'],
+      minify: !isSSR,
     },
     resolve: {
       mainFields: ['module'],
     },
     plugins: [
+      tsconfigPaths(),
       analog({
         nitro: {
           static: false,

@@ -11,12 +11,14 @@
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
     "isolatedModules": true,
-    "esModuleInterop": true,
     "moduleResolution": "bundler",
     "importHelpers": true,
-    "target": "es2022",
-    "module": "es2022",
-    "rootDir": "."
+    "target": "ES2022",
+    "module": "ES2022",
+    "rootDir": ".",
+    "paths": {
+      "#sanity": ["./src/sanity/lib/index.ts"]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
