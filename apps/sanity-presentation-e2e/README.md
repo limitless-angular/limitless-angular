@@ -13,7 +13,9 @@ This starts the Analog example app with dummy Sanity env values, then uses a fak
 - open `/presentation-smoke` inside an iframe
 - complete the legacy `sanity/channels` handshake
 - assert `@limitless-angular/sanity/preview-kit` posts `preview-kit/documents`
+- assert live preview refreshes Angular data without reloading the iframe
 - assert `@limitless-angular/sanity/visual-editing` connects to the host
+- assert the editable title renders the expected `data-sanity` marker
 
 ## Hermetic Studio Smoke
 
@@ -21,11 +23,13 @@ This starts the Analog example app with dummy Sanity env values, then uses a fak
 pnpm nx e2e-studio sanity-presentation-e2e
 ```
 
-This starts the real Sanity Studio fixture, but keeps the Sanity backend hermetic:
+This starts the real Sanity Studio fixture, but keeps the Sanity backend and smoke route hermetic:
 
 - Studio uses the dummy `presentation-smoke-project`
 - the test mocks browser requests to that dummy Sanity API
+- the smoke route uses a controlled fake Sanity client
 - the Analog app uses a test-only draft-mode bypass
+- the rendered preview exposes the expected editable `data-sanity` marker
 
 Use this for CI or Angular/Sanity dependency updates when you want the real Studio shell without relying on a real Sanity project.
 
@@ -35,7 +39,17 @@ Use this for CI or Angular/Sanity dependency updates when you want the real Stud
 pnpm nx e2e-real-studio sanity-presentation-e2e
 ```
 
-This starts the same Studio fixture without Sanity API mocks and without the draft-mode bypass. It uses real project env with shell or CI variables taking precedence over local files:
+This starts the same Studio fixture without Sanity API mocks, without the draft-mode bypass, and with the smoke route using the app's real Sanity client. This target is the "everything real" path: real Studio host, real app route, real Sanity client, real project, and no fake Presentation host.
+
+The real-project smoke asserts that:
+
+- Studio Presentation opens the Angular `/presentation-smoke` preview frame
+- the preview route renders data loaded by the app's real Sanity client
+- `@limitless-angular/sanity/preview-kit` announces the real document in use to Studio
+- `@limitless-angular/sanity/visual-editing` connects to Studio and exposes an editable `data-sanity` marker
+- when `SANITY_API_WRITE_TOKEN` is set in the shell, CI env, or one of the `.env.local` files below, a real Sanity mutation updates the Angular live preview without reloading the iframe, then restores the title; that token must have document update permission for the configured project and dataset
+
+It uses real project env with shell or CI variables taking precedence over local files:
 
 1. `apps/analog-sanity-blog-example/.env.local`
 2. `apps/sanity-presentation-e2e/.env.local`
@@ -49,6 +63,16 @@ VITE_SANITY_DATASET=your-dataset
 SANITY_API_READ_TOKEN=your-read-token
 BYPASS_TOKEN=local-bypass-token
 ```
+
+To enable the real live-update mutation test, also set a token with document update permission in `apps/analog-sanity-blog-example/.env.local`, `apps/sanity-presentation-e2e/.env.local`, or your shell/CI env:
+
+```dotenv
+SANITY_API_WRITE_TOKEN=your-write-token
+```
+
+Without `SANITY_API_WRITE_TOKEN`, the mutation test is skipped and the non-destructive real Studio smoke still runs. If the token is present but cannot update documents, the mutation test fails because the real live-update proof did not run.
+
+The fake Presentation host tests intentionally stay in `pnpm nx e2e sanity-presentation-e2e`. There is no real-project "all" target that mixes fake-host coverage with real Studio coverage.
 
 If the Studio should use different names than the app env, set these in `apps/sanity-presentation-e2e/.env.local` or the shell:
 
@@ -80,6 +104,14 @@ node apps/sanity-presentation-e2e/scripts/sanity-cors.mjs list
 ```
 
 The helper reads the same `.env.local` files above, maps `SANITY_STUDIO_PROJECT_ID` from `VITE_SANITY_PROJECT_ID` and `SANITY_STUDIO_DATASET` from `VITE_SANITY_DATASET` when needed, and keeps shell or CI variables as the final override.
+
+Seed the real project with the smoke document if it does not already exist:
+
+```bash
+node apps/sanity-presentation-e2e/scripts/sanity-seed-post.mjs
+```
+
+The seed helper creates a real `post` document with `_id: presentation-smoke-post`. It uses `SANITY_API_WRITE_TOKEN` when available, otherwise it uses your logged-in Sanity CLI session.
 
 ### Browser auth for real-project mode
 

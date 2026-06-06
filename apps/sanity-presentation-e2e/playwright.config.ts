@@ -24,9 +24,10 @@ const studioMode =
 const useRealProject = studioMode === 'real-project';
 const isAuthSetup = process.env['SANITY_E2E_AUTH_SETUP'] === '1';
 const cdpEndpoint = optionalEnv('SANITY_E2E_CDP_ENDPOINT');
-const storageStatePath = isAuthSetup || !useRealProject
-  ? undefined
-  : existingStorageStatePath(requestedStorageStatePath);
+const storageStatePath =
+  isAuthSetup || !useRealProject
+    ? undefined
+    : existingStorageStatePath(requestedStorageStatePath);
 const browserChannel =
   (isAuthSetup ? optionalEnv('SANITY_E2E_BROWSER_CHANNEL') : undefined) ??
   (isAuthSetup && !cdpEndpoint && !process.env['CI'] ? 'chrome' : undefined);
@@ -43,6 +44,7 @@ const previewEnv = useRealProject
       VITE_SANITY_API_VERSION: process.env['VITE_SANITY_API_VERSION'],
       VITE_SANITY_STUDIO_URL: studioURL,
       SANITY_API_READ_TOKEN: requiredEnv('SANITY_API_READ_TOKEN'),
+      SANITY_PRESENTATION_E2E_REAL_CLIENT: '1',
       BYPASS_TOKEN: requiredEnv('BYPASS_TOKEN'),
     }
   : {
@@ -62,7 +64,7 @@ const webServer = [
       ...toShellEnv(previewEnv),
       'pnpm nx serve analog-sanity-blog-example',
     ].join(' '),
-    url: `${previewURL}/presentation-smoke`,
+    url: `${previewURL}/api/presentation-smoke-health`,
     reuseExistingServer: !process.env['CI'],
     timeout: 120_000,
   },
@@ -74,7 +76,8 @@ if (studioMode !== 'off') {
       requiredEnv('VITE_SANITY_PROJECT_ID'))
     : 'presentation-smoke-project';
   const studioDataset = useRealProject
-    ? (process.env['SANITY_STUDIO_DATASET'] ?? requiredEnv('VITE_SANITY_DATASET'))
+    ? (process.env['SANITY_STUDIO_DATASET'] ??
+      requiredEnv('VITE_SANITY_DATASET'))
     : 'presentation-smoke-dataset';
 
   webServer.push({
@@ -175,7 +178,9 @@ function optionalEnv(name: string): string | undefined {
   return value || undefined;
 }
 
-function existingStorageStatePath(path: string | undefined): string | undefined {
+function existingStorageStatePath(
+  path: string | undefined,
+): string | undefined {
   if (!path) {
     return undefined;
   }

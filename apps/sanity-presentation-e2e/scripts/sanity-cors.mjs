@@ -27,7 +27,9 @@ env.SANITY_STUDIO_DATASET ??= env.VITE_SANITY_DATASET;
 
 for (const name of ['SANITY_STUDIO_PROJECT_ID', 'SANITY_STUDIO_DATASET']) {
   if (!env[name]) {
-    console.error(`Missing ${name}. Set it or the matching VITE_SANITY_* value in .env.local.`);
+    console.error(
+      `Missing ${name}. Set it or the matching VITE_SANITY_* value in .env.local.`,
+    );
     process.exit(1);
   }
 }
@@ -51,7 +53,9 @@ const result = spawnSync('pnpm', args, {
 });
 
 if (command === 'add' && didReportDuplicateOrigin(result)) {
-  console.log(`CORS origin ${origin} is already configured for project ${env.SANITY_STUDIO_PROJECT_ID}.`);
+  console.log(
+    `CORS origin ${origin} is already configured for project ${env.SANITY_STUDIO_PROJECT_ID}.`,
+  );
   process.exit(0);
 }
 
