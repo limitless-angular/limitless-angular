@@ -22,26 +22,25 @@ test.skip(
 );
 
 if (cdpEndpoint) {
-  test(
-    'capture Sanity Studio auth state from existing Chrome',
-    async ({ browserName }, testInfo) => {
-      testInfo.setTimeout(authTimeout + 30_000);
+  test('capture Sanity Studio auth state from existing Chrome', async ({
+    browserName,
+  }, testInfo) => {
+    testInfo.setTimeout(authTimeout + 30_000);
 
-      if (!browserName) {
-        throw new Error('Unable to read the Playwright browser name.');
-      }
+    if (!browserName) {
+      throw new Error('Unable to read the Playwright browser name.');
+    }
 
-      const browser = await chromium.connectOverCDP(cdpEndpoint);
-      const context = browser.contexts()[0];
+    const browser = await chromium.connectOverCDP(cdpEndpoint);
+    const context = browser.contexts()[0];
 
-      if (!context) {
-        throw new Error(`No browser context found at ${cdpEndpoint}.`);
-      }
+    if (!context) {
+      throw new Error(`No browser context found at ${cdpEndpoint}.`);
+    }
 
-      const page = await context.newPage();
-      await captureAuthState(page, context);
-    },
-  );
+    const page = await context.newPage();
+    await captureAuthState(page, context);
+  });
 } else {
   test('capture Sanity Studio auth state', async ({ page }, testInfo) => {
     testInfo.setTimeout(authTimeout + 30_000);
@@ -71,7 +70,9 @@ async function captureAuthState(
   await expect
     .poll(
       () =>
-        page.frames().some((frame) => frame.url().includes('/presentation-smoke')),
+        page
+          .frames()
+          .some((frame) => frame.url().includes('/presentation-smoke')),
       {
         timeout: authTimeout,
       },
