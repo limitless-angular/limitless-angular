@@ -33,6 +33,28 @@ This starts the real Sanity Studio fixture, but keeps the Sanity backend and smo
 
 Use this for CI or Angular/Sanity dependency updates when you want the real Studio shell without relying on a real Sanity project.
 
+## CI Coverage
+
+The main CI workflow runs these automatically on pull requests and pushes to `main`:
+
+```bash
+pnpm nx e2e sanity-presentation-e2e
+pnpm nx e2e-studio sanity-presentation-e2e
+```
+
+The real-project Studio smoke runs only for manual workflow dispatches with `run_real_studio` enabled or pushes to `main`. Configure these GitHub Actions secrets to enable it:
+
+```text
+SANITY_E2E_PROJECT_ID
+SANITY_E2E_DATASET
+SANITY_E2E_READ_TOKEN
+SANITY_E2E_BYPASS_TOKEN
+SANITY_E2E_STORAGE_STATE_JSON
+SANITY_E2E_WRITE_TOKEN
+```
+
+`SANITY_E2E_WRITE_TOKEN` is optional. When present, CI seeds `presentation-smoke-post` and runs the real live-update mutation test. Without it, CI expects the real `presentation-smoke-post` document to already exist and skips the mutation test.
+
 ## Real Project Studio Smoke
 
 ```bash
