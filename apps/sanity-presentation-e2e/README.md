@@ -35,14 +35,16 @@ Use this for CI or Angular/Sanity dependency updates when you want the real Stud
 
 ## CI Coverage
 
-The main CI workflow runs these automatically on pull requests and pushes to `main`:
+The main CI workflow runs these automatically on pull requests and pushes to `main` only when Nx marks one of the related projects as affected:
 
 ```bash
 pnpm nx e2e sanity-presentation-e2e
 pnpm nx e2e-studio sanity-presentation-e2e
 ```
 
-The real-project Studio smoke runs only for manual workflow dispatches with `run_real_studio` enabled or pushes to `main`. Configure these GitHub Actions secrets to enable it:
+The related project gate includes `analog-sanity-blog-example`, `sanity`, `preview-kit-compat`, `visual-editing-helpers`, `sanity-presentation-e2e`, and `sanity-presentation-e2e-studio`. Changes to `.github/workflows/ci.yml` also run the checks because they can change this gate.
+
+The real-project Studio smoke runs for manual workflow dispatches with `run_real_studio` enabled, or for affected pushes to `main`. Configure these GitHub Actions secrets to enable it:
 
 ```text
 SANITY_E2E_PROJECT_ID
