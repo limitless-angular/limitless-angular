@@ -45,6 +45,23 @@ jobs:
       # - run: npx nx-cloud record -- echo Hello World
       - run: npx nx affected -t build test
 
+  presentation-e2e:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: 'pnpm'
+
+      - run: pnpm install
+      - uses: nrwl/nx-set-shas@v4
+
       - name: Install Playwright browser
         run: pnpm exec playwright install --with-deps chromium
 
