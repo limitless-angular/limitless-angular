@@ -1,0 +1,8 @@
+{
+  "name": "sanity-presentation-e2e",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@playwright/test": "1.44.1"
+  }
+}

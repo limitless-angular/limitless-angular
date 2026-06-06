@@ -71,6 +71,9 @@
     "yargs": "^17.7.2"
   },
   "pnpm": {
+    "overrides": {
+      "@portabletext/editor": "1.15.3"
+    },
     "patchedDependencies": {
       "@netlify/angular-runtime": "patches/@netlify__angular-runtime.patch"
     }

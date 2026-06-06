@@ -1,0 +1,23 @@
+{
+  "name": "sanity-presentation-e2e-studio",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/sanity-presentation-e2e-studio",
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/sanity-presentation-e2e-studio",
+        "command": "pnpm sanity dev --host 0.0.0.0 --port 3333"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": ["{workspaceRoot}/dist/apps/sanity-presentation-e2e-studio"],
+      "options": {
+        "cwd": "apps/sanity-presentation-e2e-studio",
+        "command": "rm -rf ../../dist/apps/sanity-presentation-e2e-studio && pnpm sanity build --yes ../../dist/apps/sanity-presentation-e2e-studio"
+      }
+    }
+  }
+}
