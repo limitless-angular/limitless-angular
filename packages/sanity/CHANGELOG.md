@@ -36,11 +36,11 @@
 
 ### 🚀 Features
 
-- ⚠️  angular 19 support ([#7](https://github.com/limitless-angular/limitless-angular/pull/7))
+- ⚠️ angular 19 support ([#7](https://github.com/limitless-angular/limitless-angular/pull/7))
 
-### ⚠️  Breaking Changes
+### ⚠️ Breaking Changes
 
-- ⚠️  angular 19 support ([#7](https://github.com/limitless-angular/limitless-angular/pull/7))
+- ⚠️ angular 19 support ([#7](https://github.com/limitless-angular/limitless-angular/pull/7))
 
 ### ❤️ Thank You
 
