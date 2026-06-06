@@ -30,6 +30,7 @@ const localRealProjectTimeout = numberEnv(
   'SANITY_E2E_REAL_PROJECT_TIMEOUT_MS',
   10 * 60_000,
 );
+const studioPreviewFrameTimeout = 45_000;
 const writeToken = process.env['SANITY_API_WRITE_TOKEN'];
 
 type ProtocolMessage = {
@@ -211,15 +212,17 @@ async function openPresentationPreview(
 function getPreviewFrameTimeout(): number {
   return studioMode === 'real-project' && !process.env['CI']
     ? localRealProjectTimeout
-    : 15_000;
+    : studioPreviewFrameTimeout;
 }
 
-function extendTimeoutForLocalAuth(
+function extendTimeoutForPreviewFrame(
   testInfo: { setTimeout: (timeout: number) => void; timeout: number },
   previewFrameTimeout: number,
 ): void {
-  if (previewFrameTimeout > testInfo.timeout) {
-    testInfo.setTimeout(previewFrameTimeout + 30_000);
+  const requiredTimeout = previewFrameTimeout + 30_000;
+
+  if (requiredTimeout > testInfo.timeout) {
+    testInfo.setTimeout(requiredTimeout);
   }
 }
 
@@ -288,7 +291,7 @@ test('Sanity Studio Presentation opens the Angular preview frame', async ({
   page,
 }, testInfo) => {
   const previewFrameTimeout = getPreviewFrameTimeout();
-  extendTimeoutForLocalAuth(testInfo, previewFrameTimeout);
+  extendTimeoutForPreviewFrame(testInfo, previewFrameTimeout);
 
   const previewFrame = await openPresentationPreview(page, previewFrameTimeout);
 
@@ -363,7 +366,7 @@ test('real Sanity mutations update Angular live preview without reloading', asyn
   );
 
   const previewFrameTimeout = getPreviewFrameTimeout();
-  extendTimeoutForLocalAuth(testInfo, previewFrameTimeout);
+  extendTimeoutForPreviewFrame(testInfo, previewFrameTimeout);
 
   const previewFrame = await openPresentationPreview(page, previewFrameTimeout);
   const title = previewFrame.getByTestId('presentation-smoke-title');
