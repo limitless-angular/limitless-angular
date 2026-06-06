@@ -8,10 +8,10 @@
     "format:write": "nx format:write",
     "release": "tsx tools/scripts/release.ts"
   },
-  "packageManager": "pnpm@9.11.0",
+  "packageManager": "pnpm@11.5.2",
   "engines": {
     "node": ">=22.22.3",
-    "pnpm": ">=9.11"
+    "pnpm": ">=11.5.2"
   },
   "private": true,
   "dependencies": {
@@ -69,14 +69,5 @@
     "vite-tsconfig-paths": "^4.2.0",
     "vitest": "^2.0.0",
     "yargs": "^17.7.2"
-  },
-  "pnpm": {
-    "overrides": {
-      "@babel/traverse": "7.26.4",
-      "@portabletext/editor": "1.15.3"
-    },
-    "patchedDependencies": {
-      "@netlify/angular-runtime": "patches/@netlify__angular-runtime.patch"
-    }
   }
 }
