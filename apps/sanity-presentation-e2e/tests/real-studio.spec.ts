@@ -1,0 +1,454 @@
+import { expect, test, type Frame, type Page } from '@playwright/test';
+import { createClient, type SanityClient } from '@sanity/client';
+import { createDataAttribute } from '@sanity/visual-editing';
+
+const studioURL =
+  process.env['SANITY_E2E_STUDIO_URL'] ?? 'http://localhost:3333';
+const studioMode =
+  process.env['SANITY_E2E_STUDIO_MODE'] ??
+  (process.env['SANITY_E2E_REAL_STUDIO'] === '1' ? 'real-project' : 'off');
+const projectId = 'presentation-smoke-project';
+const dataset = 'presentation-smoke-dataset';
+const documentId = 'presentation-smoke-post';
+const expectedPreviewProjectId =
+  studioMode === 'real-project'
+    ? (process.env['VITE_SANITY_PROJECT_ID'] ?? projectId)
+    : projectId;
+const expectedPreviewDataset =
+  studioMode === 'real-project'
+    ? (process.env['VITE_SANITY_DATASET'] ?? dataset)
+    : dataset;
+const expectedDataSanity = createDataAttribute({
+  baseUrl: studioURL,
+  dataset: expectedPreviewDataset,
+  id: documentId,
+  path: 'title',
+  projectId: expectedPreviewProjectId,
+  type: 'post',
+}).toString();
+const localRealProjectTimeout = numberEnv(
+  'SANITY_E2E_REAL_PROJECT_TIMEOUT_MS',
+  10 * 60_000,
+);
+const studioPreviewFrameTimeout = 45_000;
+const writeToken = process.env['SANITY_API_WRITE_TOKEN'];
+
+type ProtocolMessage = {
+  connectionId?: string;
+  data?: unknown;
+  domain?: string;
+  from?: string;
+  id?: string;
+  responseTo?: string;
+  to?: string;
+  type?: string;
+};
+
+type DocumentsMessageData = {
+  dataset?: string;
+  documents?: Array<{ _id?: string }>;
+  perspective?: string;
+  projectId?: string;
+};
+
+type PresentationSmokeFrameState = {
+  __presentationSmokeBootCount?: number;
+};
+
+async function mockSanityApi(page: Page): Promise<void> {
+  const corsHeaders = {
+    'access-control-allow-credentials': 'true',
+    'access-control-allow-headers': '*',
+    'access-control-allow-methods': 'GET,POST,OPTIONS',
+    'access-control-allow-origin': studioURL,
+  };
+
+  await page.route(
+    new RegExp(`https://${projectId}\\.(api|apicdn)\\.sanity\\.io/.*`),
+    async (route) => {
+      const request = route.request();
+      const url = new URL(request.url());
+
+      if (request.method() === 'OPTIONS') {
+        await route.fulfill({ status: 204, headers: corsHeaders });
+        return;
+      }
+
+      const body = url.pathname.includes('/users/me')
+        ? {
+            id: 'presentation-smoke-user',
+            name: 'Presentation Smoke User',
+            email: 'presentation-smoke@example.com',
+            profileImage: null,
+            roles: [{ name: 'administrator', title: 'Administrator' }],
+          }
+        : url.pathname.includes(`/data/query/${dataset}`)
+          ? {
+              ms: 0,
+              query: url.searchParams.get('query') ?? '',
+              result: {
+                _id: documentId,
+                _type: 'post',
+                _createdAt: '2024-01-01T00:00:00.000Z',
+                _updatedAt: '2024-01-01T00:00:00.000Z',
+                _rev: 'presentation-smoke-rev',
+                title: 'Live presentation smoke title',
+              },
+            }
+          : url.pathname.includes('/datasets')
+            ? [{ name: dataset }]
+            : {};
+
+      await route.fulfill({
+        body: JSON.stringify(body),
+        contentType: 'application/json',
+        headers: corsHeaders,
+        status: 200,
+      });
+    },
+  );
+}
+
+async function installMessageRecorder(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    (
+      window as unknown as {
+        __sanityPresentationE2EMessages: unknown[];
+      }
+    ).__sanityPresentationE2EMessages = [];
+
+    window.addEventListener('message', (event) => {
+      const data = event.data;
+
+      if (!data || typeof data !== 'object' || !('type' in data)) {
+        return;
+      }
+
+      try {
+        (
+          window as unknown as {
+            __sanityPresentationE2EMessages: unknown[];
+          }
+        ).__sanityPresentationE2EMessages.push(
+          JSON.parse(JSON.stringify(data)),
+        );
+      } catch {
+        (
+          window as unknown as {
+            __sanityPresentationE2EMessages: unknown[];
+          }
+        ).__sanityPresentationE2EMessages.push({
+          domain: 'domain' in data ? String(data.domain) : undefined,
+          from: 'from' in data ? String(data.from) : undefined,
+          to: 'to' in data ? String(data.to) : undefined,
+          type: 'type' in data ? String(data.type) : undefined,
+        });
+      }
+    });
+  });
+}
+
+async function getPresentationMessages(page: Page): Promise<ProtocolMessage[]> {
+  try {
+    return await page.evaluate(
+      () =>
+        (
+          window as unknown as {
+            __sanityPresentationE2EMessages: ProtocolMessage[];
+          }
+        ).__sanityPresentationE2EMessages ?? [],
+    );
+  } catch {
+    return [];
+  }
+}
+
+async function waitForMessage(
+  page: Page,
+  matcher: (message: ProtocolMessage) => boolean,
+): Promise<void> {
+  await expect
+    .poll(async () => (await getPresentationMessages(page)).some(matcher), {
+      timeout: 30_000,
+    })
+    .toBe(true);
+}
+
+async function openPresentationPreview(
+  page: Page,
+  previewFrameTimeout: number,
+): Promise<Frame> {
+  await installMessageRecorder(page);
+
+  if (studioMode === 'hermetic') {
+    await mockSanityApi(page);
+  }
+
+  await page.goto(`${studioURL}/presentation`);
+
+  await expect
+    .poll(
+      () =>
+        page
+          .frames()
+          .some((frame) => frame.url().includes('/presentation-smoke')),
+      {
+        timeout: previewFrameTimeout,
+      },
+    )
+    .toBe(true);
+
+  const previewFrame = page
+    .frames()
+    .find((frame) => frame.url().includes('/presentation-smoke'));
+
+  if (!previewFrame) {
+    throw new Error('Unable to find the Presentation smoke preview frame.');
+  }
+
+  return previewFrame;
+}
+
+function getPreviewFrameTimeout(): number {
+  return studioMode === 'real-project' && !process.env['CI']
+    ? localRealProjectTimeout
+    : studioPreviewFrameTimeout;
+}
+
+function extendTimeoutForPreviewFrame(
+  testInfo: { setTimeout: (timeout: number) => void; timeout: number },
+  previewFrameTimeout: number,
+): void {
+  const requiredTimeout = previewFrameTimeout + 30_000;
+
+  if (requiredTimeout > testInfo.timeout) {
+    testInfo.setTimeout(requiredTimeout);
+  }
+}
+
+function isPreviewKitDocumentsMessage(message: ProtocolMessage): boolean {
+  return message.type === 'preview-kit/documents';
+}
+
+function isVisualEditingConnectionMessage(message: ProtocolMessage): boolean {
+  return (
+    message.type === 'handshake/syn-ack' &&
+    (message.from === 'visual-editing' || message.from === 'overlays')
+  );
+}
+
+function getDocumentsMessageData(
+  message: ProtocolMessage | undefined,
+): DocumentsMessageData {
+  return (message?.data ?? {}) as DocumentsMessageData;
+}
+
+function parseDataSanity(value: string): Record<string, string> {
+  return Object.fromEntries(
+    value.split(';').map((part) => {
+      const separatorIndex = part.indexOf('=');
+
+      return separatorIndex === -1
+        ? [part, '']
+        : [part.slice(0, separatorIndex), part.slice(separatorIndex + 1)];
+    }),
+  );
+}
+
+async function getFrameBootCount(frame: Frame): Promise<number | undefined> {
+  return frame.evaluate(
+    () =>
+      (window as unknown as PresentationSmokeFrameState)
+        .__presentationSmokeBootCount,
+  );
+}
+
+function createMutationClient(token: string): SanityClient {
+  return createClient({
+    projectId: requiredEnv('VITE_SANITY_PROJECT_ID'),
+    dataset: requiredEnv('VITE_SANITY_DATASET'),
+    apiVersion: process.env['VITE_SANITY_API_VERSION'] ?? '2024-02-28',
+    token,
+    useCdn: false,
+    perspective: 'previewDrafts',
+  });
+}
+
+async function patchDocumentTitle(
+  client: SanityClient,
+  id: string,
+  title: string,
+): Promise<void> {
+  await client.patch(id).set({ title }).commit({ visibility: 'sync' });
+}
+
+test.skip(
+  studioMode === 'off',
+  'Set SANITY_E2E_STUDIO_MODE=hermetic or SANITY_E2E_STUDIO_MODE=real-project to run the Studio smoke test.',
+);
+
+test('Sanity Studio Presentation opens the Angular preview frame', async ({
+  page,
+}, testInfo) => {
+  const previewFrameTimeout = getPreviewFrameTimeout();
+  extendTimeoutForPreviewFrame(testInfo, previewFrameTimeout);
+
+  const previewFrame = await openPresentationPreview(page, previewFrameTimeout);
+
+  await expect(
+    previewFrame.getByTestId('presentation-smoke-kicker'),
+  ).toBeVisible();
+
+  const title = previewFrame.getByTestId('presentation-smoke-title');
+  await expect(title).not.toHaveText('');
+
+  if (studioMode === 'real-project') {
+    await expect(
+      previewFrame.getByTestId('presentation-smoke-client-mode'),
+    ).toHaveText('real-client');
+    await expect(title).toHaveAttribute(
+      'data-sanity',
+      /^id=[^;]+;type=post;path=title;base=/,
+    );
+  } else {
+    await expect(
+      previewFrame.getByTestId('presentation-smoke-client-mode'),
+    ).toHaveText('fake-client');
+    await expect(title).toContainText('Live presentation smoke title');
+    await expect(title).toHaveAttribute('data-sanity', expectedDataSanity);
+  }
+
+  await waitForMessage(page, isPreviewKitDocumentsMessage);
+  await waitForMessage(page, isVisualEditingConnectionMessage);
+
+  const dataSanity = parseDataSanity(
+    (await title.getAttribute('data-sanity')) ?? '',
+  );
+  const documentsMessage = (await getPresentationMessages(page)).find(
+    isPreviewKitDocumentsMessage,
+  );
+  const documentsData = getDocumentsMessageData(documentsMessage);
+
+  expect(documentsMessage).toMatchObject({
+    from: 'preview-kit',
+    to: 'presentation',
+    type: 'preview-kit/documents',
+  });
+  expect(documentsData).toMatchObject({
+    dataset: expectedPreviewDataset,
+    perspective: 'previewDrafts',
+    projectId: expectedPreviewProjectId,
+  });
+
+  if (studioMode === 'real-project') {
+    expect(documentsData.documents ?? []).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ _id: dataSanity['id'] }),
+      ]),
+    );
+  } else {
+    expect(documentsData.documents).toEqual([
+      expect.objectContaining({ _id: documentId }),
+    ]);
+  }
+});
+
+test('real Sanity mutations update Angular live preview without reloading', async ({
+  page,
+}, testInfo) => {
+  test.skip(
+    studioMode !== 'real-project',
+    'Real mutation coverage only applies to SANITY_E2E_STUDIO_MODE=real-project.',
+  );
+  test.skip(
+    !writeToken,
+    'Set SANITY_API_WRITE_TOKEN to run the real live-update mutation test.',
+  );
+
+  const previewFrameTimeout = getPreviewFrameTimeout();
+  extendTimeoutForPreviewFrame(testInfo, previewFrameTimeout);
+
+  const previewFrame = await openPresentationPreview(page, previewFrameTimeout);
+  const title = previewFrame.getByTestId('presentation-smoke-title');
+
+  await expect(title).not.toHaveText('');
+
+  const dataSanity = parseDataSanity(
+    (await title.getAttribute('data-sanity')) ?? '',
+  );
+  const liveDocumentId = dataSanity['id'];
+
+  if (!liveDocumentId) {
+    throw new Error('Unable to read the live document id from data-sanity.');
+  }
+
+  const client = createMutationClient(writeToken);
+  const originalTitle = await client.fetch<string | null>(
+    '*[_id == $id][0].title',
+    { id: liveDocumentId },
+  );
+
+  if (typeof originalTitle !== 'string') {
+    throw new Error(
+      `Unable to read the current title for Sanity document ${liveDocumentId}.`,
+    );
+  }
+
+  const nextTitle = `Real presentation smoke ${Date.now()}`;
+  const initialBootCount = await getFrameBootCount(previewFrame);
+  let didPatchTitle = false;
+
+  try {
+    try {
+      await patchDocumentTitle(client, liveDocumentId, nextTitle);
+      didPatchTitle = true;
+    } catch (error) {
+      if (isInsufficientUpdatePermissionError(error)) {
+        throw new Error(
+          'SANITY_API_WRITE_TOKEN is set, but it cannot update Sanity documents in this project/dataset. Use a token with document update permission to run this real mutation test, or unset SANITY_API_WRITE_TOKEN to skip it.',
+        );
+      }
+
+      throw error;
+    }
+
+    await expect(title).toContainText(nextTitle, {
+      timeout: previewFrameTimeout,
+    });
+
+    await expect
+      .poll(() => getFrameBootCount(previewFrame), {
+        timeout: 15_000,
+      })
+      .toBe(initialBootCount);
+  } finally {
+    if (didPatchTitle) {
+      await patchDocumentTitle(client, liveDocumentId, originalTitle);
+    }
+  }
+});
+
+function numberEnv(name: string, fallback: number): number {
+  const value = Number(process.env[name]);
+
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
+function requiredEnv(name: string): string {
+  const value = process.env[name];
+
+  if (!value) {
+    throw new Error(`Missing ${name}.`);
+  }
+
+  return value;
+}
+
+function isInsufficientUpdatePermissionError(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+
+  return (
+    message.includes('Insufficient permissions') &&
+    message.includes('permission "update"')
+  );
+}

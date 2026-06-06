@@ -1,0 +1,10 @@
+{
+  "name": "sanity-presentation-e2e",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@playwright/test": "1.44.1",
+    "@sanity/client": "^6.21.1",
+    "@sanity/visual-editing": "2.10.6"
+  }
+}

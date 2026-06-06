@@ -5,6 +5,13 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
+    inputs:
+      run_real_studio:
+        description: 'Run real-project Sanity Studio E2E'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   actions: read
@@ -37,3 +44,119 @@ jobs:
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: npx nx-cloud record -- echo Hello World
       - run: npx nx affected -t build test
+
+  presentation-e2e:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: 'pnpm'
+
+      - run: pnpm install
+      - uses: nrwl/nx-set-shas@v4
+
+      - name: Check affected Sanity Presentation E2E
+        id: affected-presentation-e2e
+        shell: bash
+        run: |
+          affected_projects="$(pnpm nx show projects --affected --json)"
+          related_projects=(
+            analog-sanity-blog-example
+            preview-kit-compat
+            sanity
+            sanity-presentation-e2e
+            sanity-presentation-e2e-studio
+            visual-editing-helpers
+          )
+
+          echo "Affected projects: $affected_projects"
+          echo "Sanity Presentation related projects: ${related_projects[*]}"
+
+          changed_files="$(git diff --name-only "${NX_BASE:-origin/main}" "${NX_HEAD:-HEAD}")"
+          matched_paths="$(printf '%s\n' "$changed_files" | grep -E '^\.github/workflows/ci\.yml$' || true)"
+          matched_projects="$(node -e "const affected = new Set(JSON.parse(process.argv[1])); const matches = process.argv.slice(2).filter((project) => affected.has(project)); console.log(matches.join(','));" "$affected_projects" "${related_projects[@]}")"
+
+          if [ -n "$matched_projects" ] || [ -n "$matched_paths" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            if [ -n "$matched_projects" ]; then
+              echo "Sanity Presentation E2E is affected by projects: $matched_projects"
+            fi
+            if [ -n "$matched_paths" ]; then
+              echo "Sanity Presentation E2E is affected by paths:"
+              printf '%s\n' "$matched_paths"
+            fi
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping Sanity Presentation E2E because no related projects are affected."
+          fi
+
+      - name: Install Playwright browser
+        if: ${{ steps.affected-presentation-e2e.outputs.run == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run_real_studio) }}
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Sanity Presentation protocol E2E
+        if: steps.affected-presentation-e2e.outputs.run == 'true'
+        run: pnpm nx e2e sanity-presentation-e2e
+
+      - name: Run hermetic Sanity Studio E2E
+        if: steps.affected-presentation-e2e.outputs.run == 'true'
+        run: pnpm nx e2e-studio sanity-presentation-e2e
+
+      - name: Prepare real-project Sanity Studio E2E
+        if: ${{ (steps.affected-presentation-e2e.outputs.run == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.run_real_studio) }}
+        env:
+          SANITY_E2E_PROJECT_ID: ${{ secrets.SANITY_E2E_PROJECT_ID }}
+          SANITY_E2E_DATASET: ${{ secrets.SANITY_E2E_DATASET }}
+          SANITY_E2E_READ_TOKEN: ${{ secrets.SANITY_E2E_READ_TOKEN }}
+          SANITY_E2E_WRITE_TOKEN: ${{ secrets.SANITY_E2E_WRITE_TOKEN }}
+          SANITY_E2E_BYPASS_TOKEN: ${{ secrets.SANITY_E2E_BYPASS_TOKEN }}
+          SANITY_E2E_STORAGE_STATE_JSON: ${{ secrets.SANITY_E2E_STORAGE_STATE_JSON }}
+        run: |
+          missing=0
+          for name in SANITY_E2E_PROJECT_ID SANITY_E2E_DATASET SANITY_E2E_READ_TOKEN SANITY_E2E_BYPASS_TOKEN SANITY_E2E_STORAGE_STATE_JSON; do
+            if [ -z "${!name}" ]; then
+              echo "::notice::Skipping real-project Studio E2E because $name is not configured."
+              missing=1
+            fi
+          done
+
+          if [ "$missing" -eq 1 ]; then
+            echo "RUN_REAL_STUDIO_E2E=false" >> "$GITHUB_ENV"
+            exit 0
+          fi
+
+          mkdir -p apps/sanity-presentation-e2e/.auth
+          printf '%s' "$SANITY_E2E_STORAGE_STATE_JSON" > apps/sanity-presentation-e2e/.auth/sanity-storage-state.json
+
+          {
+            echo "RUN_REAL_STUDIO_E2E=true"
+            echo "VITE_SANITY_PROJECT_ID=$SANITY_E2E_PROJECT_ID"
+            echo "VITE_SANITY_DATASET=$SANITY_E2E_DATASET"
+            echo "SANITY_API_READ_TOKEN=$SANITY_E2E_READ_TOKEN"
+            echo "BYPASS_TOKEN=$SANITY_E2E_BYPASS_TOKEN"
+            echo "SANITY_E2E_STORAGE_STATE=apps/sanity-presentation-e2e/.auth/sanity-storage-state.json"
+          } >> "$GITHUB_ENV"
+
+          if [ -n "$SANITY_E2E_WRITE_TOKEN" ]; then
+            {
+              echo "SANITY_API_WRITE_TOKEN=$SANITY_E2E_WRITE_TOKEN"
+              echo "SEED_REAL_STUDIO_E2E=true"
+            } >> "$GITHUB_ENV"
+          else
+            echo "SEED_REAL_STUDIO_E2E=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Seed real-project Sanity smoke document
+        if: env.RUN_REAL_STUDIO_E2E == 'true' && env.SEED_REAL_STUDIO_E2E == 'true'
+        run: node apps/sanity-presentation-e2e/scripts/sanity-seed-post.mjs
+
+      - name: Run real-project Sanity Studio E2E
+        if: env.RUN_REAL_STUDIO_E2E == 'true'
+        run: pnpm nx e2e-real-studio sanity-presentation-e2e
