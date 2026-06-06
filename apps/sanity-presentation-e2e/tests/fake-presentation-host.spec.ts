@@ -157,14 +157,16 @@ async function getPreviewFrame(page: Page): Promise<Frame> {
 
 async function getPresentationMessages(page: Page): Promise<ProtocolMessage[]> {
   try {
-    return await page.evaluate(
+    const messages = await page.evaluate(
       () =>
         (
           window as unknown as {
-            __presentationMessages: ProtocolMessage[];
+            __presentationMessages?: ProtocolMessage[];
           }
         ).__presentationMessages,
     );
+
+    return Array.isArray(messages) ? messages : [];
   } catch {
     return [];
   }
