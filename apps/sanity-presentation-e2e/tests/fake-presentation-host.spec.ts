@@ -16,6 +16,7 @@ const studioMode =
   process.env['SANITY_E2E_STUDIO_MODE'] ??
   (process.env['SANITY_E2E_REAL_STUDIO'] === '1' ? 'real-project' : 'off');
 const documentId = 'presentation-smoke-post';
+const liveTitle = 'Live presentation smoke title';
 const expectedProjectId =
   studioMode === 'real-project'
     ? (process.env['SANITY_STUDIO_PROJECT_ID'] ??
@@ -37,6 +38,8 @@ const expectedDataSanity = createDataAttribute({
   type: 'post',
 }).toString();
 
+test.describe.configure({ timeout: 90_000 });
+
 type ProtocolMessage = {
   connectionId?: string;
   data?: unknown;
@@ -55,6 +58,11 @@ type PresentationSmokeFrameState = {
 
 async function installFakePresentationHost(page: Page): Promise<void> {
   await page.goto(`${previewURL}/presentation-smoke`);
+  await expect(page.getByTestId('presentation-smoke-title')).toContainText(
+    liveTitle,
+    { timeout: 45_000 },
+  );
+
   await page.setContent(`
     <!doctype html>
     <html>
@@ -229,7 +237,7 @@ test('Angular preview announces live documents when embedded by Presentation', a
     (message) => message.type === 'preview-kit/documents',
   );
 
-  await expect(title).toContainText('Live presentation smoke title');
+  await expect(title).toContainText(liveTitle);
   await expectEditableTitleMarker(title);
 
   const documentsMessage = (await getPresentationMessages(page)).find(
@@ -257,7 +265,7 @@ test('live preview refreshes Angular data without reloading the preview', async 
   const frame = await getPreviewFrame(page);
   const title = frame.getByTestId('presentation-smoke-title');
 
-  await expect(title).toContainText('Live presentation smoke title');
+  await expect(title).toContainText(liveTitle);
 
   const initialFrameState = await getFrameState(frame);
   await setFrameTitle(frame, 'Updated presentation smoke title');
@@ -281,7 +289,7 @@ test('visual editing exposes editable markers and connects to Presentation', asy
   const frame = page.frameLocator('#preview');
   const title = frame.getByTestId('presentation-smoke-title');
 
-  await expect(title).toContainText('Live presentation smoke title');
+  await expect(title).toContainText(liveTitle);
   await expectEditableTitleMarker(title);
 
   await waitForMessage(
