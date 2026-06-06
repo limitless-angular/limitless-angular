@@ -1,7 +1,7 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import analog from '@analogjs/platform';
-import { defineConfig, splitVendorChunkPlugin } from 'vite';
+import { defineConfig, loadEnv, splitVendorChunkPlugin } from 'vite';
 import webfontDownload from 'vite-plugin-webfont-dl';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { typescriptPaths } from 'rollup-plugin-typescript-paths';
@@ -9,7 +9,11 @@ import { typescriptPaths } from 'rollup-plugin-typescript-paths';
 const configDir = dirname(fileURLToPath(import.meta.url));
 
 // https://vitejs.dev/config/
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
+  for (const [key, value] of Object.entries(loadEnv(mode, configDir, ''))) {
+    process.env[key] ??= value;
+  }
+
   return {
     root: configDir,
     cacheDir: `../../node_modules/.vite`,
