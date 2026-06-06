@@ -88,6 +88,16 @@ async function installFakePresentationHost(page: Page): Promise<void> {
             });
           }
 
+          function handshakeAll() {
+            for (const target of targets) handshake(target);
+          }
+
+          function startHandshakeLoop() {
+            if (window.__handshakeInterval) return;
+            handshakeAll();
+            window.__handshakeInterval = setInterval(handshakeAll, 500);
+          }
+
           window.addEventListener('message', (event) => {
             const data = event.data || {};
             if (data && data.domain === 'sanity/channels') {
@@ -117,12 +127,8 @@ async function installFakePresentationHost(page: Page): Promise<void> {
             }
           });
 
-          iframe.addEventListener('load', () => {
-            for (const target of targets) handshake(target);
-            window.__handshakeInterval = setInterval(() => {
-              for (const target of targets) handshake(target);
-            }, 500);
-          });
+          iframe.addEventListener('load', startHandshakeLoop);
+          startHandshakeLoop();
         </script>
       </body>
     </html>
