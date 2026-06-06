@@ -1,8 +1,0 @@
-{
-  "name": "visual-editing-helpers",
-  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/sanity/visual-editing-helpers/src",
-  "projectType": "library",
-  "tags": [],
-  "targets": {}
-}

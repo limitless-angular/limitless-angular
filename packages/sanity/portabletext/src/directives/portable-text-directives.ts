@@ -20,7 +20,7 @@ import { PortableTextComponent } from '../components/portable-text.component';
 
 // eslint-disable-next-line @angular-eslint/directive-selector
 @Directive({ selector: '[portableTextContent]' })
-// eslint-disable-next-line @angular-eslint/directive-class-suffix
+// eslint-disable-next-line @angular-eslint/directive-class-suffix, @typescript-eslint/no-unused-vars
 export class DynamicPortableTextContent<Node extends TypedObject = TypedObject>
   implements AfterViewInit
 {

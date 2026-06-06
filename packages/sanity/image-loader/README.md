@@ -192,7 +192,6 @@ export const appConfig: ApplicationConfig = {
 
 ## Examples & Resources
 
-- [Live Demo](https://limitless-angular-sanity-example.netlify.app/)
 - [Example Source Code](https://github.com/limitless-angular/limitless-angular/tree/main/apps/sanity-example)
 - [Sanity Image URL Builder docs](https://www.sanity.io/docs/image-url)
 - [NgOptimizedImage docs](https://angular.io/api/common/NgOptimizedImage)

@@ -2,6 +2,9 @@
   "name": "@repo/visual-editing-helpers",
   "private": true,
   "license": "MIT",
+  "scripts": {
+    "lint": "eslint ."
+  },
   "sideEffects": false,
   "type": "module",
   "peerDependencies": {

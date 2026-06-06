@@ -36,7 +36,6 @@ import {
   type SanityClient,
 } from '@sanity/client';
 import { RevalidateService } from './revalidate.service';
-// eslint-disable-next-line @nx/enforce-module-boundaries
 import { UseDocumentsInUseService } from '@limitless-angular/sanity/preview-kit-compat';
 import { SANITY_CLIENT_FACTORY } from '@limitless-angular/sanity/shared';
 

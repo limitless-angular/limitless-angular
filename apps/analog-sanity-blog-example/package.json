@@ -1,6 +1,11 @@
 {
   "name": "analog-sanity-blog-example",
   "type": "module",
+  "scripts": {
+    "build": "pnpm --dir ../.. exec vite build --mode production --config apps/analog-sanity-blog-example/vite.config.ts",
+    "lint": "eslint .",
+    "serve": "pnpm --dir ../.. exec vite dev --host 0.0.0.0 --port 4200 --config apps/analog-sanity-blog-example/vite.config.ts"
+  },
   "dependencies": {
     "@analogjs/router": "1.10.1",
     "@angular/common": "~19.0.3",
@@ -18,12 +23,12 @@
     "groq": "^3.53.0",
     "h3": "^1.12.0",
     "rxjs": "~7.8.0",
-    "sitemap": "^8.0.0"
+    "sitemap": "^8.0.0",
+    "@limitless-angular/sanity": "workspace:*"
   },
   "devDependencies": {
     "@analogjs/content": "1.10.1",
     "@analogjs/platform": "1.10.1",
-    "@nx/vite": "20.2.2",
     "jsdom": "^22.0.0",
     "marked-highlight": "^2.1.4",
     "rollup-plugin-typescript-paths": "^1.5.0",

@@ -1,0 +1,82 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "extends": false
+    },
+    "e2e": {
+      "passThroughEnv": [
+        "SANITY_E2E_PREVIEW_PORT",
+        "SANITY_E2E_PREVIEW_URL",
+        "SANITY_E2E_REAL_STUDIO",
+        "SANITY_E2E_STUDIO_MODE",
+        "SANITY_E2E_STUDIO_PORT",
+        "SANITY_E2E_STUDIO_URL",
+        "SANITY_STUDIO_DATASET",
+        "SANITY_STUDIO_PROJECT_ID",
+        "VITE_SANITY_DATASET",
+        "VITE_SANITY_PROJECT_ID"
+      ]
+    },
+    "e2e-studio": {
+      "passThroughEnv": [
+        "SANITY_E2E_PREVIEW_PORT",
+        "SANITY_E2E_PREVIEW_URL",
+        "SANITY_E2E_REAL_STUDIO",
+        "SANITY_E2E_STUDIO_MODE",
+        "SANITY_E2E_STUDIO_PORT",
+        "SANITY_E2E_STUDIO_URL",
+        "SANITY_STUDIO_DATASET",
+        "SANITY_STUDIO_PROJECT_ID",
+        "VITE_SANITY_DATASET",
+        "VITE_SANITY_PROJECT_ID"
+      ]
+    },
+    "e2e-real-studio": {
+      "passThroughEnv": [
+        "BYPASS_TOKEN",
+        "SANITY_API_READ_TOKEN",
+        "SANITY_API_WRITE_TOKEN",
+        "SANITY_E2E_BROWSER_CHANNEL",
+        "SANITY_E2E_CDP_ENDPOINT",
+        "SANITY_E2E_PREVIEW_PORT",
+        "SANITY_E2E_PREVIEW_URL",
+        "SANITY_E2E_REAL_PROJECT_TIMEOUT_MS",
+        "SANITY_E2E_REAL_STUDIO",
+        "SANITY_E2E_STORAGE_STATE",
+        "SANITY_E2E_STUDIO_MODE",
+        "SANITY_E2E_STUDIO_PORT",
+        "SANITY_E2E_STUDIO_URL",
+        "SANITY_STUDIO_DATASET",
+        "SANITY_STUDIO_PROJECT_ID",
+        "VITE_SANITY_API_VERSION",
+        "VITE_SANITY_DATASET",
+        "VITE_SANITY_PROJECT_ID"
+      ]
+    },
+    "e2e-real-studio-auth": {
+      "passThroughEnv": [
+        "BYPASS_TOKEN",
+        "SANITY_API_READ_TOKEN",
+        "SANITY_API_WRITE_TOKEN",
+        "SANITY_E2E_AUTH_SETUP",
+        "SANITY_E2E_AUTH_TIMEOUT_MS",
+        "SANITY_E2E_BROWSER_CHANNEL",
+        "SANITY_E2E_CDP_ENDPOINT",
+        "SANITY_E2E_PREVIEW_PORT",
+        "SANITY_E2E_PREVIEW_URL",
+        "SANITY_E2E_REAL_PROJECT_TIMEOUT_MS",
+        "SANITY_E2E_REAL_STUDIO",
+        "SANITY_E2E_STORAGE_STATE",
+        "SANITY_E2E_STUDIO_MODE",
+        "SANITY_E2E_STUDIO_PORT",
+        "SANITY_E2E_STUDIO_URL",
+        "SANITY_STUDIO_DATASET",
+        "SANITY_STUDIO_PROJECT_ID",
+        "VITE_SANITY_API_VERSION",
+        "VITE_SANITY_DATASET",
+        "VITE_SANITY_PROJECT_ID"
+      ]
+    }
+  }
+}

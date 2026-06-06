@@ -1,10 +1,21 @@
-import nx from '@nx/eslint-plugin';
+import angular from 'angular-eslint';
 import baseConfig from '../../eslint.config.js';
 
 export default [
   ...baseConfig,
-  ...nx.configs['flat/angular'],
-  ...nx.configs['flat/angular-template'],
+  ...angular.configs.tsRecommended.map((config) => ({
+    ...config,
+    files: ['**/*.ts'],
+    processor: angular.processInlineTemplates,
+  })),
+  ...angular.configs.templateRecommended.map((config) => ({
+    ...config,
+    files: ['**/*.html'],
+  })),
+  ...angular.configs.templateAccessibility.map((config) => ({
+    ...config,
+    files: ['**/*.html'],
+  })),
   {
     files: ['**/*.ts'],
     rules: {

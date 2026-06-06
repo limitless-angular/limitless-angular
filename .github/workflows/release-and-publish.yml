@@ -19,6 +19,9 @@ on:
         default: false
         type: boolean
 
+env:
+  TURBO_TELEMETRY_DISABLED: '1'
+
 jobs:
   release-and-publish:
     # prevents this action from running on forks
@@ -60,10 +63,10 @@ jobs:
           echo "Workspace directory: $(pwd)"
 
       - name: Run tests
-        run: pnpm nx run-many -t test
+        run: pnpm turbo run test
 
       - name: Check for lint errors
-        run: pnpm nx lint sanity
+        run: pnpm turbo run lint --filter=@limitless-angular/sanity
 
       - name: Set up Git user
         run: |
@@ -74,18 +77,18 @@ jobs:
         id: release
         run: |
           # Show dry run status clearly
-          if [ "${{ github.event.inputs.dryRun }}" == "true" ]; then
+          if [ "${{ inputs.dryRun }}" == "true" ]; then
             echo "::notice::Running in DRY RUN mode - no actual changes will be made"
           fi
 
           # Prepare version argument if specified
-          VERSION_ARG="${{ github.event.inputs.version != '' && format('--version={0}', github.event.inputs.version) || '' }}"
+          VERSION_ARG="${{ inputs.version != '' && format('--version={0}', inputs.version) || '' }}"
 
           # Prepare dry run argument
-          DRY_RUN_ARG="${{ github.event.inputs.dryRun && '--dryRun=true' || '--dryRun=false' }}"
+          DRY_RUN_ARG="${{ inputs.dryRun && '--dryRun=true' || '--dryRun=false' }}"
 
           # Prepare verbose argument
-          VERBOSE_ARG="${{ github.event.inputs.verbose && '--verbose=true' || '' }}"
+          VERBOSE_ARG="${{ inputs.verbose && '--verbose=true' || '' }}"
 
           # Run the release script and capture its output
           RELEASE_OUTPUT=$(pnpm tsx tools/scripts/release.ts $VERSION_ARG $DRY_RUN_ARG $VERBOSE_ARG)
@@ -108,7 +111,7 @@ jobs:
       - name: Build sanity project
         id: build
         if: steps.release.outcome == 'success'
-        run: pnpm nx build sanity
+        run: pnpm turbo run build --filter=@limitless-angular/sanity
 
       # Validate build artifacts
       - name: Validate build artifacts
@@ -140,8 +143,8 @@ jobs:
       # Publish packages to npm if all previous steps succeeded and not a dry run
       - name: Publish packages to npm
         id: publish
-        if: ${{ !github.event.inputs.dryRun && steps.release.outcome == 'success' && steps.build.outcome == 'success' }}
-        run: pnpm nx release publish --registry https://registry.npmjs.org
+        if: ${{ !inputs.dryRun && steps.release.outcome == 'success' && steps.build.outcome == 'success' }}
+        run: pnpm publish dist/packages/sanity --access public --registry https://registry.npmjs.org --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
           NPM_CONFIG_PROVENANCE: true

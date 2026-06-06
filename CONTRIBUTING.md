@@ -16,7 +16,7 @@ We're excited that you're interested in contributing to Limitless Angular! This 
 To run the Sanity example app:
 
 ```shell
-npx nx run sanity-example:serve
+pnpm --filter sanity-example serve
 ```
 
 ## Submitting Pull Requests

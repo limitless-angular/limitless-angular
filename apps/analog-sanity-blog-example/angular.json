@@ -1,0 +1,51 @@
+{
+  "$schema": "../../node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "analog-sanity-blog-example": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@analogjs/platform:vite",
+          "options": {
+            "main": "src/main.ts",
+            "configFile": "vite.config.ts",
+            "outputPath": "../../dist/apps/analog-sanity-blog-example/client",
+            "tsConfig": "tsconfig.app.json"
+          },
+          "configurations": {
+            "development": {
+              "mode": "development"
+            },
+            "production": {
+              "sourcemap": false,
+              "mode": "production"
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@analogjs/platform:vite-dev-server",
+          "options": {
+            "buildTarget": "analog-sanity-blog-example:build",
+            "port": 4200
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "analog-sanity-blog-example:build:production"
+            },
+            "development": {
+              "buildTarget": "analog-sanity-blog-example:build:development",
+              "hmr": true
+            }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
+    }
+  }
+}

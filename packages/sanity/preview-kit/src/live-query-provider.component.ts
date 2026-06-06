@@ -6,7 +6,6 @@ import {
   inject,
   input,
 } from '@angular/core';
-// eslint-disable-next-line @nx/enforce-module-boundaries
 import { UseDocumentsInUseService } from '@limitless-angular/sanity/preview-kit-compat';
 
 import { LivePreviewService } from './live-preview.service';

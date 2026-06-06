@@ -1,5 +1,3 @@
-import type { ArbitraryTypedObject } from '@portabletext/types';
-
 // A complex real-world example with multiple block types, nested lists,
 // custom marks, and inline objects
 export const complexArticle = {

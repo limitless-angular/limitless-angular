@@ -2,6 +2,11 @@
   "name": "@limitless-angular/sanity",
   "version": "19.2.0",
   "description": "A powerful Angular library for Sanity.io integration, featuring Portable Text rendering and optimized image loading.",
+  "scripts": {
+    "build": "pnpm --dir ../.. exec ng-packagr -p packages/sanity/ng-package.json -c packages/sanity/tsconfig.lib.prod.json",
+    "lint": "eslint .",
+    "test": "vitest run --config vitest.config.mts"
+  },
   "author": "Alfonso Andrés López Molina <osnoser3@gmail.com>",
   "license": "MIT",
   "repository": {
@@ -45,7 +50,8 @@
     "mendoza": "^3.0.7"
   },
   "devDependencies": {
-    "@types/lodash-es": "^4.17.12"
+    "@types/lodash-es": "^4.17.12",
+    "vite-tsconfig-paths": "^4.2.0"
   },
   "sideEffects": false,
   "type": "module",
