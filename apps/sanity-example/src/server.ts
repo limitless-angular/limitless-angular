@@ -1,11 +1,21 @@
 import { APP_BASE_HREF } from '@angular/common';
 import { CommonEngine, isMainModule } from '@angular/ssr/node';
-import express, { type Request, type Response } from 'express';
+import { render } from '@netlify/angular-runtime/common-engine.js';
+import express, {
+  type Request as ExpressRequest,
+  type Response as ExpressResponse,
+} from 'express';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import bootstrap from './main.server';
 import { REQUEST, RESPONSE } from './server.tokens';
+
+const netlifyCommonEngine = new CommonEngine();
+
+export async function netlifyCommonEngineHandler(): Promise<globalThis.Response> {
+  return await render(netlifyCommonEngine);
+}
 
 export function app(): express.Express {
   const server = express();
@@ -24,7 +34,7 @@ export function app(): express.Express {
     }),
   );
 
-  server.get('**', (req: Request, res: Response, next) => {
+  server.get('**', (req: ExpressRequest, res: ExpressResponse, next) => {
     const { protocol, originalUrl, baseUrl, headers } = req;
 
     commonEngine
