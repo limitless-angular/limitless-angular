@@ -14,16 +14,16 @@ jobs:
   autofix:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Configure Turbo affected base
         run: echo "TURBO_SCM_BASE=origin/${GITHUB_BASE_REF}" >> "$GITHUB_ENV"
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: 'pnpm'
@@ -55,4 +55,4 @@ jobs:
       - run: pnpm turbo run lint --affected -- --fix
       - run: pnpm format:write
 
-      - uses: autofix-ci/action@551dded8c6cc8a1054039c8bc0b8b48c51dfc6ef
+      - uses: autofix-ci/action@v1.3.4
