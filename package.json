@@ -7,6 +7,11 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "test": "turbo run test",
+    "compat": "node tools/angular-compat/run.mjs",
+    "compat:assert": "node tools/angular-compat/assert-peer-matrix.mjs",
+    "compat:matrix": "node tools/angular-compat/print-consumer-majors.mjs",
+    "compat:pack": "node tools/angular-compat/pack.mjs",
+    "compat:test": "node tools/angular-compat/test-consumer.mjs",
     "format:write": "prettier --write .",
     "release": "node tools/scripts/release.ts"
   },

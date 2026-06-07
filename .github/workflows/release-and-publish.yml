@@ -108,43 +108,48 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Only proceed with building if release was successful
-      - name: Build sanity project
+      - name: Pack sanity project
         id: build
         if: steps.release.outcome == 'success'
-        run: pnpm turbo run build --filter=@limitless-angular/sanity
+        run: pnpm run compat:pack
+
+      - name: Test packed artifact compatibility
+        if: steps.build.outcome == 'success'
+        run: pnpm run compat:test
 
       # Validate build artifacts
       - name: Validate build artifacts
         if: steps.build.outcome == 'success'
         run: |
-          # Validate that the output directory exists
-          if [ ! -d "dist/packages/sanity" ]; then
-            echo "::error::Build artifacts not found at dist/packages/sanity"
+          TARBALL_COUNT=$(find .compat/artifacts -maxdepth 1 -name '*.tgz' | wc -l | tr -d ' ')
+          if [ "$TARBALL_COUNT" != "1" ]; then
+            echo "::error::Expected one packed artifact in .compat/artifacts, found $TARBALL_COUNT"
             exit 1
           fi
 
-          # Validate package.json version matches the released version
-          if [ -f "dist/packages/sanity/package.json" ]; then
-            ARTIFACT_VERSION=$(jq -r '.version' dist/packages/sanity/package.json)
-            echo "Built package version: $ARTIFACT_VERSION"
-            echo "Expected version from release step: ${{ env.RELEASED_VERSION }}"
-            
-            if [ "$ARTIFACT_VERSION" != "${{ env.RELEASED_VERSION }}" ]; then
-              echo "::error::Version mismatch! Package.json version ($ARTIFACT_VERSION) doesn't match the released version (${{ env.RELEASED_VERSION }})"
-              exit 1
-            fi
-          else
-            echo "::error::package.json not found in build artifacts"
+          TARBALL=$(find .compat/artifacts -maxdepth 1 -name '*.tgz' | head -n 1)
+          echo "TARBALL=$TARBALL" >> "$GITHUB_ENV"
+          ARTIFACT_VERSION=$(tar -xOf "$TARBALL" package/package.json | jq -r '.version')
+          EXPECTED_VERSION="${{ env.RELEASED_VERSION }}"
+          if [ "${{ inputs.dryRun }}" = "true" ]; then
+            EXPECTED_VERSION=$(jq -r '.version' packages/sanity/package.json)
+          fi
+
+          echo "Packed package version: $ARTIFACT_VERSION"
+          echo "Expected package version: $EXPECTED_VERSION"
+
+          if [ "$ARTIFACT_VERSION" != "$EXPECTED_VERSION" ]; then
+            echo "::error::Version mismatch! Package version ($ARTIFACT_VERSION) doesn't match expected version ($EXPECTED_VERSION)"
             exit 1
           fi
 
-          echo "Build artifacts validated successfully"
+          echo "Packed artifact validated successfully"
 
       # Publish packages to npm if all previous steps succeeded and not a dry run
       - name: Publish packages to npm
         id: publish
         if: ${{ !inputs.dryRun && steps.release.outcome == 'success' && steps.build.outcome == 'success' }}
-        run: pnpm publish dist/packages/sanity --access public --registry https://registry.npmjs.org --no-git-checks
+        run: npm publish "$TARBALL" --access public --registry https://registry.npmjs.org
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
           NPM_CONFIG_PROVENANCE: true

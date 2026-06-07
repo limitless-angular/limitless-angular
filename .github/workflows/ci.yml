@@ -49,6 +49,62 @@ jobs:
 
       - run: pnpm turbo run build test --affected
 
+  sanity-compat-pack:
+    runs-on: ubuntu-latest
+    outputs:
+      angular_majors: ${{ steps.compat-matrix.outputs.angular_majors }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: 'pnpm'
+
+      - run: pnpm install
+
+      - run: pnpm run compat:assert
+
+      - name: Resolve Angular consumer matrix
+        id: compat-matrix
+        run: echo "angular_majors=$(pnpm run --silent compat:matrix)" >> "$GITHUB_OUTPUT"
+
+      - run: pnpm run compat:pack
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sanity-compat-package
+          path: .compat/artifacts/*.tgz
+          if-no-files-found: error
+
+  sanity-compat-consumer:
+    needs: sanity-compat-pack
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        angular: ${{ fromJson(needs.sanity-compat-pack.outputs.angular_majors) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: 'pnpm'
+
+      - run: pnpm install
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: sanity-compat-package
+          path: .compat/artifacts
+
+      - run: pnpm run compat:test -- --angular ${{ matrix.angular }}
+
   presentation-e2e:
     runs-on: ubuntu-22.04
     steps:

@@ -1,0 +1,23 @@
+{
+  "packageName": "@limitless-angular/sanity",
+  "packageRoot": "packages/sanity",
+  "artifactDir": ".compat/artifacts",
+  "buildAngularMajor": 19,
+  "consumerAngularMajors": [18, 19],
+  "angularPeerDependencies": [
+    "@angular/common",
+    "@angular/core",
+    "@angular/router"
+  ],
+  "allowBuilds": ["nice-napi"],
+  "entrypoints": [
+    "@limitless-angular/sanity",
+    "@limitless-angular/sanity/shared",
+    "@limitless-angular/sanity/image-loader",
+    "@limitless-angular/sanity/portabletext",
+    "@limitless-angular/sanity/preview-kit",
+    "@limitless-angular/sanity/preview-kit-compat",
+    "@limitless-angular/sanity/visual-editing",
+    "@limitless-angular/sanity/visual-editing-helpers"
+  ]
+}
