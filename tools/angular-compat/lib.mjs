@@ -196,17 +196,6 @@ export function assertCompatibilityConfig() {
       consumerVersionSets.map((versionSet) => versionSet.angularMajor),
     ),
   ].sort((a, b) => a - b);
-  const legacyConfiguredMajors = [...config.consumerAngularMajors].sort(
-    (a, b) => a - b,
-  );
-
-  if (
-    JSON.stringify(legacyConfiguredMajors) !== JSON.stringify(configuredMajors)
-  ) {
-    throw new Error(
-      `consumerAngularMajors ${JSON.stringify(legacyConfiguredMajors)} does not match consumerVersionSets majors ${JSON.stringify(configuredMajors)}`,
-    );
-  }
 
   if (JSON.stringify(declaredMajors) !== JSON.stringify(configuredMajors)) {
     throw new Error(
@@ -224,7 +213,6 @@ export function assertCompatibilityConfig() {
   return {
     packageJson,
     angularPeerRange: canonicalRange,
-    consumerAngularMajors: configuredMajors,
     consumerVersionSets,
     canaryVersionSets,
     buildAngularMajor: config.buildAngularMajor,
@@ -232,17 +220,13 @@ export function assertCompatibilityConfig() {
 }
 
 export function getStableConsumerVersionSets() {
-  if (Array.isArray(config.consumerVersionSets)) {
-    return config.consumerVersionSets.map(normalizeVersionSet);
+  if (!Array.isArray(config.consumerVersionSets)) {
+    throw new Error(
+      'tools/angular-compat/config.json must define consumerVersionSets',
+    );
   }
 
-  return config.consumerAngularMajors.map((angularMajor) =>
-    normalizeVersionSet({
-      id: `angular-${angularMajor}-latest`,
-      angularMajor,
-      mode: 'latest',
-    }),
-  );
+  return config.consumerVersionSets.map(normalizeVersionSet);
 }
 
 export function getCanaryVersionSets() {

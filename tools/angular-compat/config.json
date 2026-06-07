@@ -3,7 +3,6 @@
   "packageRoot": "packages/sanity",
   "artifactDir": ".compat/artifacts",
   "buildAngularMajor": 19,
-  "consumerAngularMajors": [18, 19],
   "consumerVersionSets": [
     {
       "id": "angular-18-floor",
