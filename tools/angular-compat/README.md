@@ -55,6 +55,11 @@ stdout as JSON. Playwright browser installation is also direct package setup,
 not a Turbo task. The compatibility behavior lives in reusable functions in the
 other `.mjs` files.
 
+The package unit tests include an orchestration contract test that protects
+these routing decisions without running the slow pack or generated-consumer
+checks. Run them with
+`pnpm turbo run test --filter=@limitless-angular/angular-compat`.
+
 ## Version Sets
 
 `tools/angular-compat/config.json` is the source of truth.
