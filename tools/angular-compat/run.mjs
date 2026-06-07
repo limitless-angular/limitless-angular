@@ -1,6 +1,11 @@
-import { run } from './lib.mjs';
+import { assertArtifact } from './assert-artifact.mjs';
+import { assertPeerMatrix } from './assert-peer-matrix.mjs';
+import { packCompatibilityArtifact } from './pack.mjs';
+import { testConsumers } from './test-consumer.mjs';
 
-run('node', ['tools/angular-compat/assert-peer-matrix.mjs']);
-run('node', ['tools/angular-compat/pack.mjs']);
-run('node', ['tools/angular-compat/assert-artifact.mjs']);
-run('node', ['tools/angular-compat/test-consumer.mjs']);
+export function runCompatibilityPipeline() {
+  assertPeerMatrix();
+  packCompatibilityArtifact();
+  assertArtifact();
+  testConsumers();
+}

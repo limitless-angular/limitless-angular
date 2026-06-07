@@ -18,18 +18,19 @@ import {
   workspaceRoot,
 } from './lib.mjs';
 
-const options = parseArgs(process.argv.slice(2));
-const result = assertCompatibilityConfig();
-const versionSets = resolveRequestedVersionSets(options, result);
-const tarball = resolveTarball(options.tarball);
+export function testConsumers(options = {}) {
+  const result = assertCompatibilityConfig();
+  const versionSets = resolveRequestedVersionSets(options, result);
+  const tarball = resolveTarball(options.tarball);
 
-assertTarballIntegrity(tarball);
+  assertTarballIntegrity(tarball);
 
-for (const versionSet of versionSets) {
-  testConsumer(versionSet, tarball);
+  for (const versionSet of versionSets) {
+    testConsumer(versionSet, tarball, options);
+  }
 }
 
-function testConsumer(versionSet, tarballPath) {
+function testConsumer(versionSet, tarballPath, options) {
   const packageJson = readPackageJson();
   const toolchain = resolveAngularToolchain(versionSet, { includeCli: true });
   const workspace = createWorkspace(
@@ -584,29 +585,4 @@ function getRuntimePort(id) {
     0,
   );
   return 4300 + (offset % 1000);
-}
-
-function parseArgs(args) {
-  const parsed = {};
-  for (let index = 0; index < args.length; index += 1) {
-    const arg = args[index];
-    if (arg === '--') {
-      continue;
-    } else if (arg === '--angular') {
-      parsed.angular = args[index + 1];
-      index += 1;
-    } else if (arg === '--tarball') {
-      parsed.tarball = args[index + 1];
-      index += 1;
-    } else if (arg === '--set') {
-      parsed.set = args[index + 1];
-      index += 1;
-    } else if (arg === '--skip-runtime') {
-      parsed.skipRuntime = true;
-    } else {
-      throw new Error(`Unknown argument ${arg}`);
-    }
-  }
-
-  return parsed;
 }
