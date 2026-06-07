@@ -22,6 +22,10 @@
     "release": "node tools/scripts/release.ts"
   },
   "packageManager": "pnpm@11.5.2",
+  "volta": {
+    "node": "22.22.3",
+    "pnpm": "11.5.2"
+  },
   "engines": {
     "node": ">=22.22.3",
     "pnpm": ">=11.5.2"
