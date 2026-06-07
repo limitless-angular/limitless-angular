@@ -10,6 +10,8 @@
     "compat": "node tools/angular-compat/cli.mjs run",
     "compat:assert": "node tools/angular-compat/cli.mjs assert",
     "compat:artifact": "node tools/angular-compat/cli.mjs artifact",
+    "compat:canary-report": "node tools/angular-compat/cli.mjs canary-report",
+    "compat:canary-status": "node tools/angular-compat/cli.mjs canary-status",
     "compat:matrix": "node tools/angular-compat/cli.mjs matrix",
     "compat:pack": "node tools/angular-compat/cli.mjs pack",
     "compat:release-parity": "node tools/angular-compat/cli.mjs release-parity",

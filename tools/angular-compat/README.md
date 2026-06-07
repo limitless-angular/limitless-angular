@@ -35,6 +35,7 @@ pnpm run compat:artifact
 pnpm run compat:test
 pnpm run compat:test --set angular-18-floor
 pnpm run compat:test --set angular-19-latest --skip-runtime
+pnpm run compat:canary-report --status-dir .compat/canary-status
 pnpm run compat:release-parity
 ```
 
@@ -96,7 +97,13 @@ tarball into them. Each generated app:
 - fails on browser page errors or console errors
 
 CI runs stable consumers as required jobs and `angular-next` as an advisory
-canary job.
+canary job. Stable consumer failures block the PR. Canary failures keep the CI
+run green, emit GitHub warnings, and publish a single managed PR comment so
+reviewers can see future-version drift without opening the Actions log. When
+all canary rows pass again, CI removes the managed comment. The report
+formatting and sticky-comment behavior live in
+`tools/angular-compat/canary-report.mjs`; the workflow only downloads the
+status artifacts and calls that reporter.
 
 ## Adding Angular Version Support
 

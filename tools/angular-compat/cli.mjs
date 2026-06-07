@@ -6,6 +6,8 @@ import { hideBin } from 'yargs/helpers';
 import { assertArtifact } from './assert-artifact.mjs';
 import { assertPeerMatrix } from './assert-peer-matrix.mjs';
 import { assertReleaseParity } from './assert-release-parity.mjs';
+import { printCanaryReport } from './canary-report.mjs';
+import { writeCanaryStatus } from './canary-status.mjs';
 import { packCompatibilityArtifact } from './pack.mjs';
 import { printConsumerMatrix } from './print-consumer-majors.mjs';
 import { runCompatibilityPipeline } from './run.mjs';
@@ -25,6 +27,75 @@ export function runCli(args = hideBin(process.argv)) {
       'Validate the packed compatibility tarball shape.',
       (command) => addTarballOption(command),
       (argv) => assertArtifact(toOptions(argv)),
+    )
+    .command(
+      'canary-status',
+      'Write an advisory Angular canary status JSON file.',
+      (command) =>
+        command
+          .option('version-set-json', {
+            describe: 'JSON representation of the canary version set.',
+            type: 'string',
+            demandOption: true,
+          })
+          .option('exit-code', {
+            describe: 'Exit code from the canary compatibility command.',
+            type: 'number',
+            demandOption: true,
+          })
+          .option('log', {
+            describe: 'Path to the captured canary compatibility log.',
+            type: 'string',
+            demandOption: true,
+          })
+          .option('out', {
+            describe: 'Path where the canary status JSON should be written.',
+            type: 'string',
+            demandOption: true,
+          }),
+      (argv) =>
+        writeCanaryStatus({
+          exitCode: argv.exitCode,
+          logPath: argv.log,
+          outPath: argv.out,
+          versionSetJson: argv.versionSetJson,
+        }),
+    )
+    .command(
+      'canary-report',
+      'Render the advisory Angular canary report from status artifacts.',
+      (command) =>
+        command
+          .option('status-dir', {
+            describe: 'Directory containing canary status JSON artifacts.',
+            type: 'string',
+            default: '.compat/canary-status',
+          })
+          .option('download-outcome', {
+            describe: 'Outcome from the artifact download step.',
+            type: 'string',
+            default: 'success',
+          })
+          .option('run-url', {
+            describe: 'Workflow run URL to include in the rendered report.',
+            type: 'string',
+          })
+          .option('workflow-name', {
+            describe: 'Workflow name to include in the rendered report.',
+            type: 'string',
+          })
+          .option('run-number', {
+            describe: 'Workflow run number to include in the rendered report.',
+            type: 'number',
+          }),
+      (argv) =>
+        printCanaryReport({
+          downloadOutcome: argv.downloadOutcome,
+          runNumber: argv.runNumber,
+          runUrl: argv.runUrl,
+          statusDir: argv.statusDir,
+          workflowName: argv.workflowName,
+        }),
     )
     .command(
       'matrix',
