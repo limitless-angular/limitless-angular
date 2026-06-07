@@ -1,0 +1,7 @@
+[build]
+  base = "apps/sanity-example"
+  command = "pnpm turbo run build --filter=sanity-example"
+  publish = "dist/sanity-example/browser"
+
+[[plugins]]
+  package = "@netlify/angular-runtime"
