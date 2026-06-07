@@ -56,9 +56,19 @@ function getNoopImageLoader() {
 })
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class SanityImage extends NgOptimizedImage implements OnInit, OnChanges {
+  private _loaderParams: LoaderParams = {};
+
   sanityImage = input.required<SanityImageSource>();
 
-  @Input() override loaderParams: LoaderParams = {};
+  @Input()
+  // @ts-expect-error we want to add some internal properties to loaderParams input
+  override set loaderParams(loaderParams: LoaderParams) {
+    this._loaderParams = loaderParams;
+  }
+
+  override get loaderParams(): LoaderParams {
+    return this._loaderParams;
+  }
 
   @Input() override ngSrc!: string;
 
@@ -68,7 +78,7 @@ export class SanityImage extends NgOptimizedImage implements OnInit, OnChanges {
     const url = new URL(
       imageUrlBuilder(this.sanityConfig)
         .image(this.sanityImage())
-        .withOptions(this.loaderParams)
+        .withOptions(this._loaderParams)
         .url(),
     );
     if (this.width) {
