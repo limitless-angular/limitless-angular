@@ -3,7 +3,10 @@ import { IMAGE_LOADER, ImageLoaderConfig } from '@angular/common';
 
 import imageUrlBuilder from '@sanity/image-url';
 
-import { SANITY_CONFIG, SanityConfig } from '@limitless-angular/sanity/shared';
+import {
+  SANITY_CONFIG,
+  type SanityConfig,
+} from '@limitless-angular/sanity/shared';
 
 export function sanityImageLoader(config?: SanityConfig | null) {
   return (loaderConfig: ImageLoaderConfig) => {
@@ -60,7 +63,7 @@ export function provideSanityLoader(config?: SanityConfig): Provider {
     {
       provide: IMAGE_LOADER,
       useFactory: () => {
-        const config = inject(SANITY_CONFIG, { optional: true });
+        const config = inject<SanityConfig>(SANITY_CONFIG, { optional: true });
         return sanityImageLoader(config);
       },
     },

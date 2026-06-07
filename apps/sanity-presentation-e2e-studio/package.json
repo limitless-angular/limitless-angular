@@ -5,7 +5,7 @@
   "scripts": {
     "build": "rm -rf ../../dist/apps/sanity-presentation-e2e-studio && sanity build --yes ../../dist/apps/sanity-presentation-e2e-studio",
     "lint": "eslint .",
-    "serve": "sanity dev --host 0.0.0.0 --port 3333"
+    "serve": "sanity dev --host 0.0.0.0"
   },
   "dependencies": {
     "@sanity/client": "^6.21.1",
@@ -15,6 +15,7 @@
     "styled-components": "6.1.13"
   },
   "devDependencies": {
+    "eslint": "^9.8.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1"
   }

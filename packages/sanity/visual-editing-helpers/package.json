@@ -12,5 +12,12 @@
     "@sanity/comlink": "^1.1.2",
     "@sanity/visual-editing": "^2.7.0",
     "@sanity/types": "^3.64.1"
+  },
+  "devDependencies": {
+    "@sanity/client": "^6.21.3",
+    "@sanity/comlink": "^1.1.2",
+    "@sanity/types": "^3.64.1",
+    "@sanity/visual-editing": "^2.7.0",
+    "eslint": "^9.8.0"
   }
 }

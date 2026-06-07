@@ -21,7 +21,10 @@ import type {
 } from '@sanity/image-url/lib/types/types';
 import imageUrlBuilder from '@sanity/image-url';
 
-import { SANITY_CONFIG } from '@limitless-angular/sanity/shared';
+import {
+  SANITY_CONFIG,
+  type SanityConfig,
+} from '@limitless-angular/sanity/shared';
 import { sanityImageLoader } from './loader';
 
 type LoaderParams = Omit<ImageUrlBuilderOptions, 'quality'>;
@@ -41,7 +44,7 @@ function getNoopImageLoader() {
     {
       provide: IMAGE_LOADER,
       useFactory: () => {
-        const config = inject(SANITY_CONFIG);
+        const config = inject<SanityConfig>(SANITY_CONFIG);
         const imageLoader = inject(IMAGE_LOADER, { skipSelf: true });
         const noopImageLoader = getNoopImageLoader();
         return imageLoader !== noopImageLoader
@@ -94,7 +97,7 @@ export class SanityImage extends NgOptimizedImage implements OnInit, OnChanges {
     return url.toString();
   });
 
-  private sanityConfig = inject(SANITY_CONFIG);
+  private sanityConfig = inject<SanityConfig>(SANITY_CONFIG);
 
   override ngOnInit() {
     this.ngSrc = this.imageUrl();

@@ -37,7 +37,10 @@ import {
 } from '@sanity/client';
 import { RevalidateService } from './revalidate.service';
 import { UseDocumentsInUseService } from '@limitless-angular/sanity/preview-kit-compat';
-import { SANITY_CLIENT_FACTORY } from '@limitless-angular/sanity/shared';
+import {
+  SANITY_CLIENT_FACTORY,
+  type SanityClientFactory,
+} from '@limitless-angular/sanity/shared';
 
 const DEFAULT_TAG = 'sanity.preview-kit';
 
@@ -69,7 +72,7 @@ function getStableQueryParams(
 @Injectable()
 export class LivePreviewService {
   private client!: SanityClient;
-  private clientFactory = inject(SANITY_CLIENT_FACTORY);
+  private clientFactory = inject<SanityClientFactory>(SANITY_CLIENT_FACTORY);
   private destroyRef = inject(DestroyRef);
   private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private refreshInterval = inject(LIVE_PREVIEW_REFRESH_INTERVAL);

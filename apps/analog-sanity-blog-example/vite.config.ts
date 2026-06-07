@@ -25,7 +25,17 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       analog({
+        workspaceRoot: resolve(configDir, '../..'),
         nitro: {
+          rootDir: configDir,
+          srcDir: resolve(configDir, 'src/server'),
+          scanDirs: [resolve(configDir, 'src/server')],
+          alias: {
+            '@/analog-sanity-blog-example/sanity': resolve(
+              configDir,
+              'src/sanity/lib/index.ts',
+            ),
+          },
           static: false,
           routeRules: {
             '/': { prerender: false, isr: 60 },
