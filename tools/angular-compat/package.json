@@ -1,0 +1,26 @@
+{
+  "name": "@limitless-angular/angular-compat",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "compat:affected": "node cli.mjs affected",
+    "compat:artifact": "node cli.mjs artifact",
+    "compat:assert": "node cli.mjs assert",
+    "compat:canary-report": "node cli.mjs canary-report",
+    "compat:canary-status": "node cli.mjs canary-status",
+    "compat:matrix": "node cli.mjs matrix",
+    "compat:pack": "node cli.mjs pack",
+    "compat:pipeline": "node cli.mjs run",
+    "compat:release-parity": "node cli.mjs release-parity",
+    "compat:test": "node cli.mjs test",
+    "test": "node --test *.test.mjs"
+  },
+  "dependencies": {
+    "semver": "^7.8.2",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.44.1"
+  }
+}

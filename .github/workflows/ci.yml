@@ -49,6 +49,218 @@ jobs:
 
       - run: pnpm turbo run build test --affected
 
+  sanity-compat-eligibility:
+    runs-on: ubuntu-latest
+    outputs:
+      reason: ${{ steps.sanity-compat-eligibility.outputs.reason }}
+      run: ${{ steps.sanity-compat-eligibility.outputs.run }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: 'pnpm'
+
+      - run: pnpm install
+
+      - run: pnpm turbo run test --filter=@limitless-angular/angular-compat
+
+      - name: Check affected Sanity compatibility
+        id: sanity-compat-eligibility
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            pnpm turbo run compat:affected --filter=@limitless-angular/angular-compat -- --force --github-output "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base_ref="${{ github.event.pull_request.base.sha }}"
+          else
+            base_ref="${{ github.event.before }}"
+          fi
+
+          pnpm turbo run compat:affected --filter=@limitless-angular/angular-compat -- --base-ref "$base_ref" --github-output "$GITHUB_OUTPUT"
+
+  sanity-compat-pack:
+    needs: sanity-compat-eligibility
+    if: needs.sanity-compat-eligibility.outputs.run == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      version_sets: ${{ steps.compat-matrix.outputs.version_sets }}
+      canary_version_sets: ${{ steps.compat-canary-matrix.outputs.canary_version_sets }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: 'pnpm'
+
+      - run: pnpm install
+
+      - run: pnpm turbo run compat:assert --filter=@limitless-angular/angular-compat
+
+      - run: pnpm turbo run compat:release-parity --filter=@limitless-angular/angular-compat
+
+      - name: Resolve Angular consumer matrix
+        id: compat-matrix
+        run: echo "version_sets=$(pnpm --filter=@limitless-angular/angular-compat run --silent compat:matrix)" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve Angular canary matrix
+        id: compat-canary-matrix
+        run: echo "canary_version_sets=$(pnpm --filter=@limitless-angular/angular-compat run --silent compat:matrix --canary)" >> "$GITHUB_OUTPUT"
+
+      - run: pnpm turbo run compat:pack --filter=@limitless-angular/angular-compat
+
+      - run: pnpm turbo run compat:artifact --filter=@limitless-angular/angular-compat
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sanity-compat-package
+          path: .compat/artifacts/*.tgz
+          if-no-files-found: error
+
+  sanity-compat-consumer:
+    needs: sanity-compat-pack
+    if: needs.sanity-compat-pack.result == 'success'
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        version_set: ${{ fromJson(needs.sanity-compat-pack.outputs.version_sets) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: 'pnpm'
+
+      - run: pnpm install
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: sanity-compat-package
+          path: .compat/artifacts
+
+      - run: pnpm --dir tools/angular-compat exec playwright install --with-deps chromium
+
+      - run: pnpm turbo run compat:test --filter=@limitless-angular/angular-compat -- --set ${{ matrix.version_set.id }}
+
+  sanity-compat-canary:
+    needs: sanity-compat-pack
+    if: needs.sanity-compat-pack.result == 'success'
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        version_set: ${{ fromJson(needs.sanity-compat-pack.outputs.canary_version_sets) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: 'pnpm'
+
+      - run: pnpm install
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: sanity-compat-package
+          path: .compat/artifacts
+
+      - run: pnpm --dir tools/angular-compat exec playwright install --with-deps chromium
+
+      - name: Test Angular canary compatibility
+        id: canary
+        shell: bash
+        env:
+          VERSION_SET_JSON: ${{ toJson(matrix.version_set) }}
+        run: |
+          mkdir -p .compat/canary
+          log_path=".compat/canary/${{ matrix.version_set.id }}.log"
+          metadata_path=".compat/canary/${{ matrix.version_set.id }}-metadata.json"
+          status_path=".compat/canary/${{ matrix.version_set.id }}.json"
+
+          set +e
+          pnpm turbo run compat:test --filter=@limitless-angular/angular-compat -- --set "${{ matrix.version_set.id }}" --metadata-out "$metadata_path" 2>&1 | tee "$log_path"
+          status=${PIPESTATUS[0]}
+          set -e
+
+          pnpm turbo run compat:canary-status --filter=@limitless-angular/angular-compat -- \
+            --version-set-json "$VERSION_SET_JSON" \
+            --exit-code "$status" \
+            --log "$log_path" \
+            --metadata "$metadata_path" \
+            --out "$status_path"
+
+          if [ "$status" -eq 0 ]; then
+            echo "status=passed" >> "$GITHUB_OUTPUT"
+          else
+            echo "status=failed" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always() && steps.canary.outputs.status != ''
+        with:
+          name: angular-canary-status-${{ matrix.version_set.id }}
+          path: |
+            .compat/canary/${{ matrix.version_set.id }}.json
+            .compat/canary/${{ matrix.version_set.id }}.log
+          if-no-files-found: error
+
+  sanity-compat-canary-report:
+    needs: sanity-compat-canary
+    if: always() && github.event_name == 'pull_request' && needs.sanity-compat-canary.result != 'skipped'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        id: download-canary-status
+        continue-on-error: true
+        with:
+          pattern: angular-canary-status-*
+          path: .compat/canary-status
+          merge-multiple: true
+
+      - name: Publish Angular canary advisory
+        uses: actions/github-script@v7
+        env:
+          STATUS_DIR: .compat/canary-status
+          DOWNLOAD_OUTCOME: ${{ steps.download-canary-status.outcome }}
+        with:
+          script: |
+            const { publishCanaryReportForGitHubScript } = await import(
+              `${process.cwd()}/tools/angular-compat/canary-report.mjs`,
+            );
+
+            await publishCanaryReportForGitHubScript({
+              context,
+              core,
+              downloadOutcome: process.env.DOWNLOAD_OUTCOME,
+              github,
+              statusDir: process.env.STATUS_DIR,
+            });
+
   presentation-e2e:
     runs-on: ubuntu-22.04
     steps:
