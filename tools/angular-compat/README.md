@@ -29,6 +29,7 @@ Run individual steps:
 ```bash
 pnpm run compat:affected --base-ref origin/main
 pnpm run compat:affected:test
+pnpm turbo run test --filter=@limitless-angular/angular-compat
 pnpm run compat:assert
 pnpm run compat:matrix
 pnpm run compat:matrix --canary
@@ -41,9 +42,13 @@ pnpm run compat:canary-report --status-dir .compat/canary-status
 pnpm run compat:release-parity
 ```
 
-All commands are routed through `tools/angular-compat/cli.mjs`. The CLI owns
-argument parsing. The compatibility behavior lives in reusable functions in the
-other `.mjs` files.
+The compatibility tooling is a private workspace package named
+`@limitless-angular/angular-compat`, so Turbo can run its package-level unit
+tests with `pnpm turbo run test --filter=@limitless-angular/angular-compat`.
+Root `compat:*` scripts delegate into that package, and the package commands are
+routed through `tools/angular-compat/cli.mjs`. The CLI owns argument parsing.
+The compatibility behavior lives in reusable functions in the other `.mjs`
+files.
 
 ## Version Sets
 

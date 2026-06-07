@@ -68,7 +68,7 @@ jobs:
 
       - run: pnpm install
 
-      - run: pnpm run compat:affected:test
+      - run: pnpm turbo run test --filter=@limitless-angular/angular-compat
 
       - name: Check affected Sanity compatibility
         id: sanity-compat-eligibility
