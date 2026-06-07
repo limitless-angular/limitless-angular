@@ -178,7 +178,6 @@ function writeConsumerProject(
   writeJson(join(workspace, 'tsconfig.json'), {
     compileOnSave: false,
     compilerOptions: {
-      baseUrl: './',
       forceConsistentCasingInFileNames: true,
       importHelpers: true,
       lib: ['esnext', 'dom'],
