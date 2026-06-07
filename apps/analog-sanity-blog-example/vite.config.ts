@@ -15,21 +15,13 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-    root: configDir,
-    cacheDir: `../../node_modules/.vite`,
-
     build: {
-      outDir: '../../dist/apps/analog-sanity-blog-example/client',
-      reportCompressedSize: true,
+      outDir: 'dist/client',
       target: ['es2022'],
     },
     plugins: [
       analog({
-        workspaceRoot: resolve(configDir, '../..'),
         nitro: {
-          rootDir: configDir,
-          srcDir: resolve(configDir, 'src/server'),
-          scanDirs: [resolve(configDir, 'src/server')],
           alias: {
             '@/analog-sanity-blog-example/sanity': resolve(
               configDir,
