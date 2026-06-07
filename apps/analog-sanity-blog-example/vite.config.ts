@@ -1,9 +1,8 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import analog from '@analogjs/platform';
-import { defineConfig, loadEnv, splitVendorChunkPlugin } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import webfontDownload from 'vite-plugin-webfont-dl';
-import tsconfigPaths from 'vite-tsconfig-paths';
 import { typescriptPaths } from 'rollup-plugin-typescript-paths';
 
 const configDir = dirname(fileURLToPath(import.meta.url));
@@ -18,6 +17,9 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist/client',
       target: ['es2022'],
+    },
+    resolve: {
+      tsconfigPaths: true,
     },
     plugins: [
       analog({
@@ -48,10 +50,6 @@ export default defineConfig(({ mode }) => {
         },
         useAPIMiddleware: false,
       }),
-      tsconfigPaths({
-        projects: [resolve(configDir, '../../tsconfig.base.json')],
-      }),
-      splitVendorChunkPlugin(),
       webfontDownload(),
     ],
   };
