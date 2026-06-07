@@ -103,7 +103,7 @@ jobs:
           name: sanity-compat-package
           path: .compat/artifacts
 
-      - run: pnpm run compat:test -- --angular ${{ matrix.angular }}
+      - run: pnpm run compat:test --angular ${{ matrix.angular }}
 
   presentation-e2e:
     runs-on: ubuntu-22.04
