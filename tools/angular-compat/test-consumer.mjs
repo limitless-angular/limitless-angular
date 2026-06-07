@@ -597,9 +597,7 @@ function resolveRequestedVersionSets(options, result) {
 }
 
 function readPlaywrightVersion() {
-  const packageJson = readJson(
-    join(workspaceRoot, 'apps/sanity-presentation-e2e/package.json'),
-  );
+  const packageJson = readJson(new URL('./package.json', import.meta.url));
   return packageJson.devDependencies['@playwright/test'];
 }
 

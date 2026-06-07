@@ -1,25 +1,19 @@
 import { appendFileSync } from 'node:fs';
 
-import { capture, config } from './lib.mjs';
+import { capture, config, readJson } from './lib.mjs';
 
-const compatibilityPathRules = [
+const compatibilityPackageName = readJson(
+  new URL('./package.json', import.meta.url),
+).name;
+const affectedPackageNames = [config.packageName, compatibilityPackageName];
+const compatibilityContractPathRules = [
   { path: '.github/workflows/ci.yml', reason: 'CI workflow changed' },
   {
     path: '.github/workflows/release-and-publish.yml',
     reason: 'release workflow changed',
   },
   { path: '.nvmrc', reason: 'Node runtime changed' },
-  { path: 'package.json', reason: 'root package manifest changed' },
-  { path: 'pnpm-lock.yaml', reason: 'dependency lockfile changed' },
-  { path: 'pnpm-workspace.yaml', reason: 'workspace layout changed' },
-  { path: 'tsconfig.base.json', reason: 'shared TypeScript config changed' },
   { path: 'turbo.json', reason: 'Turbo pipeline changed' },
-  {
-    path: 'apps/sanity-presentation-e2e/package.json',
-    reason: 'compat Playwright dependency source changed',
-  },
-  { path: 'packages/sanity/', reason: 'Sanity package changed' },
-  { path: 'tools/angular-compat/', reason: 'compatibility harness changed' },
   { path: 'tools/scripts/release.ts', reason: 'release script changed' },
 ];
 
@@ -46,7 +40,7 @@ export function evaluateSanityCompatEligibility(options = {}) {
   if (matchedPaths.length > 0) {
     return {
       run: true,
-      reason: `Compatibility paths changed: ${matchedPaths
+      reason: `Compatibility contract paths changed: ${matchedPaths
         .map(({ file }) => file)
         .join(', ')}`,
       changedFiles,
@@ -62,7 +56,7 @@ export function evaluateSanityCompatEligibility(options = {}) {
     };
   }
 
-  const turboAffected = readTurboSanityAffected({
+  const turboAffected = readTurboCompatibilityAffected({
     baseRef,
     capture: commandRunner,
   });
@@ -77,7 +71,7 @@ export function evaluateSanityCompatEligibility(options = {}) {
   if (turboAffected.tasks.length > 0) {
     return {
       run: true,
-      reason: `Turbo reports ${config.packageName} is affected: ${turboAffected.tasks.join(', ')}`,
+      reason: `Turbo reports compatibility packages are affected: ${turboAffected.tasks.join(', ')}`,
       changedFiles,
       turboTasks: turboAffected.tasks,
     };
@@ -85,7 +79,7 @@ export function evaluateSanityCompatEligibility(options = {}) {
 
   return {
     run: false,
-    reason: `No compatibility paths changed and Turbo reports ${config.packageName} is unaffected.`,
+    reason: `No compatibility contract paths changed and Turbo reports ${affectedPackageNames.join(' and ')} are unaffected.`,
     changedFiles,
   };
 }
@@ -102,7 +96,7 @@ export function printSanityCompatEligibility(options = {}) {
   }
 
   if (result.matchedPaths?.length) {
-    console.log('Matched compatibility paths:');
+    console.log('Matched compatibility contract paths:');
     printList(
       result.matchedPaths.map(({ file, rule }) => `${file} (${rule.reason})`),
     );
@@ -130,7 +124,7 @@ function readChangedFiles({ baseRef, capture, headRef }) {
   );
 }
 
-function readTurboSanityAffected({ baseRef, capture }) {
+function readTurboCompatibilityAffected({ baseRef, capture }) {
   try {
     const output = capture(
       'pnpm',
@@ -139,7 +133,7 @@ function readTurboSanityAffected({ baseRef, capture }) {
         'run',
         'build',
         'test',
-        `--filter=${config.packageName}`,
+        ...affectedPackageNames.map((packageName) => `--filter=${packageName}`),
         '--affected',
         '--dry=json',
       ],
@@ -155,7 +149,9 @@ function readTurboSanityAffected({ baseRef, capture }) {
     }
 
     const dryRun = JSON.parse(output.slice(jsonStart));
-    const tasks = (dryRun.tasks ?? []).map((task) => task.taskId);
+    const tasks = (dryRun.tasks ?? [])
+      .filter((task) => task.command && task.command !== '<NONEXISTENT>')
+      .map((task) => task.taskId);
 
     return { tasks };
   } catch (error) {
@@ -164,7 +160,7 @@ function readTurboSanityAffected({ baseRef, capture }) {
 }
 
 function matchCompatibilityPath(file) {
-  return compatibilityPathRules.find((rule) =>
+  return compatibilityContractPathRules.find((rule) =>
     rule.path.endsWith('/') ? file.startsWith(rule.path) : file === rule.path,
   );
 }

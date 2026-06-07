@@ -104,10 +104,11 @@ tarball into them. Each generated app:
 - fails on browser page errors or console errors
 
 CI first runs `compat:affected` to decide whether the Sanity compatibility jobs
-are relevant. The jobs run when Turbo reports `@limitless-angular/sanity` is
-affected, or when compatibility-specific inputs change, such as this harness,
-the CI/release workflow contract, shared package manager inputs, or the runtime
-smoke test's Playwright dependency source. `workflow_dispatch` always runs the
+are relevant. The decision asks Turbo whether either `@limitless-angular/sanity`
+or `@limitless-angular/angular-compat` has affected package tasks. A small
+explicit contract list covers files that are outside package ownership but still
+define the compatibility workflow, such as CI/release workflows, `.nvmrc`,
+`turbo.json`, and the release script. `workflow_dispatch` always runs the
 compatibility jobs.
 
 When eligible, CI runs stable consumers as required jobs and `angular-next` as

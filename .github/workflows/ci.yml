@@ -153,7 +153,7 @@ jobs:
           name: sanity-compat-package
           path: .compat/artifacts
 
-      - run: pnpm --dir apps/sanity-presentation-e2e exec playwright install --with-deps chromium
+      - run: pnpm --dir tools/angular-compat exec playwright install --with-deps chromium
 
       - run: pnpm run compat:test --set ${{ matrix.version_set.id }}
 
@@ -182,7 +182,7 @@ jobs:
           name: sanity-compat-package
           path: .compat/artifacts
 
-      - run: pnpm --dir apps/sanity-presentation-e2e exec playwright install --with-deps chromium
+      - run: pnpm --dir tools/angular-compat exec playwright install --with-deps chromium
 
       - name: Test Angular canary compatibility
         id: canary

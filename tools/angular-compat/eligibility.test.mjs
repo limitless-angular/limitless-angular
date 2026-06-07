@@ -21,20 +21,20 @@ test('force runs compatibility checks without reading git state', () => {
   assert.equal(result.reason, 'Forced by workflow_dispatch.');
 });
 
-test('matching compatibility paths run without invoking Turbo', () => {
+test('matching compatibility contract paths run without invoking Turbo', () => {
   const { calls, capture } = createCapture();
 
   const result = evaluateSanityCompatEligibility({
     baseRef: 'base',
     capture,
-    changedFiles: ['README.md', 'packages/sanity/src/index.ts'],
+    changedFiles: ['README.md', '.github/workflows/ci.yml'],
   });
 
   assert.equal(result.run, true);
-  assert.match(result.reason, /Compatibility paths changed/);
+  assert.match(result.reason, /Compatibility contract paths changed/);
   assert.deepEqual(
     result.matchedPaths.map(({ file }) => file),
-    ['packages/sanity/src/index.ts'],
+    ['.github/workflows/ci.yml'],
   );
   assert.equal(
     calls.some(({ command }) => command === 'pnpm'),
@@ -62,17 +62,21 @@ test('unmatched files skip when Turbo reports the package is unaffected', () => 
     'build',
     'test',
     '--filter=@limitless-angular/sanity',
+    '--filter=@limitless-angular/angular-compat',
     '--affected',
     '--dry=json',
   ]);
   assert.equal(turboCall.options.env.TURBO_SCM_BASE, 'base');
 });
 
-test('unmatched files run when Turbo reports Sanity tasks are affected', () => {
+test('unmatched files run when Turbo reports compatibility tasks are affected', () => {
   const { capture } = createCapture({
     turboTasks: [
       '@limitless-angular/sanity#build',
       '@limitless-angular/sanity#test',
+      '@limitless-angular/sanity#transit',
+      '@limitless-angular/angular-compat#build',
+      '@limitless-angular/angular-compat#test',
     ],
   });
 
@@ -86,8 +90,9 @@ test('unmatched files run when Turbo reports Sanity tasks are affected', () => {
   assert.deepEqual(result.turboTasks, [
     '@limitless-angular/sanity#build',
     '@limitless-angular/sanity#test',
+    '@limitless-angular/angular-compat#test',
   ]);
-  assert.match(result.reason, /Turbo reports @limitless-angular\/sanity/);
+  assert.match(result.reason, /Turbo reports compatibility packages/);
 });
 
 test('Turbo failures fail open', () => {
@@ -152,7 +157,14 @@ function createCapture({
         }
 
         return `Packages in scope\n${JSON.stringify({
-          tasks: turboTasks.map((taskId) => ({ taskId })),
+          tasks: turboTasks.map((taskId) => ({
+            command:
+              taskId === '@limitless-angular/angular-compat#build' ||
+              taskId.endsWith('#transit')
+                ? '<NONEXISTENT>'
+                : `run ${taskId}`,
+            taskId,
+          })),
         })}`;
       }
 
