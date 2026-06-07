@@ -204,7 +204,7 @@ We welcome contributions! Check our [Contributing Guide](CONTRIBUTING.md) for de
 
 ## Credits
 
-Adapted from [@portabletext/react](https://github.com/portabletext/react-portabletext) which provided the
+Adapted from [@portabletext/react v3.1.0](https://github.com/portabletext/react-portabletext/blob/main/CHANGELOG.md#310-2024-05-28) which provided the
 vast majority of node rendering logic.
 
 ## License
