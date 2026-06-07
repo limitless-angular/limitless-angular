@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 
 import { assertCompatibilityConfig, workspaceRoot, writeJson } from './lib.mjs';
@@ -25,6 +25,10 @@ export function writeCanaryStatus(options) {
   const log = readFileSync(logPath, 'utf8');
   const status = exitCode === 0 ? 'passed' : 'failed';
   const compatibility = assertCompatibilityConfig();
+  const testedVersions = resolveTestedVersions({
+    log,
+    metadataPath: options.metadataPath,
+  });
   const failureSummary =
     status === 'failed' ? summarizeFailure(log, exitCode) : undefined;
 
@@ -38,6 +42,7 @@ export function writeCanaryStatus(options) {
     target: formatTarget(versionSet),
     status,
     exitCode,
+    testedVersions,
     failureSummary,
     angularPeerRange: compatibility.angularPeerRange,
     logPath: options.logPath,
@@ -75,6 +80,62 @@ function summarizeFailure(log, exitCode) {
   );
 
   return failureLine ?? `compat:test exited with code ${exitCode}`;
+}
+
+function resolveTestedVersions({ log, metadataPath }) {
+  return (
+    readMetadataTestedVersions(metadataPath) ?? parseLogTestedVersions(log)
+  );
+}
+
+function readMetadataTestedVersions(metadataPath) {
+  if (!metadataPath) {
+    return undefined;
+  }
+
+  const resolvedMetadataPath = resolve(workspaceRoot, metadataPath);
+  if (!existsSync(resolvedMetadataPath)) {
+    return undefined;
+  }
+
+  const metadata = JSON.parse(readFileSync(resolvedMetadataPath, 'utf8'));
+  return normalizeTestedVersions(metadata.testedVersions);
+}
+
+function parseLogTestedVersions(log) {
+  const testingLine = stripAnsi(log)
+    .split(/\r?\n/)
+    .find(
+      (line) =>
+        line.includes(' consumer with Angular ') &&
+        line.includes(', CLI ') &&
+        line.includes(', TypeScript '),
+    );
+
+  const match = testingLine?.match(
+    / consumer with Angular ([^,\s]+), CLI ([^,\s]+), TypeScript (\S+)\.?$/,
+  );
+  if (!match) {
+    return undefined;
+  }
+
+  return normalizeTestedVersions({
+    angular: match[1],
+    cli: match[2],
+    typescript: match[3].replace(/\.$/, ''),
+  });
+}
+
+function normalizeTestedVersions(testedVersions) {
+  const angular = testedVersions?.angular;
+  const cli = testedVersions?.cli;
+  const typescript = testedVersions?.typescript;
+
+  if (!angular && !cli && !typescript) {
+    return undefined;
+  }
+
+  return { angular, cli, typescript };
 }
 
 function formatTarget(versionSet) {

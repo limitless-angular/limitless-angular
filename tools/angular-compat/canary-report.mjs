@@ -23,6 +23,7 @@ export function readCanaryStatuses({
   const statuses = readdirSync(resolvedStatusDir)
     .filter((file) => file.endsWith('.json'))
     .map((file) => readCanaryStatus(resolve(resolvedStatusDir, file)))
+    .filter(isCanaryStatus)
     .sort((left, right) => String(left.id).localeCompare(String(right.id)));
 
   if (statuses.length === 0) {
@@ -62,11 +63,11 @@ export function buildCanarySummaryMarkdown(report) {
     '',
     `Supported peer range: \`${report.peerRange}\``,
     '',
-    '| Canary set | Target | Result | First failure |',
-    '| --- | --- | --- | --- |',
+    '| Canary set | Target | Tested versions | Result | First failure |',
+    '| --- | --- | --- | --- | --- |',
     ...report.statuses.map(
       (status) =>
-        `| ${tableCell(status.id)} | ${tableCell(formatCanaryTarget(status))} | ${status.status === 'failed' ? 'Failed' : 'Passed'} | ${tableCell(status.failureSummary ?? '')} |`,
+        `| ${tableCell(status.id)} | ${tableCell(formatCanaryTarget(status))} | ${tableCell(formatTestedVersions(status))} | ${status.status === 'failed' ? 'Failed' : 'Passed'} | ${tableCell(status.failureSummary ?? '')} |`,
     ),
     '',
   ].join('\n');
@@ -86,11 +87,11 @@ export function buildCanaryCommentBody(report) {
     `Supported peer range: \`${report.peerRange}\``,
     formatWorkflowRunLine(report),
     '',
-    '| Canary set | Target | First failure |',
-    '| --- | --- | --- |',
+    '| Canary set | Target | Tested versions | First failure |',
+    '| --- | --- | --- | --- |',
     ...report.failures.map(
       (failure) =>
-        `| ${tableCell(failure.id)} | ${tableCell(formatCanaryTarget(failure))} | ${tableCell(
+        `| ${tableCell(failure.id)} | ${tableCell(formatCanaryTarget(failure))} | ${tableCell(formatTestedVersions(failure))} | ${tableCell(
           failure.failureSummary ??
             `compat:test exited with code ${failure.exitCode}`,
         )} |`,
@@ -148,8 +149,9 @@ export async function publishCanaryReportForGitHubScript({
   await core.summary.addRaw(buildCanarySummaryMarkdown(report)).write();
 
   for (const failure of report.failures) {
+    const testedVersions = formatTestedVersions(failure);
     core.warning(
-      `Angular canary compatibility failed for ${failure.id}: ${sanitize(
+      `Angular canary compatibility failed for ${failure.id}${testedVersions ? ` (${testedVersions})` : ''}: ${sanitize(
         failure.failureSummary ??
           `compat:test exited with code ${failure.exitCode}`,
       )}`,
@@ -239,8 +241,29 @@ export function formatCanaryTarget(status) {
   return target ? `Angular ${target}` : status.id;
 }
 
+export function formatTestedVersions(status) {
+  const testedVersions = status.testedVersions;
+  const parts = [
+    ['Angular', testedVersions?.angular],
+    ['CLI', testedVersions?.cli],
+    ['TypeScript', testedVersions?.typescript],
+  ]
+    .filter(([, version]) => version)
+    .map(([label, version]) => `${label} ${version}`);
+
+  return parts.join(', ');
+}
+
 function readCanaryStatus(path) {
   return JSON.parse(readFileSync(path, 'utf8'));
+}
+
+function isCanaryStatus(value) {
+  return (
+    value &&
+    typeof value.id === 'string' &&
+    (value.status === 'passed' || value.status === 'failed')
+  );
 }
 
 function formatWorkflowRunLine(report) {

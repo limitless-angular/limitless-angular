@@ -150,10 +150,11 @@ jobs:
         run: |
           mkdir -p .compat/canary
           log_path=".compat/canary/${{ matrix.version_set.id }}.log"
+          metadata_path=".compat/canary/${{ matrix.version_set.id }}-metadata.json"
           status_path=".compat/canary/${{ matrix.version_set.id }}.json"
 
           set +e
-          pnpm run compat:test --set "${{ matrix.version_set.id }}" 2>&1 | tee "$log_path"
+          pnpm run compat:test --set "${{ matrix.version_set.id }}" --metadata-out "$metadata_path" 2>&1 | tee "$log_path"
           status=${PIPESTATUS[0]}
           set -e
 
@@ -161,6 +162,7 @@ jobs:
             --version-set-json "$VERSION_SET_JSON" \
             --exit-code "$status" \
             --log "$log_path" \
+            --metadata "$metadata_path" \
             --out "$status_path"
 
           if [ "$status" -eq 0 ]; then

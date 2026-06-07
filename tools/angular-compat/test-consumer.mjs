@@ -1,5 +1,5 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 
 import {
   assertTarballIntegrity,
@@ -23,6 +23,10 @@ export function testConsumers(options = {}) {
   const versionSets = resolveRequestedVersionSets(options, result);
   const tarball = resolveTarball(options.tarball);
 
+  if (options.metadataOut && versionSets.length !== 1) {
+    throw new Error('--metadata-out can only be used with one version set');
+  }
+
   assertTarballIntegrity(tarball);
 
   for (const versionSet of versionSets) {
@@ -38,6 +42,8 @@ function testConsumer(versionSet, tarballPath, options) {
   );
 
   try {
+    writeConsumerMetadata(options.metadataOut, { versionSet, toolchain });
+
     writeConsumerProject(workspace, {
       versionSet,
       packageJson,
@@ -59,6 +65,24 @@ function testConsumer(versionSet, tarballPath, options) {
   } finally {
     cleanupWorkspace(workspace);
   }
+}
+
+function writeConsumerMetadata(metadataOut, { versionSet, toolchain }) {
+  if (!metadataOut) {
+    return;
+  }
+
+  const outPath = resolve(workspaceRoot, metadataOut);
+  mkdirSync(dirname(outPath), { recursive: true });
+  writeJson(outPath, {
+    id: versionSet.id,
+    label: toolchain.label,
+    testedVersions: {
+      angular: toolchain.angularVersion,
+      cli: toolchain.cliVersion,
+      typescript: toolchain.typescriptVersion,
+    },
+  });
 }
 
 function writeConsumerProject(

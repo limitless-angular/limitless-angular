@@ -48,6 +48,11 @@ export function runCli(args = hideBin(process.argv)) {
             type: 'string',
             demandOption: true,
           })
+          .option('metadata', {
+            describe:
+              'Path to structured metadata from the canary compatibility command.',
+            type: 'string',
+          })
           .option('out', {
             describe: 'Path where the canary status JSON should be written.',
             type: 'string',
@@ -57,6 +62,7 @@ export function runCli(args = hideBin(process.argv)) {
         writeCanaryStatus({
           exitCode: argv.exitCode,
           logPath: argv.log,
+          metadataPath: argv.metadata,
           outPath: argv.out,
           versionSetJson: argv.versionSetJson,
         }),
@@ -146,6 +152,11 @@ export function runCli(args = hideBin(process.argv)) {
             type: 'boolean',
             default: false,
           })
+          .option('metadata-out', {
+            describe:
+              'Path where generated consumer metadata should be written.',
+            type: 'string',
+          })
           .conflicts('angular', 'set'),
       (argv) => testConsumers(toOptions(argv)),
     )
@@ -167,6 +178,7 @@ function toOptions(argv) {
   return {
     angular: argv.angular,
     canary: argv.canary,
+    metadataOut: argv.metadataOut,
     set: argv.set,
     skipRuntime: argv.skipRuntime,
     tarball: argv.tarball,
