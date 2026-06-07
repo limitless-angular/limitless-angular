@@ -27,6 +27,8 @@ pnpm run compat
 Run individual steps:
 
 ```bash
+pnpm run compat:affected --base-ref origin/main
+pnpm run compat:affected:test
 pnpm run compat:assert
 pnpm run compat:matrix
 pnpm run compat:matrix --canary
@@ -96,14 +98,21 @@ tarball into them. Each generated app:
 - verifies Portable Text rendering and Sanity image URL generation
 - fails on browser page errors or console errors
 
-CI runs stable consumers as required jobs and `angular-next` as an advisory
-canary job. Stable consumer failures block the PR. Canary failures keep the CI
-run green, emit GitHub warnings, and publish a single managed PR comment so
-reviewers can see future-version drift without opening the Actions log. When
-all canary rows pass again, CI removes the managed comment. Canary status
-artifacts include the exact Angular, Angular CLI, and TypeScript versions that
-were tested so the advisory comment stays useful as npm dist-tags move. The report
-formatting and sticky-comment behavior live in
+CI first runs `compat:affected` to decide whether the Sanity compatibility jobs
+are relevant. The jobs run when Turbo reports `@limitless-angular/sanity` is
+affected, or when compatibility-specific inputs change, such as this harness,
+the CI/release workflow contract, shared package manager inputs, or the runtime
+smoke test's Playwright dependency source. `workflow_dispatch` always runs the
+compatibility jobs.
+
+When eligible, CI runs stable consumers as required jobs and `angular-next` as
+an advisory canary job. Stable consumer failures block the PR. Canary failures
+keep the CI run green, emit GitHub warnings, and publish a single managed PR
+comment so reviewers can see future-version drift without opening the Actions
+log. When all canary rows pass again, CI removes the managed comment. Canary
+status artifacts include the exact Angular, Angular CLI, and TypeScript
+versions that were tested so the advisory comment stays useful as npm dist-tags
+move. The report formatting and sticky-comment behavior live in
 `tools/angular-compat/canary-report.mjs`; the workflow only downloads the
 status artifacts and calls that reporter.
 

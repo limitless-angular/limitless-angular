@@ -49,7 +49,47 @@ jobs:
 
       - run: pnpm turbo run build test --affected
 
+  sanity-compat-eligibility:
+    runs-on: ubuntu-latest
+    outputs:
+      reason: ${{ steps.sanity-compat-eligibility.outputs.reason }}
+      run: ${{ steps.sanity-compat-eligibility.outputs.run }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: 'pnpm'
+
+      - run: pnpm install
+
+      - run: pnpm run compat:affected:test
+
+      - name: Check affected Sanity compatibility
+        id: sanity-compat-eligibility
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            pnpm run compat:affected --force --github-output "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base_ref="${{ github.event.pull_request.base.sha }}"
+          else
+            base_ref="${{ github.event.before }}"
+          fi
+
+          pnpm run compat:affected --base-ref "$base_ref" --github-output "$GITHUB_OUTPUT"
+
   sanity-compat-pack:
+    needs: sanity-compat-eligibility
+    if: needs.sanity-compat-eligibility.outputs.run == 'true'
     runs-on: ubuntu-latest
     outputs:
       version_sets: ${{ steps.compat-matrix.outputs.version_sets }}
@@ -90,6 +130,7 @@ jobs:
 
   sanity-compat-consumer:
     needs: sanity-compat-pack
+    if: needs.sanity-compat-pack.result == 'success'
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -118,6 +159,7 @@ jobs:
 
   sanity-compat-canary:
     needs: sanity-compat-pack
+    if: needs.sanity-compat-pack.result == 'success'
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false

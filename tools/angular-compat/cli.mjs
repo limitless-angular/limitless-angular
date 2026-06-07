@@ -8,6 +8,7 @@ import { assertPeerMatrix } from './assert-peer-matrix.mjs';
 import { assertReleaseParity } from './assert-release-parity.mjs';
 import { printCanaryReport } from './canary-report.mjs';
 import { writeCanaryStatus } from './canary-status.mjs';
+import { printSanityCompatEligibility } from './eligibility.mjs';
 import { packCompatibilityArtifact } from './pack.mjs';
 import { printConsumerMatrix } from './print-consumer-majors.mjs';
 import { runCompatibilityPipeline } from './run.mjs';
@@ -27,6 +28,44 @@ export function runCli(args = hideBin(process.argv)) {
       'Validate the packed compatibility tarball shape.',
       (command) => addTarballOption(command),
       (argv) => assertArtifact(toOptions(argv)),
+    )
+    .command(
+      'affected',
+      'Decide whether Sanity compatibility jobs should run.',
+      (command) =>
+        command
+          .option('base-ref', {
+            describe: 'Git base ref to compare against.',
+            type: 'string',
+          })
+          .option('head-ref', {
+            describe: 'Git head ref to compare.',
+            type: 'string',
+            default: 'HEAD',
+          })
+          .option('changed-file', {
+            describe:
+              'Changed file path to evaluate without reading git diff. Can be repeated.',
+            type: 'string',
+            array: true,
+          })
+          .option('force', {
+            describe: 'Force compatibility jobs to run.',
+            type: 'boolean',
+            default: false,
+          })
+          .option('github-output', {
+            describe: 'GitHub Actions output file to write run/reason values.',
+            type: 'string',
+          }),
+      (argv) =>
+        printSanityCompatEligibility({
+          baseRef: argv.baseRef,
+          changedFiles: argv.changedFile,
+          force: argv.force,
+          githubOutput: argv.githubOutput,
+          headRef: argv.headRef,
+        }),
     )
     .command(
       'canary-status',

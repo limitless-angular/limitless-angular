@@ -8,6 +8,8 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "compat": "node tools/angular-compat/cli.mjs run",
+    "compat:affected": "node tools/angular-compat/cli.mjs affected",
+    "compat:affected:test": "node --test tools/angular-compat/eligibility.test.mjs",
     "compat:assert": "node tools/angular-compat/cli.mjs assert",
     "compat:artifact": "node tools/angular-compat/cli.mjs artifact",
     "compat:canary-report": "node tools/angular-compat/cli.mjs canary-report",
