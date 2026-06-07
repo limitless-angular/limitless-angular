@@ -69,7 +69,7 @@ jobs:
         run: pnpm turbo run lint --filter=@limitless-angular/sanity
 
       - name: Check release compatibility pipeline
-        run: pnpm run compat:release-parity
+        run: pnpm turbo run compat:release-parity --filter=@limitless-angular/angular-compat
 
       - name: Set up Git user
         run: |
@@ -114,19 +114,19 @@ jobs:
       - name: Pack sanity project
         id: build
         if: steps.release.outcome == 'success'
-        run: pnpm run compat:pack
+        run: pnpm turbo run compat:pack --filter=@limitless-angular/angular-compat
 
       - name: Validate packed artifact shape
         if: steps.build.outcome == 'success'
-        run: pnpm run compat:artifact
+        run: pnpm turbo run compat:artifact --filter=@limitless-angular/angular-compat
 
       - name: Install Playwright browser
         if: steps.build.outcome == 'success'
-        run: pnpm --dir apps/sanity-presentation-e2e exec playwright install --with-deps chromium
+        run: pnpm --dir tools/angular-compat exec playwright install --with-deps chromium
 
       - name: Test packed artifact compatibility
         if: steps.build.outcome == 'success'
-        run: pnpm run compat:test
+        run: pnpm turbo run compat:test --filter=@limitless-angular/angular-compat
 
       # Validate build artifacts
       - name: Validate build artifacts

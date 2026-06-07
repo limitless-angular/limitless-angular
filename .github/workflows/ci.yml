@@ -75,7 +75,7 @@ jobs:
         shell: bash
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            pnpm run compat:affected --force --github-output "$GITHUB_OUTPUT"
+            pnpm turbo run compat:affected --filter=@limitless-angular/angular-compat -- --force --github-output "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -85,7 +85,7 @@ jobs:
             base_ref="${{ github.event.before }}"
           fi
 
-          pnpm run compat:affected --base-ref "$base_ref" --github-output "$GITHUB_OUTPUT"
+          pnpm turbo run compat:affected --filter=@limitless-angular/angular-compat -- --base-ref "$base_ref" --github-output "$GITHUB_OUTPUT"
 
   sanity-compat-pack:
     needs: sanity-compat-eligibility
@@ -106,21 +106,21 @@ jobs:
 
       - run: pnpm install
 
-      - run: pnpm run compat:assert
+      - run: pnpm turbo run compat:assert --filter=@limitless-angular/angular-compat
 
-      - run: pnpm run compat:release-parity
+      - run: pnpm turbo run compat:release-parity --filter=@limitless-angular/angular-compat
 
       - name: Resolve Angular consumer matrix
         id: compat-matrix
-        run: echo "version_sets=$(pnpm run --silent compat:matrix)" >> "$GITHUB_OUTPUT"
+        run: echo "version_sets=$(pnpm --filter=@limitless-angular/angular-compat run --silent compat:matrix)" >> "$GITHUB_OUTPUT"
 
       - name: Resolve Angular canary matrix
         id: compat-canary-matrix
-        run: echo "canary_version_sets=$(pnpm run --silent compat:matrix --canary)" >> "$GITHUB_OUTPUT"
+        run: echo "canary_version_sets=$(pnpm --filter=@limitless-angular/angular-compat run --silent compat:matrix --canary)" >> "$GITHUB_OUTPUT"
 
-      - run: pnpm run compat:pack
+      - run: pnpm turbo run compat:pack --filter=@limitless-angular/angular-compat
 
-      - run: pnpm run compat:artifact
+      - run: pnpm turbo run compat:artifact --filter=@limitless-angular/angular-compat
 
       - uses: actions/upload-artifact@v4
         with:
@@ -155,7 +155,7 @@ jobs:
 
       - run: pnpm --dir tools/angular-compat exec playwright install --with-deps chromium
 
-      - run: pnpm run compat:test --set ${{ matrix.version_set.id }}
+      - run: pnpm turbo run compat:test --filter=@limitless-angular/angular-compat -- --set ${{ matrix.version_set.id }}
 
   sanity-compat-canary:
     needs: sanity-compat-pack
@@ -196,11 +196,11 @@ jobs:
           status_path=".compat/canary/${{ matrix.version_set.id }}.json"
 
           set +e
-          pnpm run compat:test --set "${{ matrix.version_set.id }}" --metadata-out "$metadata_path" 2>&1 | tee "$log_path"
+          pnpm turbo run compat:test --filter=@limitless-angular/angular-compat -- --set "${{ matrix.version_set.id }}" --metadata-out "$metadata_path" 2>&1 | tee "$log_path"
           status=${PIPESTATUS[0]}
           set -e
 
-          pnpm run compat:canary-status \
+          pnpm turbo run compat:canary-status --filter=@limitless-angular/angular-compat -- \
             --version-set-json "$VERSION_SET_JSON" \
             --exit-code "$status" \
             --log "$log_path" \

@@ -45,10 +45,15 @@ pnpm run compat:release-parity
 The compatibility tooling is a private workspace package named
 `@limitless-angular/angular-compat`, so Turbo can run its package-level unit
 tests with `pnpm turbo run test --filter=@limitless-angular/angular-compat`.
-Root `compat:*` scripts delegate into that package, and the package commands are
-routed through `tools/angular-compat/cli.mjs`. The CLI owns argument parsing.
-The compatibility behavior lives in reusable functions in the other `.mjs`
-files.
+Root `compat:*` scripts route lifecycle commands through Turbo and filter to the
+compat package. Package-local command names use the same `compat:*` namespace,
+with `tools/angular-compat/cli.mjs` owning argument parsing.
+`tools/angular-compat/turbo.json` scopes the compat-only Turbo task settings to
+this package; the root `turbo.json` keeps shared monorepo tasks. The matrix
+command is the one intentional direct package call because CI captures its
+stdout as JSON. Playwright browser installation is also direct package setup,
+not a Turbo task. The compatibility behavior lives in reusable functions in the
+other `.mjs` files.
 
 ## Version Sets
 
@@ -103,13 +108,14 @@ tarball into them. Each generated app:
 - verifies Portable Text rendering and Sanity image URL generation
 - fails on browser page errors or console errors
 
-CI first runs `compat:affected` to decide whether the Sanity compatibility jobs
-are relevant. The decision asks Turbo whether either `@limitless-angular/sanity`
-or `@limitless-angular/angular-compat` has affected package tasks. A small
-explicit contract list covers files that are outside package ownership but still
-define the compatibility workflow, such as CI/release workflows, `.nvmrc`,
-`turbo.json`, and the release script. `workflow_dispatch` always runs the
-compatibility jobs.
+CI first runs `pnpm turbo run compat:affected
+--filter=@limitless-angular/angular-compat` to decide whether the Sanity
+compatibility jobs are relevant. The decision asks Turbo whether either
+`@limitless-angular/sanity` or `@limitless-angular/angular-compat` has affected
+package tasks. A small explicit contract list covers files that are outside
+package ownership but still define the compatibility workflow, such as
+CI/release workflows, `.nvmrc`, `turbo.json`, and the release script.
+`workflow_dispatch` always runs the compatibility jobs.
 
 When eligible, CI runs stable consumers as required jobs and `angular-next` as
 an advisory canary job. Stable consumer failures block the PR. Canary failures

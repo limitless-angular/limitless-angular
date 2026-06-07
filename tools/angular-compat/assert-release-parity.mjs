@@ -4,9 +4,9 @@ import { join } from 'node:path';
 import { workspaceRoot } from './lib.mjs';
 
 const requiredReleaseCommands = [
-  'pnpm run compat:pack',
-  'pnpm run compat:artifact',
-  'pnpm run compat:test',
+  'pnpm turbo run compat:pack --filter=@limitless-angular/angular-compat',
+  'pnpm turbo run compat:artifact --filter=@limitless-angular/angular-compat',
+  'pnpm turbo run compat:test --filter=@limitless-angular/angular-compat',
   'npm publish "$TARBALL"',
 ];
 

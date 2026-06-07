@@ -1,0 +1,33 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "compat:affected": {
+      "cache": false
+    },
+    "compat:assert": {
+      "cache": false
+    },
+    "compat:artifact": {
+      "cache": false
+    },
+    "compat:canary-report": {
+      "cache": false
+    },
+    "compat:canary-status": {
+      "cache": false
+    },
+    "compat:pack": {
+      "cache": false
+    },
+    "compat:pipeline": {
+      "cache": false
+    },
+    "compat:release-parity": {
+      "cache": false
+    },
+    "compat:test": {
+      "cache": false
+    }
+  }
+}
