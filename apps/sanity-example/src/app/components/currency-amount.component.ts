@@ -4,6 +4,7 @@ import {
   computed,
   inject,
   PLATFORM_ID,
+  type ProviderToken,
 } from '@angular/core';
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
 
@@ -12,17 +13,23 @@ import { type Request as ExpressRequest } from 'express';
 
 import { REQUEST } from '../../server.tokens';
 
+const NETLIFY_REQUEST = 'netlify.request' as unknown as ProviderToken<Request>;
+
 // FIXME: request token isn't injected with `ng serve` see: https://github.com/angular/angular-cli/issues/26323
 const getLanguagesFn = () => {
   const platformId = inject(PLATFORM_ID);
   const expressRequest = inject<ExpressRequest>(REQUEST, { optional: true });
+  const netlifyRequest = inject<Request>(NETLIFY_REQUEST, { optional: true });
 
   return () => {
-    if (isPlatformServer(platformId) && expressRequest) {
-      const acceptLanguageHeader = expressRequest.headers['accept-language'];
-      const acceptLanguage = Array.isArray(acceptLanguageHeader)
+    if (isPlatformServer(platformId) && (expressRequest || netlifyRequest)) {
+      const acceptLanguageHeader = expressRequest?.headers['accept-language'];
+      const expressAcceptLanguage = Array.isArray(acceptLanguageHeader)
         ? acceptLanguageHeader.join(',')
         : acceptLanguageHeader;
+      const acceptLanguage =
+        expressAcceptLanguage ??
+        netlifyRequest?.headers.get('accept-language');
 
       if (acceptLanguage) {
         return acceptLanguage

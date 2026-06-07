@@ -7,7 +7,9 @@ Render [Portable Text](https://portabletext.org/) with Angular.
 
 ## Demo
 
-See the example project in the monorepo: [`apps/sanity-example`](/apps/sanity-example)
+Check out our live demo of the Sanity example here: [Limitless Angular Sanity Example](https://limitless-angular-sanity-example.netlify.app/)
+
+You can also see the example project in the monorepo: [`apps/sanity-example`](/apps/sanity-example)
 
 ## Table of contents
 
