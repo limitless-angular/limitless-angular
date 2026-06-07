@@ -14,7 +14,7 @@
           "options": {
             "main": "src/main.ts",
             "configFile": "vite.config.ts",
-            "outputPath": "../../dist/apps/analog-sanity-blog-example/client",
+            "outputPath": "analog-sanity-blog-example/dist/client",
             "tsConfig": "tsconfig.app.json"
           },
           "configurations": {
