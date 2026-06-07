@@ -24,7 +24,7 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -37,10 +37,10 @@ jobs:
       # - run: npx nx-cloud start-ci-run --distribute-on="5 linux-medium-js" --stop-agents-after="build"
 
       # Install pnpm
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
       # Cache node_modules
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: 'pnpm'
@@ -55,13 +55,13 @@ jobs:
       reason: ${{ steps.sanity-compat-eligibility.outputs.reason }}
       run: ${{ steps.sanity-compat-eligibility.outputs.run }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: 'pnpm'
@@ -95,11 +95,11 @@ jobs:
       version_sets: ${{ steps.compat-matrix.outputs.version_sets }}
       canary_version_sets: ${{ steps.compat-canary-matrix.outputs.canary_version_sets }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: 'pnpm'
@@ -122,7 +122,7 @@ jobs:
 
       - run: pnpm turbo run compat:artifact --filter=@limitless-angular/angular-compat
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sanity-compat-package
           path: .compat/artifacts/*.tgz
@@ -137,18 +137,18 @@ jobs:
       matrix:
         version_set: ${{ fromJson(needs.sanity-compat-pack.outputs.version_sets) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: 'pnpm'
 
       - run: pnpm install
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: sanity-compat-package
           path: .compat/artifacts
@@ -166,18 +166,18 @@ jobs:
       matrix:
         version_set: ${{ fromJson(needs.sanity-compat-pack.outputs.canary_version_sets) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: 'pnpm'
 
       - run: pnpm install
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: sanity-compat-package
           path: .compat/artifacts
@@ -213,7 +213,7 @@ jobs:
             echo "status=failed" >> "$GITHUB_OUTPUT"
           fi
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always() && steps.canary.outputs.status != ''
         with:
           name: angular-canary-status-${{ matrix.version_set.id }}
@@ -232,9 +232,9 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         id: download-canary-status
         continue-on-error: true
         with:
@@ -243,7 +243,7 @@ jobs:
           merge-multiple: true
 
       - name: Publish Angular canary advisory
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         env:
           STATUS_DIR: .compat/canary-status
           DOWNLOAD_OUTCOME: ${{ steps.download-canary-status.outcome }}
@@ -264,13 +264,13 @@ jobs:
   presentation-e2e:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: 'pnpm'
