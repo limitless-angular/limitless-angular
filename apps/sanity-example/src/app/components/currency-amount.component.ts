@@ -3,7 +3,6 @@ import {
   Component,
   computed,
   inject,
-  InjectionToken,
   PLATFORM_ID,
 } from '@angular/core';
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
@@ -17,16 +16,14 @@ import { REQUEST } from '../../server.tokens';
 const getLanguagesFn = () => {
   const platformId = inject(PLATFORM_ID);
   const expressRequest = inject<ExpressRequest>(REQUEST, { optional: true });
-  const request = inject<Request>(
-    new InjectionToken<Request>('netlify.request'),
-    { optional: true },
-  );
 
   return () => {
-    if (isPlatformServer(platformId) && (expressRequest || request)) {
-      const acceptLanguage =
-        expressRequest?.headers['accept-language'] ??
-        request?.headers.get('accept-language');
+    if (isPlatformServer(platformId) && expressRequest) {
+      const acceptLanguageHeader = expressRequest.headers['accept-language'];
+      const acceptLanguage = Array.isArray(acceptLanguageHeader)
+        ? acceptLanguageHeader.join(',')
+        : acceptLanguageHeader;
+
       if (acceptLanguage) {
         return acceptLanguage
           .split(',')

@@ -1,5 +1,6 @@
 import { mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   chromium,
   expect,
@@ -8,6 +9,10 @@ import {
   type Page,
 } from '@playwright/test';
 
+const workspaceRoot = resolve(
+  dirname(fileURLToPath(import.meta.url)),
+  '../../..',
+);
 const studioURL =
   process.env['SANITY_E2E_STUDIO_URL'] ?? 'http://localhost:3333';
 const storageStatePath =
@@ -79,7 +84,7 @@ async function captureAuthState(
     )
     .toBe(true);
 
-  const absoluteStorageStatePath = resolve(storageStatePath);
+  const absoluteStorageStatePath = resolve(workspaceRoot, storageStatePath);
   await mkdir(dirname(absoluteStorageStatePath), { recursive: true });
   await context.storageState({ path: absoluteStorageStatePath });
 }

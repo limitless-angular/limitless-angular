@@ -8,7 +8,6 @@ Limitless Angular is a powerful collection of Angular libraries focused on Sanit
 
 ## Quick Links
 
-- 🚀 [Portable Text Live Demo](https://limitless-angular-sanity-example.netlify.app/)
 - 💻 [Example Project](/apps/sanity-example)
 - 📦 [NPM Package](https://www.npmjs.com/package/@limitless-angular/sanity)
 

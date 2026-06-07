@@ -5,8 +5,6 @@ packages:
 overrides:
   '@babel/traverse': 7.26.4
   '@portabletext/editor': 1.15.3
-patchedDependencies:
-  '@netlify/angular-runtime': patches/@netlify__angular-runtime.patch
 minimumReleaseAgeExclude:
   - '@types/node@22.19.20'
 allowBuilds:

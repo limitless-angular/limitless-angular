@@ -2,6 +2,11 @@
   "name": "sanity-presentation-e2e-studio",
   "type": "module",
   "private": true,
+  "scripts": {
+    "build": "rm -rf ../../dist/apps/sanity-presentation-e2e-studio && sanity build --yes ../../dist/apps/sanity-presentation-e2e-studio",
+    "lint": "eslint .",
+    "serve": "sanity dev --host 0.0.0.0 --port 3333"
+  },
   "dependencies": {
     "@sanity/client": "^6.21.1",
     "react": "19.0.0",

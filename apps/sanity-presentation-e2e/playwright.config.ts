@@ -60,9 +60,8 @@ const webServer = [
   {
     cwd: workspaceRoot,
     command: [
-      'NX_DAEMON=false',
       ...toShellEnv(previewEnv),
-      'pnpm nx serve analog-sanity-blog-example',
+      'pnpm turbo run serve --filter=analog-sanity-blog-example',
     ].join(' '),
     url: `${previewURL}/api/presentation-smoke-health`,
     reuseExistingServer: !process.env['CI'],
@@ -83,13 +82,12 @@ if (studioMode !== 'off') {
   webServer.push({
     cwd: workspaceRoot,
     command: [
-      'NX_DAEMON=false',
       ...toShellEnv({
         SANITY_STUDIO_PROJECT_ID: studioProjectId,
         SANITY_STUDIO_DATASET: studioDataset,
         SANITY_STUDIO_PREVIEW_ORIGIN: previewURL,
       }),
-      'pnpm nx serve sanity-presentation-e2e-studio',
+      'pnpm turbo run serve --filter=sanity-presentation-e2e-studio',
     ].join(' '),
     url: studioURL,
     reuseExistingServer: !process.env['CI'],
@@ -188,7 +186,7 @@ function existingStorageStatePath(
   const absolutePath = isAbsolute(path) ? path : resolve(workspaceRoot, path);
 
   if (existsSync(absolutePath)) {
-    return path;
+    return absolutePath;
   }
 
   const message = `SANITY_E2E_STORAGE_STATE points to ${path}, but the file does not exist. Run the auth setup first or unset SANITY_E2E_STORAGE_STATE.`;

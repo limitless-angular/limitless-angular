@@ -1,0 +1,46 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "globalDependencies": [
+    "apps/*/angular.json",
+    "eslint.config.js",
+    "package.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+    "tsconfig.base.json"
+  ],
+  "globalEnv": ["CI", "NODE_ENV"],
+  "tasks": {
+    "transit": {
+      "dependsOn": ["^transit"]
+    },
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["../../dist/**", "dist/**"]
+    },
+    "lint": {
+      "dependsOn": ["transit"],
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["transit"],
+      "outputs": []
+    },
+    "serve": {
+      "cache": false,
+      "persistent": true
+    },
+    "e2e": {
+      "cache": false
+    },
+    "e2e-studio": {
+      "cache": false
+    },
+    "e2e-real-studio": {
+      "cache": false
+    },
+    "e2e-real-studio-auth": {
+      "cache": false,
+      "interactive": true
+    }
+  }
+}

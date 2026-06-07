@@ -5,7 +5,7 @@ This harness verifies that the Angular preview libraries still work when the app
 ## Fast Protocol Smoke
 
 ```bash
-pnpm nx e2e sanity-presentation-e2e
+pnpm turbo run e2e --filter=sanity-presentation-e2e
 ```
 
 This starts the Analog example app with dummy Sanity env values, then uses a fake Presentation host to:
@@ -20,7 +20,7 @@ This starts the Analog example app with dummy Sanity env values, then uses a fak
 ## Hermetic Studio Smoke
 
 ```bash
-pnpm nx e2e-studio sanity-presentation-e2e
+pnpm turbo run e2e-studio --filter=sanity-presentation-e2e
 ```
 
 This starts the real Sanity Studio fixture, but keeps the Sanity backend and smoke route hermetic:
@@ -35,14 +35,14 @@ Use this for CI or Angular/Sanity dependency updates when you want the real Stud
 
 ## CI Coverage
 
-The main CI workflow runs these automatically on pull requests and pushes to `main` only when Nx marks one of the related projects as affected:
+The main CI workflow runs these automatically on pull requests and pushes to `main` only when related paths are affected:
 
 ```bash
-pnpm nx e2e sanity-presentation-e2e
-pnpm nx e2e-studio sanity-presentation-e2e
+pnpm turbo run e2e --filter=sanity-presentation-e2e
+pnpm turbo run e2e-studio --filter=sanity-presentation-e2e
 ```
 
-The related project gate includes `analog-sanity-blog-example`, `sanity`, `preview-kit-compat`, `visual-editing-helpers`, `sanity-presentation-e2e`, and `sanity-presentation-e2e-studio`. Changes to `.github/workflows/ci.yml` also run the checks because they can change this gate.
+The related path gate includes `apps/analog-sanity-blog-example`, `apps/sanity-presentation-e2e`, `apps/sanity-presentation-e2e-studio`, and `packages/sanity`. Changes to root workspace config or `.github/workflows/ci.yml` also run the checks because they can change this gate.
 
 The real-project Studio smoke runs for manual workflow dispatches with `run_real_studio` enabled, or for affected pushes to `main`. Configure these GitHub Actions secrets to enable it:
 
@@ -60,7 +60,7 @@ SANITY_E2E_WRITE_TOKEN
 ## Real Project Studio Smoke
 
 ```bash
-pnpm nx e2e-real-studio sanity-presentation-e2e
+pnpm turbo run e2e-real-studio --filter=sanity-presentation-e2e
 ```
 
 This starts the same Studio fixture without Sanity API mocks, without the draft-mode bypass, and with the smoke route using the app's real Sanity client. This target is the "everything real" path: real Studio host, real app route, real Sanity client, real project, and no fake Presentation host.
@@ -96,7 +96,7 @@ SANITY_API_WRITE_TOKEN=your-write-token
 
 Without `SANITY_API_WRITE_TOKEN`, the mutation test is skipped and the non-destructive real Studio smoke still runs. If the token is present but cannot update documents, the mutation test fails because the real live-update proof did not run.
 
-The fake Presentation host tests intentionally stay in `pnpm nx e2e sanity-presentation-e2e`. There is no real-project "all" target that mixes fake-host coverage with real Studio coverage.
+The fake Presentation host tests intentionally stay in `pnpm turbo run e2e --filter=sanity-presentation-e2e`. There is no real-project "all" target that mixes fake-host coverage with real Studio coverage.
 
 If the Studio should use different names than the app env, set these in `apps/sanity-presentation-e2e/.env.local` or the shell:
 
@@ -183,10 +183,10 @@ Either auth setup command starts the preview app and Studio fixture, opens a hea
 apps/sanity-presentation-e2e/.auth/sanity-storage-state.json
 ```
 
-The Nx target runs the same auth setup:
+The package script runs the same auth setup:
 
 ```bash
-pnpm nx e2e-real-studio-auth sanity-presentation-e2e
+pnpm turbo run e2e-real-studio-auth --filter=sanity-presentation-e2e
 ```
 
 After the file exists, set this in `apps/sanity-presentation-e2e/.env.local` or your shell before running `e2e-real-studio`:
@@ -198,7 +198,7 @@ SANITY_E2E_STORAGE_STATE=apps/sanity-presentation-e2e/.auth/sanity-storage-state
 Then run the real-project smoke:
 
 ```bash
-pnpm nx e2e-real-studio sanity-presentation-e2e
+pnpm turbo run e2e-real-studio --filter=sanity-presentation-e2e
 ```
 
 The storage file contains local auth state and should stay uncommitted.

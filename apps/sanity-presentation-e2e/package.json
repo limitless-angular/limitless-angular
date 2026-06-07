@@ -2,6 +2,13 @@
   "name": "sanity-presentation-e2e",
   "type": "module",
   "private": true,
+  "scripts": {
+    "e2e": "playwright test --config playwright.config.ts",
+    "e2e-real-studio": "SANITY_E2E_STUDIO_MODE=real-project playwright test --config playwright.config.ts real-studio.spec.ts",
+    "e2e-real-studio-auth": "SANITY_E2E_STUDIO_MODE=real-project SANITY_E2E_AUTH_SETUP=1 playwright test --config playwright.config.ts auth.setup.ts --headed --workers=1",
+    "e2e-studio": "SANITY_E2E_STUDIO_MODE=hermetic playwright test --config playwright.config.ts real-studio.spec.ts",
+    "lint": "eslint ."
+  },
   "devDependencies": {
     "@playwright/test": "1.44.1",
     "@sanity/client": "^6.21.1",

@@ -7,6 +7,9 @@ on:
 permissions:
   contents: read
 
+env:
+  TURBO_TELEMETRY_DISABLED: '1'
+
 jobs:
   autofix:
     runs-on: ubuntu-latest
@@ -14,6 +17,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Configure Turbo affected base
+        run: echo "TURBO_SCM_BASE=origin/${GITHUB_BASE_REF}" >> "$GITHUB_ENV"
+
       - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
@@ -22,14 +29,17 @@ jobs:
           cache: 'pnpm'
 
       - run: pnpm install
-      - uses: nrwl/nx-set-shas@v4
 
       - name: Check if sanity is affected
         id: check-sanity
+        shell: bash
         run: |
-          AFFECTED=$(pnpm nx show projects --affected --base=origin/main)
-          if echo "$AFFECTED" | grep -q "^sanity$"; then
+          affected_tasks="$(pnpm turbo run build --filter=@limitless-angular/sanity --affected --dry=json | jq -r '.tasks[].taskId')"
+
+          if [ -n "$affected_tasks" ]; then
             echo "is_affected=true" >> $GITHUB_OUTPUT
+            echo "Sanity package is affected by Turbo tasks:"
+            printf '%s\n' "$affected_tasks"
           else
             echo "is_affected=false" >> $GITHUB_OUTPUT
           fi
@@ -38,11 +48,11 @@ jobs:
         if: steps.check-sanity.outputs.is_affected == 'true'
         run: |
           echo "Building sanity"
-          pnpm nx run sanity:build
+          pnpm turbo run build --filter=@limitless-angular/sanity
           echo "Running pkg-pr-new publish"
           pnpx pkg-pr-new publish --compact './dist/packages/sanity'
 
-      - run: pnpm nx affected -t lint --fix
-      - run: pnpm nx format:write
+      - run: pnpm turbo run lint --affected -- --fix
+      - run: pnpm format:write
 
       - uses: autofix-ci/action@551dded8c6cc8a1054039c8bc0b8b48c51dfc6ef

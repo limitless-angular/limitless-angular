@@ -1,5 +1,3 @@
-import type { ArbitraryTypedObject } from '@portabletext/types';
-
 const missingSpanChildren = {
   input: [
     {

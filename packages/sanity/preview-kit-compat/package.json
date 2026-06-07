@@ -2,6 +2,9 @@
   "name": "@repo/preview-kit-compat",
   "private": true,
   "license": "MIT",
+  "scripts": {
+    "lint": "eslint ."
+  },
   "sideEffects": false,
   "type": "module",
   "peerDependencies": {

@@ -1,7 +1,11 @@
 # Add files here to ignore them from prettier formatting
-/dist
+dist
 /coverage
-/.nx/cache
-/.nx/workspace-data
+.agents/skills
+.expect
+.turbo
 .angular
+apps/sanity-presentation-e2e-studio/.sanity
+apps/sanity-presentation-e2e/.auth
+apps/sanity-presentation-e2e/test-results
 pnpm-lock.yaml
