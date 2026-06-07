@@ -96,7 +96,7 @@ jobs:
 
       - name: Install Playwright browser
         if: ${{ steps.affected-presentation-e2e.outputs.run == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run_real_studio) }}
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm --dir apps/sanity-presentation-e2e exec playwright install --with-deps chromium
 
       - name: Run Sanity Presentation protocol E2E
         if: steps.affected-presentation-e2e.outputs.run == 'true'

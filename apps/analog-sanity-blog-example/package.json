@@ -2,17 +2,20 @@
   "name": "analog-sanity-blog-example",
   "type": "module",
   "scripts": {
-    "build": "pnpm --dir ../.. exec vite build --mode production --config apps/analog-sanity-blog-example/vite.config.ts",
+    "build": "vite build",
     "lint": "eslint .",
-    "serve": "pnpm --dir ../.. exec vite dev --host 0.0.0.0 --port 4200 --config apps/analog-sanity-blog-example/vite.config.ts"
+    "serve": "vite dev --host 0.0.0.0 --port 4200"
   },
   "dependencies": {
     "@analogjs/router": "1.10.1",
     "@angular/common": "~19.0.3",
+    "@angular/compiler": "~19.0.3",
     "@angular/core": "~19.0.3",
     "@angular/platform-browser": "~19.0.3",
     "@angular/platform-server": "~19.0.3",
     "@angular/router": "~19.0.3",
+    "@limitless-angular/sanity": "workspace:*",
+    "@portabletext/toolkit": "^2.0.15",
     "@portabletext/types": "^2.0.13",
     "@sanity/asset-utils": "^2.1.0",
     "@sanity/client": "^6.21.1",
@@ -24,14 +27,27 @@
     "h3": "^1.12.0",
     "rxjs": "~7.8.0",
     "sitemap": "^8.0.0",
-    "@limitless-angular/sanity": "workspace:*"
+    "tslib": "^2.3.0"
   },
   "devDependencies": {
     "@analogjs/content": "1.10.1",
     "@analogjs/platform": "1.10.1",
+    "@angular-devkit/build-angular": "~19.0.4",
+    "@angular/build": "~19.0.4",
+    "@angular/cli": "~19.0.4",
+    "@angular/compiler-cli": "~19.0.3",
+    "@tailwindcss/typography": "^0.5.13",
+    "@types/node": "~22.19.20",
+    "angular-eslint": "^19.0.2",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^9.8.0",
     "jsdom": "^22.0.0",
     "marked-highlight": "^2.1.4",
+    "postcss": "^8.4.5",
     "rollup-plugin-typescript-paths": "^1.5.0",
+    "tailwindcss": "^3.0.2",
+    "typescript": "~5.6.3",
+    "typescript-eslint": "^8.0.0",
     "vite": "^5.4.0",
     "vite-plugin-webfont-dl": "^3.9.4",
     "vite-tsconfig-paths": "^4.2.0"
