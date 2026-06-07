@@ -5,6 +5,8 @@
 
 Render [Portable Text](https://portabletext.org/) with Angular.
 
+Based on [@portabletext/react v3.1.0](https://github.com/portabletext/react-portabletext/blob/main/CHANGELOG.md#310-2024-05-28).
+
 ## Demo
 
 Check out our live demo of the Sanity example here: [Limitless Angular Sanity Example](https://limitless-angular-sanity-example.netlify.app/)
