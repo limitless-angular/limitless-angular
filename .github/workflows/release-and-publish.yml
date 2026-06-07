@@ -68,6 +68,9 @@ jobs:
       - name: Check for lint errors
         run: pnpm turbo run lint --filter=@limitless-angular/sanity
 
+      - name: Check release compatibility pipeline
+        run: pnpm run compat:release-parity
+
       - name: Set up Git user
         run: |
           git config --global user.name "GitHub Actions"
@@ -112,6 +115,14 @@ jobs:
         id: build
         if: steps.release.outcome == 'success'
         run: pnpm run compat:pack
+
+      - name: Validate packed artifact shape
+        if: steps.build.outcome == 'success'
+        run: pnpm run compat:artifact
+
+      - name: Install Playwright browser
+        if: steps.build.outcome == 'success'
+        run: pnpm --dir apps/sanity-presentation-e2e exec playwright install --with-deps chromium
 
       - name: Test packed artifact compatibility
         if: steps.build.outcome == 'success'

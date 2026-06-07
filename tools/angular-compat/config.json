@@ -4,6 +4,30 @@
   "artifactDir": ".compat/artifacts",
   "buildAngularMajor": 19,
   "consumerAngularMajors": [18, 19],
+  "consumerVersionSets": [
+    {
+      "id": "angular-18-floor",
+      "angularMajor": 18,
+      "mode": "floor"
+    },
+    {
+      "id": "angular-18-latest",
+      "angularMajor": 18,
+      "mode": "latest"
+    },
+    {
+      "id": "angular-19-latest",
+      "angularMajor": 19,
+      "mode": "latest"
+    }
+  ],
+  "canaryVersionSets": [
+    {
+      "id": "angular-next",
+      "npmTag": "next",
+      "mode": "dist-tag"
+    }
+  ],
   "angularPeerDependencies": [
     "@angular/common",
     "@angular/core",

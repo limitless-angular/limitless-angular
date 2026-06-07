@@ -52,7 +52,8 @@ jobs:
   sanity-compat-pack:
     runs-on: ubuntu-latest
     outputs:
-      angular_majors: ${{ steps.compat-matrix.outputs.angular_majors }}
+      version_sets: ${{ steps.compat-matrix.outputs.version_sets }}
+      canary_version_sets: ${{ steps.compat-canary-matrix.outputs.canary_version_sets }}
     steps:
       - uses: actions/checkout@v4
 
@@ -67,11 +68,19 @@ jobs:
 
       - run: pnpm run compat:assert
 
+      - run: pnpm run compat:release-parity
+
       - name: Resolve Angular consumer matrix
         id: compat-matrix
-        run: echo "angular_majors=$(pnpm run --silent compat:matrix)" >> "$GITHUB_OUTPUT"
+        run: echo "version_sets=$(pnpm run --silent compat:matrix)" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve Angular canary matrix
+        id: compat-canary-matrix
+        run: echo "canary_version_sets=$(pnpm run --silent compat:matrix --canary)" >> "$GITHUB_OUTPUT"
 
       - run: pnpm run compat:pack
+
+      - run: pnpm run compat:artifact
 
       - uses: actions/upload-artifact@v4
         with:
@@ -85,7 +94,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        angular: ${{ fromJson(needs.sanity-compat-pack.outputs.angular_majors) }}
+        version_set: ${{ fromJson(needs.sanity-compat-pack.outputs.version_sets) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -103,7 +112,44 @@ jobs:
           name: sanity-compat-package
           path: .compat/artifacts
 
-      - run: pnpm run compat:test --angular ${{ matrix.angular }}
+      - run: pnpm --dir apps/sanity-presentation-e2e exec playwright install --with-deps chromium
+
+      - run: pnpm run compat:test --set ${{ matrix.version_set.id }}
+
+  sanity-compat-canary:
+    needs: sanity-compat-pack
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version_set: ${{ fromJson(needs.sanity-compat-pack.outputs.canary_version_sets) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: 'pnpm'
+
+      - run: pnpm install
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: sanity-compat-package
+          path: .compat/artifacts
+
+      - run: pnpm --dir apps/sanity-presentation-e2e exec playwright install --with-deps chromium
+
+      - name: Test Angular canary compatibility
+        id: canary
+        continue-on-error: true
+        run: pnpm run compat:test --set ${{ matrix.version_set.id }}
+
+      - name: Report Angular canary compatibility
+        if: steps.canary.outcome == 'failure'
+        run: echo "::warning::Angular canary compatibility failed for ${{ matrix.version_set.id }}. This job is advisory and does not block merges."
 
   presentation-e2e:
     runs-on: ubuntu-22.04

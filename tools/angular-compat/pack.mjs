@@ -2,6 +2,7 @@ import { join } from 'node:path';
 
 import {
   artifactDir,
+  assertTarballIntegrity,
   assertCompatibilityConfig,
   cleanupWorkspace,
   config,
@@ -43,7 +44,7 @@ try {
     ...visualEditingHelpersPackageJson.peerDependencies,
     '@angular/common': toolchain.angularVersion,
     '@angular/compiler': toolchain.angularVersion,
-    '@angular/compiler-cli': toolchain.angularVersion,
+    '@angular/compiler-cli': toolchain.compilerCliVersion,
     '@angular/core': toolchain.angularVersion,
     '@angular/router': toolchain.angularVersion,
     '@types/lodash-es': packageJson.devDependencies['@types/lodash-es'],
@@ -55,12 +56,17 @@ try {
   writeJson(packageJsonPath, packageJson);
 
   console.log(
-    `Building ${config.packageName} with Angular ${toolchain.angularVersion}, ng-packagr ${toolchain.ngPackagrVersion}, TypeScript ${toolchain.typescriptVersion}.`,
+    `Building ${config.packageName} with ${toolchain.label}: Angular ${toolchain.angularVersion}, ng-packagr ${toolchain.ngPackagrVersion}, TypeScript ${toolchain.typescriptVersion}.`,
   );
   run('pnpm', ['install', '--no-frozen-lockfile'], { cwd: packageRoot });
   run('pnpm', ['run', 'build'], { cwd: packageRoot });
 
   const distPackageRoot = join(workspace, 'dist/packages/sanity');
+  const distPackageJsonPath = join(distPackageRoot, 'package.json');
+  const distPackageJson = readJson(distPackageJsonPath);
+  delete distPackageJson.private;
+  writeJson(distPackageJsonPath, distPackageJson);
+
   run('pnpm', ['pack', '--pack-destination', artifactDir], {
     cwd: distPackageRoot,
   });
@@ -72,6 +78,7 @@ try {
     );
   }
 
+  assertTarballIntegrity(tarballs[0]);
   console.log(`Packed ${tarballs[0]}`);
 } finally {
   cleanupWorkspace(workspace);

@@ -9,8 +9,10 @@
     "test": "turbo run test",
     "compat": "node tools/angular-compat/run.mjs",
     "compat:assert": "node tools/angular-compat/assert-peer-matrix.mjs",
+    "compat:artifact": "node tools/angular-compat/assert-artifact.mjs",
     "compat:matrix": "node tools/angular-compat/print-consumer-majors.mjs",
     "compat:pack": "node tools/angular-compat/pack.mjs",
+    "compat:release-parity": "node tools/angular-compat/assert-release-parity.mjs",
     "compat:test": "node tools/angular-compat/test-consumer.mjs",
     "format:write": "prettier --write .",
     "release": "node tools/scripts/release.ts"

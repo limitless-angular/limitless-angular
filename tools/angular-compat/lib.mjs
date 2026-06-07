@@ -51,6 +51,14 @@ export function capture(command, args, options = {}) {
   }).trim();
 }
 
+export function captureBuffer(command, args, options = {}) {
+  return execFileSync(command, args, {
+    cwd: options.cwd ?? workspaceRoot,
+    env: { ...process.env, ...options.env },
+    stdio: ['ignore', 'pipe', 'inherit'],
+  });
+}
+
 export function ensureCleanDir(path) {
   rmSync(path, { force: true, recursive: true });
   mkdirSync(path, { recursive: true });
@@ -177,9 +185,28 @@ export function assertCompatibilityConfig() {
   }
 
   const declaredMajors = getSupportedAngularMajors(canonicalRange);
-  const configuredMajors = [...config.consumerAngularMajors].sort(
+  const consumerVersionSets = getStableConsumerVersionSets();
+  const canaryVersionSets = getCanaryVersionSets();
+  assertVersionSets(consumerVersionSets, { allowDistTag: false });
+  assertVersionSets(canaryVersionSets, { allowDistTag: true });
+  assertUniqueVersionSetIds([...consumerVersionSets, ...canaryVersionSets]);
+
+  const configuredMajors = [
+    ...new Set(
+      consumerVersionSets.map((versionSet) => versionSet.angularMajor),
+    ),
+  ].sort((a, b) => a - b);
+  const legacyConfiguredMajors = [...config.consumerAngularMajors].sort(
     (a, b) => a - b,
   );
+
+  if (
+    JSON.stringify(legacyConfiguredMajors) !== JSON.stringify(configuredMajors)
+  ) {
+    throw new Error(
+      `consumerAngularMajors ${JSON.stringify(legacyConfiguredMajors)} does not match consumerVersionSets majors ${JSON.stringify(configuredMajors)}`,
+    );
+  }
 
   if (JSON.stringify(declaredMajors) !== JSON.stringify(configuredMajors)) {
     throw new Error(
@@ -198,8 +225,95 @@ export function assertCompatibilityConfig() {
     packageJson,
     angularPeerRange: canonicalRange,
     consumerAngularMajors: configuredMajors,
+    consumerVersionSets,
+    canaryVersionSets,
     buildAngularMajor: config.buildAngularMajor,
   };
+}
+
+export function getStableConsumerVersionSets() {
+  if (Array.isArray(config.consumerVersionSets)) {
+    return config.consumerVersionSets.map(normalizeVersionSet);
+  }
+
+  return config.consumerAngularMajors.map((angularMajor) =>
+    normalizeVersionSet({
+      id: `angular-${angularMajor}-latest`,
+      angularMajor,
+      mode: 'latest',
+    }),
+  );
+}
+
+export function getCanaryVersionSets() {
+  return (config.canaryVersionSets ?? []).map(normalizeVersionSet);
+}
+
+export function getAllVersionSets() {
+  return [...getStableConsumerVersionSets(), ...getCanaryVersionSets()];
+}
+
+export function findVersionSet(id) {
+  return getAllVersionSets().find((versionSet) => versionSet.id === id);
+}
+
+function normalizeVersionSet(versionSet) {
+  return {
+    ...versionSet,
+    mode: versionSet.mode ?? 'latest',
+  };
+}
+
+function assertVersionSets(versionSets, { allowDistTag }) {
+  const seenIds = new Set();
+  for (const versionSet of versionSets) {
+    if (!versionSet.id || typeof versionSet.id !== 'string') {
+      throw new Error('Every Angular compatibility version set needs an id');
+    }
+
+    if (seenIds.has(versionSet.id)) {
+      throw new Error(
+        `Duplicate Angular compatibility version set ${versionSet.id}`,
+      );
+    }
+    seenIds.add(versionSet.id);
+
+    if (versionSet.mode === 'dist-tag') {
+      if (!allowDistTag) {
+        throw new Error(
+          `${versionSet.id} cannot use dist-tag mode in the required consumer matrix`,
+        );
+      }
+      if (!versionSet.npmTag) {
+        throw new Error(
+          `${versionSet.id} uses dist-tag mode but does not define npmTag`,
+        );
+      }
+      continue;
+    }
+
+    if (!['floor', 'latest'].includes(versionSet.mode)) {
+      throw new Error(
+        `${versionSet.id} uses unsupported mode ${versionSet.mode}`,
+      );
+    }
+
+    if (!Number.isInteger(versionSet.angularMajor)) {
+      throw new Error(`${versionSet.id} must define an integer angularMajor`);
+    }
+  }
+}
+
+function assertUniqueVersionSetIds(versionSets) {
+  const seenIds = new Set();
+  for (const versionSet of versionSets) {
+    if (seenIds.has(versionSet.id)) {
+      throw new Error(
+        `Angular compatibility version set id ${versionSet.id} is configured more than once`,
+      );
+    }
+    seenIds.add(versionSet.id);
+  }
 }
 
 export function resolveNpmJson(spec, field) {
@@ -226,24 +340,51 @@ export function resolveLatestSatisfying(packageName, range) {
   return version;
 }
 
-export function resolveAngularToolchain(major, options = {}) {
-  const angularVersion = resolveLatestVersion(`@angular/core@${major}`);
+export function resolveAngularToolchain(versionSetOrMajor, options = {}) {
+  const versionSet =
+    typeof versionSetOrMajor === 'number'
+      ? {
+          id: `angular-${versionSetOrMajor}-latest`,
+          angularMajor: versionSetOrMajor,
+          mode: 'latest',
+        }
+      : normalizeVersionSet(versionSetOrMajor);
+  const angularVersion = resolveAngularVersion(versionSet);
+  const angularMajor = semver.major(angularVersion);
+  const compilerCliVersion = resolveAngularPackageVersion(
+    '@angular/compiler-cli',
+    versionSet,
+    angularVersion,
+  );
   const compilerCliPeers = resolveNpmJson(
-    `@angular/compiler-cli@${angularVersion}`,
+    `@angular/compiler-cli@${compilerCliVersion}`,
     'peerDependencies',
   );
   const corePeers = resolveNpmJson(
     `@angular/core@${angularVersion}`,
     'peerDependencies',
   );
+  const buildAngularVersion = options.includeCli
+    ? resolveAngularPackageVersion('@angular-devkit/build-angular', versionSet)
+    : undefined;
+  const buildAngularPeers = buildAngularVersion
+    ? resolveNpmJson(
+        `@angular-devkit/build-angular@${buildAngularVersion}`,
+        'peerDependencies',
+      )
+    : undefined;
+  const cliVersion = options.includeCli
+    ? resolveAngularPackageVersion('@angular/cli', versionSet)
+    : undefined;
   const ngPackagrVersion = options.includeNgPackagr
-    ? resolveLatestVersion(`ng-packagr@${major}`)
+    ? resolveAngularPackageVersion('ng-packagr', versionSet)
     : undefined;
   const ngPackagrPeers = ngPackagrVersion
     ? resolveNpmJson(`ng-packagr@${ngPackagrVersion}`, 'peerDependencies')
     : undefined;
   const typescriptRange = [
     compilerCliPeers.typescript,
+    buildAngularPeers?.typescript,
     ngPackagrPeers?.typescript,
   ]
     .filter(Boolean)
@@ -257,17 +398,61 @@ export function resolveAngularToolchain(major, options = {}) {
     : undefined;
 
   return {
+    id: versionSet.id,
+    label: getVersionSetLabel(versionSet),
+    angularMajor,
     angularVersion,
-    buildAngularVersion: options.includeCli
-      ? resolveLatestVersion(`@angular-devkit/build-angular@${major}`)
-      : undefined,
-    cliVersion: options.includeCli
-      ? resolveLatestVersion(`@angular/cli@${major}`)
-      : undefined,
+    compilerCliVersion,
+    buildAngularVersion,
+    cliVersion,
     ngPackagrVersion,
     typescriptVersion,
     zoneVersion,
   };
+}
+
+function resolveAngularVersion(versionSet) {
+  if (versionSet.mode === 'dist-tag') {
+    return resolveLatestVersion(`@angular/core@${versionSet.npmTag}`);
+  }
+
+  return resolveAngularPackageVersion('@angular/core', versionSet);
+}
+
+function resolveAngularPackageVersion(
+  packageName,
+  versionSet,
+  exactAngularVersion,
+) {
+  if (
+    exactAngularVersion &&
+    packageName.startsWith('@angular/') &&
+    packageName !== '@angular/cli' &&
+    packageName !== '@angular-devkit/build-angular'
+  ) {
+    return exactAngularVersion;
+  }
+
+  if (versionSet.mode === 'dist-tag') {
+    return resolveLatestVersion(`${packageName}@${versionSet.npmTag}`);
+  }
+
+  if (versionSet.mode === 'floor') {
+    return resolveLatestSatisfying(
+      packageName,
+      `>=${versionSet.angularMajor}.0.0 <${versionSet.angularMajor}.1.0`,
+    );
+  }
+
+  return resolveLatestVersion(`${packageName}@${versionSet.angularMajor}`);
+}
+
+export function getVersionSetLabel(versionSet) {
+  if (versionSet.mode === 'dist-tag') {
+    return `${versionSet.npmTag} dist-tag`;
+  }
+
+  return `Angular ${versionSet.angularMajor} ${versionSet.mode}`;
 }
 
 export function findTarballs(path = artifactDir) {
@@ -293,4 +478,136 @@ export function resolveTarball(explicitTarball) {
   }
 
   return tarballs[0];
+}
+
+export function assertTarballIntegrity(tarballPath = resolveTarball()) {
+  const sourcePackageJson = readPackageJson();
+  const files = new Set(
+    capture('tar', ['-tzf', tarballPath]).split('\n').filter(Boolean),
+  );
+  const packageJson = JSON.parse(
+    captureBuffer('tar', [
+      '-xOf',
+      tarballPath,
+      'package/package.json',
+    ]).toString('utf8'),
+  );
+
+  if (packageJson.name !== config.packageName) {
+    throw new Error(
+      `Packed artifact name ${packageJson.name} does not match ${config.packageName}`,
+    );
+  }
+
+  if (packageJson.version !== sourcePackageJson.version) {
+    throw new Error(
+      `Packed artifact version ${packageJson.version} does not match source package version ${sourcePackageJson.version}`,
+    );
+  }
+
+  if (packageJson.private) {
+    throw new Error('Packed artifact must not be private');
+  }
+
+  if (packageJson.scripts) {
+    throw new Error('Packed artifact must not include package scripts');
+  }
+
+  if (packageJson.devDependencies) {
+    throw new Error('Packed artifact must not include devDependencies');
+  }
+
+  if (packageJson.type !== 'module') {
+    throw new Error(
+      `Packed artifact type must be module, found ${packageJson.type}`,
+    );
+  }
+
+  if (packageJson.sideEffects !== false) {
+    throw new Error('Packed artifact must preserve sideEffects: false');
+  }
+
+  assertNoWorkspaceReferences(packageJson.dependencies, 'dependencies');
+  assertNoWorkspaceReferences(packageJson.peerDependencies, 'peerDependencies');
+  assertNoWorkspaceReferences(
+    packageJson.optionalDependencies,
+    'optionalDependencies',
+  );
+
+  assertEntrypointExports(packageJson, files);
+  assertNoSourceOnlyFiles(files);
+
+  console.log(`Packed artifact is valid: ${tarballPath}`);
+  return { packageJson, files };
+}
+
+function assertNoWorkspaceReferences(dependencies, field) {
+  for (const [dependency, range] of Object.entries(dependencies ?? {})) {
+    if (/^(workspace|file|link|portal):/.test(range)) {
+      throw new Error(
+        `Packed artifact ${field}.${dependency} contains local reference ${range}`,
+      );
+    }
+  }
+}
+
+function assertEntrypointExports(packageJson, files) {
+  const expectedExportKeys = [
+    './package.json',
+    ...config.entrypoints.map(getEntrypointExportKey),
+  ].sort();
+  const actualExportKeys = Object.keys(packageJson.exports ?? {}).sort();
+
+  if (JSON.stringify(actualExportKeys) !== JSON.stringify(expectedExportKeys)) {
+    throw new Error(
+      `Packed artifact exports ${JSON.stringify(actualExportKeys)} do not match configured entrypoints ${JSON.stringify(expectedExportKeys)}`,
+    );
+  }
+
+  for (const entrypoint of config.entrypoints) {
+    const exportKey = getEntrypointExportKey(entrypoint);
+    const exported = packageJson.exports[exportKey];
+    if (!exported?.types || !exported?.default) {
+      throw new Error(
+        `Packed artifact export ${exportKey} must define types and default`,
+      );
+    }
+
+    assertTarballFile(files, exported.types, `${entrypoint} types`);
+    assertTarballFile(files, exported.default, `${entrypoint} FESM bundle`);
+  }
+
+  assertTarballFile(files, './package.json', 'package.json export');
+}
+
+function getEntrypointExportKey(entrypoint) {
+  if (entrypoint === config.packageName) {
+    return '.';
+  }
+
+  return `.${entrypoint.slice(config.packageName.length)}`;
+}
+
+function assertTarballFile(files, exportPath, label) {
+  const normalizedPath = exportPath.replace(/^\.\//, '');
+  const tarballPath = `package/${normalizedPath}`;
+  if (!files.has(tarballPath)) {
+    throw new Error(`Packed artifact is missing ${label}: ${tarballPath}`);
+  }
+}
+
+function assertNoSourceOnlyFiles(files) {
+  for (const file of files) {
+    if (file.includes('/node_modules/')) {
+      throw new Error(
+        `Packed artifact must not include node_modules file ${file}`,
+      );
+    }
+
+    if (file.endsWith('.ts') && !file.endsWith('.d.ts')) {
+      throw new Error(
+        `Packed artifact must not include TypeScript source file ${file}`,
+      );
+    }
+  }
 }
