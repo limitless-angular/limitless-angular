@@ -22,6 +22,12 @@ export default defineConfig(({ mode }) => {
     plugins: [
       analog({
         nitro: {
+          alias: {
+            '@/analog-sanity-blog-example/sanity': resolve(
+              configDir,
+              'src/sanity/lib/index.ts',
+            ),
+          },
           static: false,
           routeRules: {
             '/': { prerender: false, isr: 60 },
