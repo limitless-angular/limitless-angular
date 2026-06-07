@@ -54,7 +54,6 @@
     "@analogjs/vite-plugin-angular": "^2.6.0",
     "@analogjs/vitest-angular": "^2.6.0",
     "@angular-devkit/architect": "~0.1900.4",
-    "@angular-devkit/build-angular": "~19.0.4",
     "@angular/build": "~19.0.4",
     "@angular/common": "~19.0.3",
     "@angular/compiler": "~19.0.3",

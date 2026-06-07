@@ -348,12 +348,12 @@ export function resolveAngularToolchain(versionSetOrMajor, options = {}) {
     `@angular/core@${angularVersion}`,
     'peerDependencies',
   );
-  const buildAngularVersion = options.includeCli
-    ? resolveAngularPackageVersion('@angular-devkit/build-angular', versionSet)
+  const angularBuildVersion = options.includeCli
+    ? resolveAngularPackageVersion('@angular/build', versionSet, angularVersion)
     : undefined;
-  const buildAngularPeers = buildAngularVersion
+  const angularBuildPeers = angularBuildVersion
     ? resolveNpmJson(
-        `@angular-devkit/build-angular@${buildAngularVersion}`,
+        `@angular/build@${angularBuildVersion}`,
         'peerDependencies',
       )
     : undefined;
@@ -368,7 +368,7 @@ export function resolveAngularToolchain(versionSetOrMajor, options = {}) {
     : undefined;
   const typescriptRange = [
     compilerCliPeers.typescript,
-    buildAngularPeers?.typescript,
+    angularBuildPeers?.typescript,
     ngPackagrPeers?.typescript,
   ]
     .filter(Boolean)
@@ -387,7 +387,7 @@ export function resolveAngularToolchain(versionSetOrMajor, options = {}) {
     angularMajor,
     angularVersion,
     compilerCliVersion,
-    buildAngularVersion,
+    angularBuildVersion,
     cliVersion,
     ngPackagrVersion,
     typescriptVersion,
@@ -411,8 +411,7 @@ function resolveAngularPackageVersion(
   if (
     exactAngularVersion &&
     packageName.startsWith('@angular/') &&
-    packageName !== '@angular/cli' &&
-    packageName !== '@angular-devkit/build-angular'
+    packageName !== '@angular/cli'
   ) {
     return exactAngularVersion;
   }

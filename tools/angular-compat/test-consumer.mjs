@@ -127,7 +127,7 @@ function writeConsumerProject(
       ...sharedSanityDeps,
     },
     devDependencies: {
-      '@angular-devkit/build-angular': toolchain.buildAngularVersion,
+      '@angular/build': toolchain.angularBuildVersion,
       '@angular/cli': toolchain.cliVersion,
       '@angular/compiler-cli': toolchain.compilerCliVersion,
       '@playwright/test': readPlaywrightVersion(),
@@ -148,7 +148,7 @@ function writeConsumerProject(
         prefix: 'app',
         architect: {
           build: {
-            builder: '@angular-devkit/build-angular:application',
+            builder: '@angular/build:application',
             options: {
               outputPath: `dist/${packageName}`,
               index: 'src/index.html',

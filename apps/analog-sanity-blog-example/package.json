@@ -32,7 +32,6 @@
   "devDependencies": {
     "@analogjs/content": "2.6.0",
     "@analogjs/platform": "2.6.0",
-    "@angular-devkit/build-angular": "~19.0.4",
     "@angular/build": "~19.0.4",
     "@angular/cli": "~19.0.4",
     "@angular/compiler-cli": "~19.0.3",
