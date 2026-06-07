@@ -3,5 +3,8 @@
   command = "pnpm turbo run build --filter=sanity-example"
   publish = "dist/sanity-example/browser"
 
+[build.environment]
+  NODE_VERSION = "22.22.3"
+
 [[plugins]]
   package = "@netlify/angular-runtime"
