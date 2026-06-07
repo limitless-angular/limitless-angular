@@ -28,8 +28,7 @@ const getLanguagesFn = () => {
         ? acceptLanguageHeader.join(',')
         : acceptLanguageHeader;
       const acceptLanguage =
-        expressAcceptLanguage ??
-        netlifyRequest?.headers.get('accept-language');
+        expressAcceptLanguage ?? netlifyRequest?.headers.get('accept-language');
 
       if (acceptLanguage) {
         return acceptLanguage
