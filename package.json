@@ -8,7 +8,7 @@
     "lint": "turbo run lint",
     "test": "turbo run test",
     "format:write": "prettier --write .",
-    "release": "tsx tools/scripts/release.ts"
+    "release": "node tools/scripts/release.ts"
   },
   "packageManager": "pnpm@11.5.2",
   "engines": {
@@ -26,7 +26,6 @@
     "jsonc-eslint-parser": "^2.1.0",
     "prettier": "3.3.3",
     "semver": "^7.8.2",
-    "tsx": "^4.19.2",
     "turbo": "2.9.16",
     "typescript": "~5.6.3",
     "typescript-eslint": "^8.0.0",
