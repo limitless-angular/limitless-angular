@@ -2,7 +2,7 @@ import {
   expect,
   test,
   type Frame,
-  type FrameLocator,
+  type Locator,
   type Page,
 } from '@playwright/test';
 import { createClient, type SanityClient } from '@sanity/client';
@@ -272,7 +272,7 @@ async function openPresentationPreview(
       () =>
         page
           .frames()
-          .some((frame) => frame.url().includes('/presentation-smoke')),
+          .some((frame) => isPresentationSmokeFrame(frame)),
       {
         timeout: previewFrameTimeout,
       },
@@ -282,10 +282,12 @@ async function openPresentationPreview(
   return getPresentationPreviewFrame(page);
 }
 
+function findPresentationPreviewFrame(page: Page): Frame | undefined {
+  return page.frames().find((frame) => isPresentationSmokeFrame(frame));
+}
+
 function getPresentationPreviewFrame(page: Page): Frame {
-  const previewFrame = page
-    .frames()
-    .find((frame) => frame.url().includes('/presentation-smoke'));
+  const previewFrame = findPresentationPreviewFrame(page);
 
   if (!previewFrame) {
     throw new Error('Unable to find the Presentation smoke preview frame.');
@@ -294,8 +296,42 @@ function getPresentationPreviewFrame(page: Page): Frame {
   return previewFrame;
 }
 
-function getPresentationPreviewFrameLocator(page: Page): FrameLocator {
-  return page.frameLocator('iframe[src*="/presentation-smoke"]');
+async function getPresentationPreviewTitle(
+  page: Page,
+  timeout: number,
+): Promise<Locator> {
+  await expect
+    .poll(
+      async () => {
+        const previewFrame = findPresentationPreviewFrame(page);
+
+        if (!previewFrame) {
+          return false;
+        }
+
+        return previewFrame
+          .getByTestId('presentation-smoke-title')
+          .isVisible({ timeout: 100 });
+      },
+      { timeout },
+    )
+    .toBe(true);
+
+  return getPresentationPreviewFrame(page).getByTestId(
+    'presentation-smoke-title',
+  );
+}
+
+function isPresentationSmokeFrame(frame: Frame): boolean {
+  if (!frame.parentFrame()) {
+    return false;
+  }
+
+  try {
+    return new URL(frame.url()).pathname === '/presentation-smoke';
+  } catch {
+    return false;
+  }
 }
 
 function getPreviewFrameTimeout(): number {
@@ -384,8 +420,7 @@ test('Sanity Studio Presentation opens the Angular preview frame', async ({
 
   await openPresentationPreview(page, previewFrameTimeout);
 
-  const previewFrame = getPresentationPreviewFrameLocator(page);
-  const title = previewFrame.getByTestId('presentation-smoke-title');
+  const title = await getPresentationPreviewTitle(page, previewFrameTimeout);
   await expect(title).toBeVisible();
   await expect(title).not.toHaveText('');
 
@@ -452,8 +487,7 @@ test('real Sanity mutations update Angular live preview without reloading', asyn
   extendTimeoutForPreviewFrame(testInfo, previewFrameTimeout);
 
   await openPresentationPreview(page, previewFrameTimeout);
-  const previewFrame = getPresentationPreviewFrameLocator(page);
-  const title = previewFrame.getByTestId('presentation-smoke-title');
+  const title = await getPresentationPreviewTitle(page, previewFrameTimeout);
 
   await expect(title).not.toHaveText('');
 
