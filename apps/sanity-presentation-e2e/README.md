@@ -12,7 +12,7 @@ This starts the Analog example app with dummy Sanity env values, then uses a fak
 
 - open `/presentation-smoke` inside an iframe
 - complete the legacy `sanity/channels` handshake
-- assert `@limitless-angular/sanity/preview-kit` posts `preview-kit/documents`
+- assert `@limitless-angular/sanity/preview-kit` connects as a `loaders` node and honors Presentation perspective messages
 - assert live preview refreshes Angular data without reloading the iframe
 - assert `@limitless-angular/sanity/visual-editing` connects to the host
 - assert the editable title renders the expected `data-sanity` marker
@@ -69,7 +69,7 @@ The real-project smoke asserts that:
 
 - Studio Presentation opens the Angular `/presentation-smoke` preview frame
 - the preview route renders data loaded by the app's real Sanity client
-- `@limitless-angular/sanity/preview-kit` announces the real document in use to Studio
+- `@limitless-angular/sanity/preview-kit` connects to Studio as a loader
 - `@limitless-angular/sanity/visual-editing` connects to Studio and exposes an editable `data-sanity` marker
 - when `SANITY_E2E_WRITE_TOKEN` is set, a real Sanity mutation updates the Angular live preview without reloading the iframe, then restores the title; that token must have document update permission for the configured project and dataset
 

@@ -46,17 +46,11 @@
       "@limitless-angular/sanity/preview-kit": [
         "./packages/sanity/preview-kit/src/index.ts"
       ],
-      "@limitless-angular/sanity/preview-kit-compat": [
-        "./packages/sanity/preview-kit-compat/src/index.ts"
-      ],
       "@limitless-angular/sanity/shared": [
         "./packages/sanity/shared/src/index.ts"
       ],
       "@limitless-angular/sanity/visual-editing": [
         "./packages/sanity/visual-editing/src/index.ts"
-      ],
-      "@limitless-angular/sanity/visual-editing-helpers": [
-        "./packages/sanity/visual-editing-helpers/src/index.ts"
       ]
     }
   },

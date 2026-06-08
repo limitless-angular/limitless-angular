@@ -40,6 +40,7 @@ const presentationSmokeQuery = '*[_id == $id][0]{title}';
 type PresentationSmokeWindow = Window & {
   __presentationSmokeBootCount?: number;
   __presentationSmokeFetchCount?: number;
+  __presentationSmokePerspective?: unknown;
   __presentationSmokeTitle?: string;
 };
 
@@ -61,11 +62,16 @@ const clientConfig = {
 const fakeClient = {
   config: () => clientConfig,
   withConfig: () => fakeClient,
-  fetch: async () => {
+  fetch: async (
+    _query: string,
+    _params?: QueryParams,
+    options?: { perspective?: unknown },
+  ) => {
     const smokeWindow = getPresentationSmokeWindow();
     if (smokeWindow) {
       smokeWindow.__presentationSmokeFetchCount =
         (smokeWindow.__presentationSmokeFetchCount ?? 0) + 1;
+      smokeWindow.__presentationSmokePerspective = options?.perspective;
     }
 
     return {

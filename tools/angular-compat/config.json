@@ -39,8 +39,6 @@
     "@limitless-angular/sanity/image-loader",
     "@limitless-angular/sanity/portabletext",
     "@limitless-angular/sanity/preview-kit",
-    "@limitless-angular/sanity/preview-kit-compat",
-    "@limitless-angular/sanity/visual-editing",
-    "@limitless-angular/sanity/visual-editing-helpers"
+    "@limitless-angular/sanity/visual-editing"
   ]
 }

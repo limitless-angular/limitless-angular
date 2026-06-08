@@ -34,18 +34,10 @@ export function packCompatibilityArtifact() {
     ]);
     const packageJsonPath = join(packageRoot, 'package.json');
     const packageJson = readJson(packageJsonPath);
-    const previewKitCompatPackageJson = readJson(
-      join(packageRoot, 'preview-kit-compat/package.json'),
-    );
-    const visualEditingHelpersPackageJson = readJson(
-      join(packageRoot, 'visual-editing-helpers/package.json'),
-    );
 
     packageJson.private = true;
     packageJson.devDependencies = {
       ...packageJson.peerDependencies,
-      ...previewKitCompatPackageJson.peerDependencies,
-      ...visualEditingHelpersPackageJson.peerDependencies,
       '@angular/common': toolchain.angularVersion,
       '@angular/compiler': toolchain.angularVersion,
       '@angular/compiler-cli': toolchain.compilerCliVersion,

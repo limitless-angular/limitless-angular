@@ -219,6 +219,7 @@ A component that provides the live preview context to its children.
 **Inputs:**
 
 - `token: string` - The Sanity preview token (required)
+- `perspective: Exclude<ClientPerspective, 'raw'>` - The Sanity client perspective to use for live queries. Defaults to `'previewDrafts'`; Presentation Tool perspective changes take precedence when present.
 
 ### createLiveData
 

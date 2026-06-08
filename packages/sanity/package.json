@@ -33,7 +33,7 @@
     "@angular/router": "^18.0.0 || ^19.0.0",
     "@portabletext/toolkit": "^2.0.15 || ^3.0.0 || ^4.0.0 || ^5.0.0",
     "@portabletext/types": "^2.0.13 || ^3.0.0 || ^4.0.0",
-    "@sanity/client": "^6.21.3 || ^7.0.0",
+    "@sanity/client": "^6.28.0 || ^7.0.0",
     "@sanity/image-url": "^1.0.2 || ^2.0.2",
     "@sanity/visual-editing": "^2.7.0",
     "rxjs": "^7.8.0"
@@ -44,10 +44,12 @@
     }
   },
   "dependencies": {
+    "@sanity/comlink": "^3.0.1",
+    "@sanity/presentation-comlink": "^1.0.6",
     "@vercel/stega": "0.1.2",
     "lodash-es": "^4.17.21",
     "lru-cache": "^11.0.0",
-    "mendoza": "^3.0.7",
+    "mendoza": "3.0.8",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
