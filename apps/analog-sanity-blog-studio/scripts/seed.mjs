@@ -1,18 +1,10 @@
 import { spawnSync } from 'node:child_process';
-import {
-  mkdtempSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createClient } from '@sanity/client';
 
-import {
-  loadBlogStudioEnv,
-  requireBlogStudioEnv,
-  studioRoot,
-} from './env.mjs';
+import { loadBlogStudioEnv, requireBlogStudioEnv, studioRoot } from './env.mjs';
 
 const env = loadBlogStudioEnv();
 
@@ -29,9 +21,7 @@ const documents = [
     description: simpleBlock(
       'A statically generated blog example using Analog, Sanity and Limitless Angular.',
     ),
-    footer: blockContent(
-      'Built with Analog, Sanity and Limitless Angular.',
-    ),
+    footer: blockContent('Built with Analog, Sanity and Limitless Angular.'),
   },
   {
     _id: 'author.limitless',

@@ -2,7 +2,10 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 export const workspaceRoot = resolve(import.meta.dirname, '../../..');
-export const studioRoot = resolve(workspaceRoot, 'apps/analog-sanity-blog-studio');
+export const studioRoot = resolve(
+  workspaceRoot,
+  'apps/analog-sanity-blog-studio',
+);
 
 const envFiles = [
   resolve(workspaceRoot, 'apps/analog-sanity-blog-example/.env.local'),

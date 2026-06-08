@@ -1,10 +1,6 @@
 import { spawnSync } from 'node:child_process';
 
-import {
-  loadBlogStudioEnv,
-  requireBlogStudioEnv,
-  studioRoot,
-} from './env.mjs';
+import { loadBlogStudioEnv, requireBlogStudioEnv, studioRoot } from './env.mjs';
 
 const [command, explicitOrigin] = process.argv.slice(2);
 
@@ -77,9 +73,7 @@ function uniqueOrigins(origins) {
 }
 
 function didReportDuplicateOrigin(result) {
-  return (
-    `${result.stdout ?? ''}${result.stderr ?? ''}`.includes(
-      'Duplicate origin already exists for this project',
-    )
+  return `${result.stdout ?? ''}${result.stderr ?? ''}`.includes(
+    'Duplicate origin already exists for this project',
   );
 }

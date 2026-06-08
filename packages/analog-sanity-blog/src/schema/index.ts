@@ -44,7 +44,8 @@ export const openGraphImageType = defineType({
       name: 'metadataBase',
       title: 'Metadata base URL',
       type: 'url',
-      description: 'Optional absolute base URL used when resolving social images.',
+      description:
+        'Optional absolute base URL used when resolving social images.',
     }),
   ],
 });

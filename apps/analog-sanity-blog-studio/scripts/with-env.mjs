@@ -1,10 +1,6 @@
 import { spawnSync } from 'node:child_process';
 
-import {
-  loadBlogStudioEnv,
-  requireBlogStudioEnv,
-  studioRoot,
-} from './env.mjs';
+import { loadBlogStudioEnv, requireBlogStudioEnv, studioRoot } from './env.mjs';
 
 const [command, ...args] = process.argv.slice(2);
 
