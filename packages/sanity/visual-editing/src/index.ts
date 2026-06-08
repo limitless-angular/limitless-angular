@@ -12,7 +12,7 @@ export {
   type CreateDataAttribute,
   type CreateDataAttributeProps,
   type WithRequired,
-} from '@sanity/visual-editing-csm';
+} from '@sanity/visual-editing/create-data-attribute';
 export type {
   DisableVisualEditing,
   DragEndEvent,

@@ -11,7 +11,7 @@ import {
   type ObservedValueOf,
 } from 'rxjs';
 
-import type { VisualEditingNode } from '../../types';
+import type { VisualEditingNode } from '@sanity/visual-editing/optimistic';
 
 type SharedListenEvent = MutationEvent | ReconnectEvent | WelcomeEvent;
 
