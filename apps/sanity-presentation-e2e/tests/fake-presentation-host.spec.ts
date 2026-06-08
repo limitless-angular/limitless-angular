@@ -49,6 +49,7 @@ type ProtocolMessage = {
 type PresentationSmokeFrameState = {
   __presentationSmokeBootCount?: number;
   __presentationSmokeFetchCount?: number;
+  __presentationSmokePerspective?: unknown;
   __presentationSmokeTitle?: string;
 };
 
@@ -72,7 +73,7 @@ async function installFakePresentationHost(page: Page): Promise<void> {
         <script>
           window.__presentationMessages = [];
           const iframe = document.getElementById('preview');
-          const targets = ['preview-kit', 'visual-editing', 'overlays'];
+          const targets = ['loaders', 'visual-editing', 'overlays'];
           const connections = new Map();
 
           function send(message) {
@@ -101,6 +102,23 @@ async function installFakePresentationHost(page: Page): Promise<void> {
             handshakeAll();
             window.__handshakeInterval = setInterval(handshakeAll, 500);
           }
+
+          window.__sendLoaderPerspective = function (perspective) {
+            const connectionId = connections.get('loaders') || 'fake-loaders';
+            connections.set('loaders', connectionId);
+            send({
+              domain: 'sanity/channels',
+              type: 'loader/perspective',
+              from: 'presentation',
+              to: 'loaders',
+              connectionId,
+              data: {
+                projectId: '${expectedProjectId}',
+                dataset: '${expectedDataset}',
+                perspective
+              }
+            });
+          };
 
           window.addEventListener('message', (event) => {
             const data = event.data || {};
@@ -202,6 +220,8 @@ async function getFrameState(
     return {
       __presentationSmokeBootCount: smokeWindow.__presentationSmokeBootCount,
       __presentationSmokeFetchCount: smokeWindow.__presentationSmokeFetchCount,
+      __presentationSmokePerspective:
+        smokeWindow.__presentationSmokePerspective,
       __presentationSmokeTitle: smokeWindow.__presentationSmokeTitle,
     };
   });
@@ -219,38 +239,51 @@ async function expectEditableTitleMarker(title: Locator): Promise<void> {
   await expect(title).toHaveAttribute('data-sanity', expectedDataSanity);
 }
 
-test('Angular preview announces live documents when embedded by Presentation', async ({
+function isLoaderConnectionMessage(message: ProtocolMessage): boolean {
+  return message.type === 'handshake/syn-ack' && message.from === 'loaders';
+}
+
+async function sendLoaderPerspective(
+  page: Page,
+  perspective: string,
+): Promise<void> {
+  await page.evaluate((nextPerspective) => {
+    (
+      window as unknown as {
+        __sendLoaderPerspective?: (perspective: string) => void;
+      }
+    ).__sendLoaderPerspective?.(nextPerspective);
+  }, perspective);
+}
+
+test('Angular preview connects loaders and honors Presentation perspective', async ({
   page,
 }) => {
   await installFakePresentationHost(page);
 
+  const previewFrame = await getPreviewFrame(page);
   const frame = page.frameLocator('#preview');
   const title = frame.getByTestId('presentation-smoke-title');
 
   await expect(frame.getByTestId('presentation-smoke-kicker')).toBeVisible();
-  await waitForMessage(
-    page,
-    (message) => message.type === 'preview-kit/documents',
-  );
+  await waitForMessage(page, isLoaderConnectionMessage);
 
   await expect(title).toContainText(liveTitle);
   await expectEditableTitleMarker(title);
+  await expect
+    .poll(
+      async () =>
+        (await getFrameState(previewFrame)).__presentationSmokePerspective,
+    )
+    .toBe('drafts');
 
-  const documentsMessage = (await getPresentationMessages(page)).find(
-    (message) => message.type === 'preview-kit/documents',
-  );
-
-  expect(documentsMessage).toMatchObject({
-    from: 'preview-kit',
-    to: 'presentation',
-    type: 'preview-kit/documents',
-  });
-  expect(documentsMessage?.data).toMatchObject({
-    dataset: expectedDataset,
-    documents: [{ _id: 'presentation-smoke-post' }],
-    perspective: 'previewDrafts',
-    projectId: expectedProjectId,
-  });
+  await sendLoaderPerspective(page, 'published');
+  await expect
+    .poll(
+      async () =>
+        (await getFrameState(previewFrame)).__presentationSmokePerspective,
+    )
+    .toBe('published');
 });
 
 test('live preview refreshes Angular data without reloading the preview', async ({

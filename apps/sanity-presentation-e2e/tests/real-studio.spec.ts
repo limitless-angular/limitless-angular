@@ -50,13 +50,6 @@ type ProtocolMessage = {
   type?: string;
 };
 
-type DocumentsMessageData = {
-  dataset?: string;
-  documents?: Array<{ _id?: string }>;
-  perspective?: string;
-  projectId?: string;
-};
-
 type PresentationSmokeFrameState = {
   __presentationSmokeBootCount?: number;
 };
@@ -348,8 +341,8 @@ function extendTimeoutForPreviewFrame(
   }
 }
 
-function isPreviewKitDocumentsMessage(message: ProtocolMessage): boolean {
-  return message.type === 'preview-kit/documents';
+function isLoaderConnectionMessage(message: ProtocolMessage): boolean {
+  return message.type === 'handshake/syn-ack' && message.from === 'loaders';
 }
 
 function isVisualEditingConnectionMessage(message: ProtocolMessage): boolean {
@@ -357,12 +350,6 @@ function isVisualEditingConnectionMessage(message: ProtocolMessage): boolean {
     message.type === 'handshake/syn-ack' &&
     (message.from === 'visual-editing' || message.from === 'overlays')
   );
-}
-
-function getDocumentsMessageData(
-  message: ProtocolMessage | undefined,
-): DocumentsMessageData {
-  return (message?.data ?? {}) as DocumentsMessageData;
 }
 
 function parseDataSanity(value: string): Record<string, string> {
@@ -392,7 +379,7 @@ function createMutationClient(token: string): SanityClient {
     apiVersion: process.env['SANITY_E2E_API_VERSION'] || '2024-02-28',
     token,
     useCdn: false,
-    perspective: 'previewDrafts',
+    perspective: 'drafts',
   });
 }
 
@@ -433,39 +420,8 @@ test('Sanity Studio Presentation opens the Angular preview frame', async ({
     await expect(title).toHaveAttribute('data-sanity', expectedDataSanity);
   }
 
-  await waitForMessage(page, isPreviewKitDocumentsMessage);
+  await waitForMessage(page, isLoaderConnectionMessage);
   await waitForMessage(page, isVisualEditingConnectionMessage);
-
-  const dataSanity = parseDataSanity(
-    (await title.getAttribute('data-sanity')) ?? '',
-  );
-  const documentsMessage = (await getPresentationMessages(page)).find(
-    isPreviewKitDocumentsMessage,
-  );
-  const documentsData = getDocumentsMessageData(documentsMessage);
-
-  expect(documentsMessage).toMatchObject({
-    from: 'preview-kit',
-    to: 'presentation',
-    type: 'preview-kit/documents',
-  });
-  expect(documentsData).toMatchObject({
-    dataset: expectedPreviewDataset,
-    perspective: 'previewDrafts',
-    projectId: expectedPreviewProjectId,
-  });
-
-  if (studioMode === 'real-project') {
-    expect(documentsData.documents ?? []).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ _id: dataSanity['id'] }),
-      ]),
-    );
-  } else {
-    expect(documentsData.documents).toEqual([
-      expect.objectContaining({ _id: documentId }),
-    ]);
-  }
 });
 
 test('real Sanity mutations update Angular live preview without reloading', async ({

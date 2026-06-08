@@ -137,7 +137,7 @@ const getClientFactory = (preview?: { token: string }) =>
         token: preview.token,
         useCdn: false,
         ignoreBrowserTokenWarning: true,
-        perspective: 'previewDrafts',
+        perspective: 'drafts',
         stega: {
           enabled: true,
           studioUrl: 'your-studio-url',

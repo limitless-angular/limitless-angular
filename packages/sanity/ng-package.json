@@ -6,6 +6,8 @@
     "entryFile": "src/index.ts"
   },
   "allowedNonPeerDependencies": [
+    "@sanity/comlink",
+    "@sanity/presentation-comlink",
     "@vercel/stega",
     "lodash-es",
     "lru-cache",

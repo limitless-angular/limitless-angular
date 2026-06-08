@@ -7,10 +7,13 @@ import {
   combineLatest,
   EMPTY,
   from,
+  merge,
   mergeMap,
   Observable,
   of,
+  skip,
   takeWhile,
+  withLatestFrom,
 } from 'rxjs';
 import {
   catchError,
@@ -26,8 +29,9 @@ import { applyPatch } from 'mendoza';
 import { vercelStegaSplit } from '@vercel/stega';
 import { applySourceDocuments } from '@sanity/client/csm';
 import { LIVE_PREVIEW_REFRESH_INTERVAL } from './tokens';
-import { QueryCacheKey, type EnhancedQuerySnapshot } from './types';
+import type { QueryCacheKey, EnhancedQuerySnapshot } from './types';
 import {
+  ClientPerspective,
   ContentSourceMap,
   QueryParams,
   SanityDocument,
@@ -35,12 +39,13 @@ import {
   InitializedClientConfig,
   type SanityClient,
 } from '@sanity/client';
+import { PerspectiveService } from './perspective.service';
 import { RevalidateService } from './revalidate.service';
-import { UseDocumentsInUseService } from '@limitless-angular/sanity/preview-kit-compat';
 import {
   SANITY_CLIENT_FACTORY,
   type SanityClientFactory,
 } from '@limitless-angular/sanity/shared';
+import { getQueryCacheKey, normalizeQueryParams } from './query-params';
 
 const DEFAULT_TAG = 'sanity.preview-kit';
 
@@ -52,32 +57,15 @@ function getTurboCacheKey(
   return `${projectId}-${dataset}-${_id}`;
 }
 
-/** @internal */
-function getQueryCacheKey(query: string, params: QueryParams): QueryCacheKey {
-  return `${query}-${JSON.stringify(params)}`;
-}
-
-/**
- * Return params that are stable with deep equal as long as the key order is the same
- *
- * Based on https://github.com/sanity-io/visual-editing/blob/main/packages/visual-editing-helpers/src/hooks/useQueryParams.ts
- * @internal
- */
-function getStableQueryParams(
-  params?: undefined | null | QueryParams,
-): QueryParams {
-  return JSON.parse(JSON.stringify(params ?? {}));
-}
-
 @Injectable()
 export class LivePreviewService {
   private client!: SanityClient;
   private clientFactory = inject<SanityClientFactory>(SANITY_CLIENT_FACTORY);
   private destroyRef = inject(DestroyRef);
   private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private perspectiveService = inject(PerspectiveService);
   private refreshInterval = inject(LIVE_PREVIEW_REFRESH_INTERVAL);
   private revalidateService = inject(RevalidateService);
-  private useDocumentsInUse = inject(UseDocumentsInUseService);
 
   private config!: Required<InitializedClientConfig>;
   private snapshots = new Map<
@@ -114,7 +102,7 @@ export class LivePreviewService {
       ...(token && {
         token,
         useCdn: false,
-        perspective: 'previewDrafts',
+        perspective: 'drafts',
         ignoreBrowserTokenWarning: true,
       }),
     });
@@ -123,16 +111,18 @@ export class LivePreviewService {
     this.documentsCache = new LRUCache<string, SanityDocument>({ max: 500 });
 
     if (this.isBrowser) {
-      this.useDocumentsInUse.initialize(this.config);
       this.setupTurboUpdates();
       this.loadMissingDocuments();
       this.revalidateService.setupRevalidate(this.refreshInterval);
       this.setupSourceMapUpdates();
       this.updateActiveDocumentIds();
-      this.syncWithPresentationToolIfPresent();
     }
 
     this.#isInitialized = true;
+  }
+
+  setPerspective(perspective: Exclude<ClientPerspective, 'raw'>): void {
+    this.perspectiveService.setPerspective(perspective);
   }
 
   private checkInitialization(): void {
@@ -168,6 +158,8 @@ export class LivePreviewService {
   private turboChargeResultIfSourceMap(
     result: unknown,
     resultSourceMap?: ContentSourceMap,
+    perspective: Exclude<ClientPerspective, 'raw'> = this.perspectiveService
+      .current,
   ): unknown {
     if (!resultSourceMap) {
       return result;
@@ -208,7 +200,7 @@ export class LivePreviewService {
         }
         return changedValue;
       },
-      'previewDrafts',
+      perspective,
     );
   }
 
@@ -223,7 +215,7 @@ export class LivePreviewService {
 
     this.checkInitialization();
 
-    const params = getStableQueryParams(queryParams);
+    const params = normalizeQueryParams(queryParams);
     const key = getQueryCacheKey(query, params);
     let snapshot = this.snapshots.get(key) as
       | BehaviorSubject<EnhancedQuerySnapshot<QueryResult>>
@@ -256,30 +248,55 @@ export class LivePreviewService {
     snapshot: BehaviorSubject<EnhancedQuerySnapshot<QueryResult>>,
   ) {
     const { query, params } = snapshot.getValue();
-    this.revalidateService
-      .getRevalidateState()
+    const revalidate$ = this.revalidateService.getRevalidateState().pipe(
+      map((state) => state === 'refresh' || state === 'inflight'),
+      distinctUntilChanged(),
+      filter(Boolean),
+      map(() => true),
+    );
+
+    const perspectiveChange$ = this.perspectiveService.perspective$.pipe(
+      skip(1),
+      map(() => false),
+    );
+
+    merge(revalidate$, perspectiveChange$)
       .pipe(
-        map((state) => state === 'refresh' || state === 'inflight'),
-        distinctUntilChanged(),
-        filter(Boolean),
-        switchMap(() => this.fetchQuery(query, params)),
+        withLatestFrom(this.perspectiveService.perspective$),
+        switchMap(([trackRefreshState, perspective]) =>
+          this.fetchQuery(query, params, perspective, trackRefreshState),
+        ),
         takeWhile(() => snapshot.observed),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe();
   }
 
-  private fetchQuery(query: string, params: QueryParams): Observable<void> {
-    const onFinally = this.revalidateService.startRefresh();
+  private fetchQuery(
+    query: string,
+    params: QueryParams,
+    perspective: Exclude<ClientPerspective, 'raw'>,
+    trackRefreshState = true,
+  ): Observable<void> {
+    const onFinally = trackRefreshState
+      ? this.revalidateService.startRefresh()
+      : () => undefined;
     const controller = new AbortController();
     return from(
       this.client.fetch(query, params, {
         signal: controller.signal,
         filterResponse: false,
+        perspective,
       }),
     ).pipe(
       tap(({ result, resultSourceMap }) => {
-        this.updateSnapshot(query, params, result, resultSourceMap);
+        this.updateSnapshot(
+          query,
+          params,
+          result,
+          resultSourceMap,
+          perspective,
+        );
         if (resultSourceMap) {
           this.turboIdsFromSourceMap(resultSourceMap);
         }
@@ -301,13 +318,19 @@ export class LivePreviewService {
     params: QueryParams,
     result: unknown,
     resultSourceMap?: ContentSourceMap,
+    perspective: Exclude<ClientPerspective, 'raw'> = this.perspectiveService
+      .current,
   ): void {
     const key = getQueryCacheKey(query, params);
     const snapshot = this.snapshots.get(key);
     if (snapshot) {
       snapshot.next({
         ...snapshot.getValue(),
-        result: this.turboChargeResultIfSourceMap(result, resultSourceMap),
+        result: this.turboChargeResultIfSourceMap(
+          result,
+          resultSourceMap,
+          perspective,
+        ),
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         resultSourceMap: resultSourceMap!,
       });
@@ -396,19 +419,16 @@ export class LivePreviewService {
       });
   }
 
-  private syncWithPresentationToolIfPresent(): void {
-    this.turboIds$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
-      this.useDocumentsInUse.updateDocumentsInUse(this.docsInUse);
-    });
-  }
-
   private updateAllSnapshots(): Observable<void> {
+    const perspective = this.perspectiveService.current;
+
     for (const [, snapshot] of this.snapshots.entries()) {
       const currentSnapshot = snapshot.getValue();
       if (currentSnapshot.resultSourceMap?.documents?.length) {
         const updatedResult = this.turboChargeResultIfSourceMap(
           currentSnapshot.result,
           currentSnapshot.resultSourceMap,
+          perspective,
         );
         snapshot.next({
           ...currentSnapshot,

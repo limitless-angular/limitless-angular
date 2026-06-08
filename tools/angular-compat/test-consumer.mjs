@@ -91,12 +91,6 @@ function writeConsumerProject(
   { versionSet, packageJson, tarballPath, toolchain },
 ) {
   const tarballDependency = `file:${tarballPath}`;
-  const previewKitCompatPackageJson = readJson(
-    join(packageRoot, 'preview-kit-compat/package.json'),
-  );
-  const visualEditingHelpersPackageJson = readJson(
-    join(packageRoot, 'visual-editing-helpers/package.json'),
-  );
   const packageName = `sanity-${versionSet.id}-compat-consumer`;
   const runtimePort = getRuntimePort(versionSet.id);
   const sharedSanityDeps = {
@@ -104,11 +98,7 @@ function writeConsumerProject(
       packageJson.peerDependencies['@portabletext/toolkit'],
     '@portabletext/types': packageJson.peerDependencies['@portabletext/types'],
     '@sanity/client': packageJson.peerDependencies['@sanity/client'],
-    '@sanity/comlink':
-      previewKitCompatPackageJson.peerDependencies['@sanity/comlink'],
     '@sanity/image-url': packageJson.peerDependencies['@sanity/image-url'],
-    '@sanity/types':
-      visualEditingHelpersPackageJson.peerDependencies['@sanity/types'],
     '@sanity/visual-editing':
       packageJson.peerDependencies['@sanity/visual-editing'],
     rxjs: packageJson.peerDependencies.rxjs,
@@ -357,17 +347,12 @@ import {
   createLiveData,
   LiveQueryProviderComponent,
 } from '@limitless-angular/sanity/preview-kit';
-import { UseDocumentsInUseService } from '@limitless-angular/sanity/preview-kit-compat';
 import {
   SANITY_CONFIG,
   type SanityClientFactory,
   type SanityConfig,
 } from '@limitless-angular/sanity/shared';
 import { VisualEditingComponent } from '@limitless-angular/sanity/visual-editing';
-import type {
-  HistoryUpdate,
-  VisualEditingControllerMsg,
-} from '@limitless-angular/sanity/visual-editing-helpers';
 import { createClient } from '@sanity/client';
 
 const sanityConfig: SanityConfig = {
@@ -380,7 +365,7 @@ const sanityClientFactory: SanityClientFactory = (preview) =>
     apiVersion: '2025-01-01',
     useCdn: !preview?.token,
     token: preview?.token,
-    perspective: preview?.token ? 'previewDrafts' : 'published',
+    perspective: preview?.token ? 'drafts' : 'published',
     ignoreBrowserTokenWarning: true,
   });
 
@@ -394,7 +379,6 @@ const imageDirective: Type<SanityImage> = SanityImage;
 const portableTextComponent: Type<PortableTextComponent> = PortableTextComponent;
 const liveQueryProvider: Type<LiveQueryProviderComponent> = LiveQueryProviderComponent;
 const visualEditingComponent: Type<VisualEditingComponent> = VisualEditingComponent;
-const documentsService: Type<UseDocumentsInUseService> = UseDocumentsInUseService;
 
 const blocks: PortableTextBlock[] = [
   {
@@ -415,14 +399,6 @@ const liveData: Signal<{ title: string }> = createLiveData(
   () => ({ title: 'Compatibility' }),
   () => ({ query: '*[_type == "post"][0]' }),
 );
-const historyUpdate: HistoryUpdate = {
-  type: 'push',
-  url: '/compat',
-};
-const controllerMessage: VisualEditingControllerMsg = {
-  type: 'presentation/navigate',
-  data: historyUpdate,
-};
 
 void providers;
 void sanityClientFactory;
@@ -432,13 +408,11 @@ void imageDirective;
 void portableTextComponent;
 void liveQueryProvider;
 void visualEditingComponent;
-void documentsService;
 void components;
 void plainText;
 void InlineTypeComponent;
 void InlineMarkComponent;
 void liveData;
-void controllerMessage;
 `;
 }
 
