@@ -270,6 +270,12 @@ test('Angular preview connects loaders and honors Presentation perspective', asy
 
   await expect(title).toContainText(liveTitle);
   await expectEditableTitleMarker(title);
+  await expect
+    .poll(
+      async () =>
+        (await getFrameState(previewFrame)).__presentationSmokePerspective,
+    )
+    .toBe('drafts');
 
   await sendLoaderPerspective(page, 'published');
   await expect

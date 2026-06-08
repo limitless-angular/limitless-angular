@@ -21,7 +21,7 @@ import { RevalidateService } from './revalidate.service';
 })
 export class LiveQueryProviderComponent {
   token = input.required<string>();
-  perspective = input<Exclude<ClientPerspective, 'raw'>>('previewDrafts');
+  perspective = input<Exclude<ClientPerspective, 'raw'>>('drafts');
 
   private livePreviewService = inject(LivePreviewService);
 

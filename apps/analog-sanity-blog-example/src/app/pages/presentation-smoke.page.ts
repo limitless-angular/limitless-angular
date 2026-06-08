@@ -55,7 +55,7 @@ const clientConfig = {
   dataset,
   apiVersion: '2024-02-28',
   useCdn: false,
-  perspective: 'previewDrafts',
+  perspective: 'drafts',
   resultSourceMap: true,
 } as unknown as Required<InitializedClientConfig>;
 

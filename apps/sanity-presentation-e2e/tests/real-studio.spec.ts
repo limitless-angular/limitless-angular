@@ -379,7 +379,7 @@ function createMutationClient(token: string): SanityClient {
     apiVersion: process.env['SANITY_E2E_API_VERSION'] || '2024-02-28',
     token,
     useCdn: false,
-    perspective: 'previewDrafts',
+    perspective: 'drafts',
   });
 }
 

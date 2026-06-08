@@ -18,14 +18,14 @@ export class PerspectiveService {
 
   private configuredPerspective$ = new BehaviorSubject<
     Exclude<ClientPerspective, 'raw'>
-  >('previewDrafts');
+  >('drafts');
   private presentationPerspective$ = new BehaviorSubject<Exclude<
     ClientPerspective,
     'raw'
   > | null>(null);
   private effectivePerspective$ = new BehaviorSubject<
     Exclude<ClientPerspective, 'raw'>
-  >('previewDrafts');
+  >('drafts');
 
   constructor() {
     this.setupPerspectiveUpdates();

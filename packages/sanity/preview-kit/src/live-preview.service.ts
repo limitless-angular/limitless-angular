@@ -102,7 +102,7 @@ export class LivePreviewService {
       ...(token && {
         token,
         useCdn: false,
-        perspective: 'previewDrafts',
+        perspective: 'drafts',
         ignoreBrowserTokenWarning: true,
       }),
     });

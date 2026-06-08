@@ -365,7 +365,7 @@ const sanityClientFactory: SanityClientFactory = (preview) =>
     apiVersion: '2025-01-01',
     useCdn: !preview?.token,
     token: preview?.token,
-    perspective: preview?.token ? 'previewDrafts' : 'published',
+    perspective: preview?.token ? 'drafts' : 'published',
     ignoreBrowserTokenWarning: true,
   });
 
