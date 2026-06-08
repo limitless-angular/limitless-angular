@@ -1,4 +1,10 @@
-import { expect, test, type Frame, type Page } from '@playwright/test';
+import {
+  expect,
+  test,
+  type Frame,
+  type FrameLocator,
+  type Page,
+} from '@playwright/test';
 import { createClient, type SanityClient } from '@sanity/client';
 import { createDataAttribute } from '@sanity/visual-editing';
 
@@ -55,6 +61,25 @@ type PresentationSmokeFrameState = {
   __presentationSmokeBootCount?: number;
 };
 
+const hermeticUser = {
+  id: 'presentation-smoke-user',
+  name: 'Presentation Smoke User',
+  email: 'presentation-smoke@example.com',
+  profileImage: null,
+  roles: [{ name: 'administrator', title: 'Administrator' }],
+};
+
+const hermeticPost = {
+  _id: documentId,
+  _type: 'post',
+  _createdAt: '2024-01-01T00:00:00.000Z',
+  _updatedAt: '2024-01-01T00:00:00.000Z',
+  _rev: 'presentation-smoke-rev',
+  title: 'Live presentation smoke title',
+};
+
+const hermeticDatasets = [{ name: dataset }];
+
 async function mockSanityApi(page: Page): Promise<void> {
   const corsHeaders = {
     'access-control-allow-credentials': 'true',
@@ -74,32 +99,20 @@ async function mockSanityApi(page: Page): Promise<void> {
         return;
       }
 
-      const body = url.pathname.includes('/users/me/keyvalue')
-        ? []
-        : url.pathname.includes('/users/me')
-          ? {
-              id: 'presentation-smoke-user',
-              name: 'Presentation Smoke User',
-              email: 'presentation-smoke@example.com',
-              profileImage: null,
-              roles: [{ name: 'administrator', title: 'Administrator' }],
-            }
-          : url.pathname.includes(`/data/query/${dataset}`)
-            ? {
-                ms: 0,
-                query: url.searchParams.get('query') ?? '',
-                result: {
-                  _id: documentId,
-                  _type: 'post',
-                  _createdAt: '2024-01-01T00:00:00.000Z',
-                  _updatedAt: '2024-01-01T00:00:00.000Z',
-                  _rev: 'presentation-smoke-rev',
-                  title: 'Live presentation smoke title',
-                },
-              }
-            : url.pathname.includes('/datasets')
-              ? [{ name: dataset }]
-              : {};
+      if (isSanityEventStream(url)) {
+        await route.fulfill({
+          body: ':\n\n',
+          contentType: 'text/event-stream',
+          headers: {
+            ...corsHeaders,
+            'cache-control': 'no-cache',
+          },
+          status: 200,
+        });
+        return;
+      }
+
+      const body = getSanityApiResponseBody(url);
 
       await route.fulfill({
         body: JSON.stringify(body),
@@ -108,6 +121,72 @@ async function mockSanityApi(page: Page): Promise<void> {
         status: 200,
       });
     },
+  );
+}
+
+function isSanityEventStream(url: URL): boolean {
+  return (
+    url.pathname.includes(`/data/listen/${dataset}`) ||
+    url.pathname.includes(`/data/live/events/${dataset}`)
+  );
+}
+
+function getSanityApiResponseBody(url: URL): unknown {
+  if (url.pathname.includes('/users/me/keyvalue')) {
+    return [];
+  }
+
+  if (url.pathname.includes('/users/me')) {
+    return hermeticUser;
+  }
+
+  if (
+    url.pathname.includes('/user-applications') ||
+    url.pathname.includes('/access/requests/me') ||
+    url.pathname.includes(`/datasets/${dataset}/acl`)
+  ) {
+    return [];
+  }
+
+  if (url.pathname.endsWith(`/projects/${projectId}/datasets`)) {
+    return hermeticDatasets;
+  }
+
+  if (url.pathname.includes(`/data/doc/${dataset}/${documentId}`)) {
+    return hermeticPost;
+  }
+
+  if (url.pathname.includes(`/data/query/${dataset}`)) {
+    const query = url.searchParams.get('query') ?? '';
+
+    return {
+      ms: 0,
+      query,
+      result: getHermeticQueryResult(query),
+    };
+  }
+
+  return {};
+}
+
+function getHermeticQueryResult(query: string): unknown {
+  if (isPresentationSecretQuery(query)) {
+    return null;
+  }
+
+  if (query.includes(documentId) || query.includes('_type == "post"')) {
+    return hermeticPost;
+  }
+
+  return null;
+}
+
+function isPresentationSecretQuery(query: string): boolean {
+  return (
+    query.includes('sanity-preview-url-secret') ||
+    query.includes('sanity.previewUrlSecret') ||
+    query.includes('sanity.vercelProtectionBypass') ||
+    query.includes('vercel-protection-bypass')
   );
 }
 
@@ -200,6 +279,10 @@ async function openPresentationPreview(
     )
     .toBe(true);
 
+  return getPresentationPreviewFrame(page);
+}
+
+function getPresentationPreviewFrame(page: Page): Frame {
   const previewFrame = page
     .frames()
     .find((frame) => frame.url().includes('/presentation-smoke'));
@@ -209,6 +292,10 @@ async function openPresentationPreview(
   }
 
   return previewFrame;
+}
+
+function getPresentationPreviewFrameLocator(page: Page): FrameLocator {
+  return page.frameLocator('iframe[src*="/presentation-smoke"]');
 }
 
 function getPreviewFrameTimeout(): number {
@@ -295,27 +382,21 @@ test('Sanity Studio Presentation opens the Angular preview frame', async ({
   const previewFrameTimeout = getPreviewFrameTimeout();
   extendTimeoutForPreviewFrame(testInfo, previewFrameTimeout);
 
-  const previewFrame = await openPresentationPreview(page, previewFrameTimeout);
+  await openPresentationPreview(page, previewFrameTimeout);
 
-  await expect(
-    previewFrame.getByTestId('presentation-smoke-kicker'),
-  ).toBeVisible();
-
+  const previewFrame = getPresentationPreviewFrameLocator(page);
   const title = previewFrame.getByTestId('presentation-smoke-title');
+  await expect(title).toBeVisible();
   await expect(title).not.toHaveText('');
 
   if (studioMode === 'real-project') {
-    await expect(
-      previewFrame.getByTestId('presentation-smoke-client-mode'),
-    ).toHaveText('real-client');
+    await expect(title).toHaveAttribute('data-client-mode', 'real-client');
     await expect(title).toHaveAttribute(
       'data-sanity',
       /^id=[^;]+;type=post;path=title;base=/,
     );
   } else {
-    await expect(
-      previewFrame.getByTestId('presentation-smoke-client-mode'),
-    ).toHaveText('fake-client');
+    await expect(title).toHaveAttribute('data-client-mode', 'fake-client');
     await expect(title).toContainText('Live presentation smoke title');
     await expect(title).toHaveAttribute('data-sanity', expectedDataSanity);
   }
@@ -370,7 +451,8 @@ test('real Sanity mutations update Angular live preview without reloading', asyn
   const previewFrameTimeout = getPreviewFrameTimeout();
   extendTimeoutForPreviewFrame(testInfo, previewFrameTimeout);
 
-  const previewFrame = await openPresentationPreview(page, previewFrameTimeout);
+  await openPresentationPreview(page, previewFrameTimeout);
+  const previewFrame = getPresentationPreviewFrameLocator(page);
   const title = previewFrame.getByTestId('presentation-smoke-title');
 
   await expect(title).not.toHaveText('');
@@ -397,7 +479,9 @@ test('real Sanity mutations update Angular live preview without reloading', asyn
   }
 
   const nextTitle = `Real presentation smoke ${Date.now()}`;
-  const initialBootCount = await getFrameBootCount(previewFrame);
+  const initialBootCount = await getFrameBootCount(
+    getPresentationPreviewFrame(page),
+  );
   let didPatchTitle = false;
 
   try {
@@ -419,7 +503,7 @@ test('real Sanity mutations update Angular live preview without reloading', asyn
     });
 
     await expect
-      .poll(() => getFrameBootCount(previewFrame), {
+      .poll(() => getFrameBootCount(getPresentationPreviewFrame(page)), {
         timeout: 15_000,
       })
       .toBe(initialBootCount);
