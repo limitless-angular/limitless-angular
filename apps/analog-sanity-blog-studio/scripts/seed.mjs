@@ -4,14 +4,16 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createClient } from '@sanity/client';
 
-import { loadBlogStudioEnv, requireBlogStudioEnv, studioRoot } from './env.mjs';
+import {
+  blogStudioProjectEnvNames,
+  loadBlogStudioEnv,
+  requireBlogStudioEnv,
+  studioRoot,
+} from './env.mjs';
 
 const env = loadBlogStudioEnv();
 
-requireBlogStudioEnv(env, [
-  'SANITY_STUDIO_PROJECT_ID',
-  'SANITY_STUDIO_DATASET',
-]);
+requireBlogStudioEnv(env, blogStudioProjectEnvNames);
 
 const documents = [
   {

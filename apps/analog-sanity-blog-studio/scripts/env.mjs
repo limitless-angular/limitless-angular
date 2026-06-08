@@ -12,6 +12,11 @@ const envFiles = [
   resolve(studioRoot, '.env.local'),
 ];
 
+export const blogStudioProjectEnvNames = [
+  'SANITY_STUDIO_PROJECT_ID',
+  'SANITY_STUDIO_DATASET',
+];
+
 export function loadBlogStudioEnv(overrides = process.env) {
   const env = {
     ...loadEnvFiles(envFiles),

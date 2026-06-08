@@ -1,6 +1,11 @@
 import { spawnSync } from 'node:child_process';
 
-import { loadBlogStudioEnv, requireBlogStudioEnv, studioRoot } from './env.mjs';
+import {
+  blogStudioProjectEnvNames,
+  loadBlogStudioEnv,
+  requireBlogStudioEnv,
+  studioRoot,
+} from './env.mjs';
 
 const [command, explicitOrigin] = process.argv.slice(2);
 
@@ -11,10 +16,7 @@ if (command !== 'add' && command !== 'list') {
 
 const env = loadBlogStudioEnv();
 
-requireBlogStudioEnv(env, [
-  'SANITY_STUDIO_PROJECT_ID',
-  'SANITY_STUDIO_DATASET',
-]);
+requireBlogStudioEnv(env, blogStudioProjectEnvNames);
 
 if (command === 'list') {
   process.exit(runSanity(['cors', 'list'], env));

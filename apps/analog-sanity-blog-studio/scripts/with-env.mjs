@@ -1,22 +1,35 @@
 import { spawnSync } from 'node:child_process';
 
-import { loadBlogStudioEnv, requireBlogStudioEnv, studioRoot } from './env.mjs';
+import {
+  blogStudioProjectEnvNames,
+  loadBlogStudioEnv,
+  requireBlogStudioEnv,
+  studioRoot,
+} from './env.mjs';
 
-const [command, ...args] = process.argv.slice(2);
+const args = process.argv.slice(2);
+const requireProjectEnv = args[0] === '--require-project';
+
+if (requireProjectEnv) {
+  args.shift();
+}
+
+const [command, ...commandArgs] = args;
 
 if (!command) {
-  console.error('Usage: node scripts/with-env.mjs <command> [...args]');
+  console.error(
+    'Usage: node scripts/with-env.mjs [--require-project] <command> [...args]',
+  );
   process.exit(1);
 }
 
 const env = loadBlogStudioEnv();
 
-requireBlogStudioEnv(env, [
-  'SANITY_STUDIO_PROJECT_ID',
-  'SANITY_STUDIO_DATASET',
-]);
+if (requireProjectEnv) {
+  requireBlogStudioEnv(env, blogStudioProjectEnvNames);
+}
 
-const result = spawnSync(command, args, {
+const result = spawnSync(command, commandArgs, {
   cwd: studioRoot,
   encoding: 'utf8',
   env,
