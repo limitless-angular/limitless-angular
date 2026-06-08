@@ -8,6 +8,7 @@
   "allowedNonPeerDependencies": [
     "@sanity/comlink",
     "@sanity/presentation-comlink",
+    "@sanity/visual-editing-csm",
     "@vercel/stega",
     "lodash-es",
     "lru-cache",

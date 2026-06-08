@@ -10,9 +10,10 @@
     "lint": "eslint ."
   },
   "devDependencies": {
+    "@limitless-angular/sanity": "workspace:*",
     "@playwright/test": "1.44.1",
     "@sanity/client": "^6.21.1",
-    "@sanity/visual-editing": "2.10.6",
+    "@sanity/visual-editing-csm": "^2.0.6",
     "@types/node": "~22.19.20",
     "eslint": "^9.8.0"
   }

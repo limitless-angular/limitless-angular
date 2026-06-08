@@ -20,6 +20,7 @@ import {
   template: `
     @if (isBrowser) {
       <visual-editing-client
+        [components]="components()"
         [refresh]="refresh()"
         [zIndex]="zIndex()"
         [basePath]="computedBasePath()"
@@ -30,6 +31,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VisualEditingComponent {
+  components = input<VisualEditingProps['components']>();
   refresh = input<VisualEditingProps['refresh']>();
   zIndex = input<VisualEditingProps['zIndex']>();
   basePath = input<VisualEditingProps['basePath']>(undefined);
