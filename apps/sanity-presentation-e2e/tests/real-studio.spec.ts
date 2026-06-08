@@ -269,10 +269,7 @@ async function openPresentationPreview(
 
   await expect
     .poll(
-      () =>
-        page
-          .frames()
-          .some((frame) => isPresentationSmokeFrame(frame)),
+      () => page.frames().some((frame) => isPresentationSmokeFrame(frame)),
       {
         timeout: previewFrameTimeout,
       },
