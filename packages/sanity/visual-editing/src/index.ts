@@ -100,4 +100,4 @@ export type {
   OptimisticReducerAction,
   Path,
   PathValue,
-} from './optimistic';
+} from '@sanity/visual-editing/optimistic';

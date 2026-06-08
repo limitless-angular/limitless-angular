@@ -2,15 +2,14 @@
 import type { SanityDocument } from '@sanity/client';
 import { getDraftId, getPublishedId } from '@sanity/client/csm';
 import { createIfNotExists, patch } from '@sanity/mutate';
-
-import type { MutatorActor } from './context';
 import type {
   DocumentsGet,
-  DocumentsMutate,
+  MutatorActor,
   OptimisticDocumentPatches,
   Path,
   PathValue,
-} from './types';
+} from '@sanity/visual-editing/optimistic';
+
 import { getAtPath } from '../util/get-at-path';
 
 function debounce<F extends (...args: Parameters<F>) => ReturnType<F>>(
@@ -188,28 +187,4 @@ export function createDocumentsGet(actor: MutatorActor): DocumentsGet {
     getSnapshot: createDocumentGetSnapshot<T>(documentId, actor),
     patch: createDocumentPatch<T>(documentId, actor),
   });
-}
-
-export function createDocumentsMutate(actor: MutatorActor): DocumentsMutate {
-  return (id, mutations, options) => {
-    const { draftDoc } = getDocumentsAndSnapshot(id, actor);
-    const { commit = true } = options || {};
-
-    draftDoc.send({
-      type: 'mutate',
-      mutations,
-    });
-
-    if (commit) {
-      if (typeof commit === 'object' && 'debounce' in commit) {
-        const debouncedCommit = debounce(
-          () => draftDoc.send({ type: 'submit' }),
-          commit.debounce,
-        );
-        debouncedCommit();
-      } else {
-        draftDoc.send({ type: 'submit' });
-      }
-    }
-  };
 }

@@ -9,6 +9,7 @@
     "@sanity/comlink",
     "@sanity/mutate",
     "@sanity/presentation-comlink",
+    "@sanity/visual-editing",
     "@sanity/visual-editing-csm",
     "@vercel/stega",
     "lodash-es",

@@ -1,4 +1,8 @@
-import type { ListenEvent } from '@sanity/client';
+import type {
+  MutationEvent,
+  ReconnectEvent,
+  WelcomeEvent,
+} from '@sanity/client';
 import {
   merge,
   ReplaySubject,
@@ -9,8 +13,7 @@ import {
 
 import type { VisualEditingNode } from '../../types';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SharedListenEvent = ListenEvent<Record<string, any>>;
+type SharedListenEvent = MutationEvent | ReconnectEvent | WelcomeEvent;
 
 /**
  * Creates a single shared listener stream for remote mutations sent through
@@ -27,7 +30,7 @@ export function createSharedListener(
       suppressWarnings: true,
     })
     .then((data) => {
-      incomingConnection$.next(data.event);
+      incomingConnection$.next(data.event as WelcomeEvent);
     })
     .catch(() => {
       // Optional Presentation capability; unsupported versions fail silently.
@@ -35,10 +38,10 @@ export function createSharedListener(
 
   comlink.on('presentation/snapshot-event', (data) => {
     if (data.event.type === 'reconnect') {
-      incomingConnection$.next(data.event);
+      incomingConnection$.next(data.event as ReconnectEvent);
     }
     if (data.event.type === 'mutation') {
-      incomingMutations$.next(data.event);
+      incomingMutations$.next(data.event as MutationEvent);
     }
   });
 

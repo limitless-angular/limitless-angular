@@ -46,6 +46,7 @@
     "@sanity/comlink": "^3.0.1",
     "@sanity/mutate": "0.16.1",
     "@sanity/presentation-comlink": "^1.0.8",
+    "@sanity/visual-editing": "2.13.6",
     "@sanity/visual-editing-csm": "^2.0.6",
     "@vercel/stega": "0.1.2",
     "lodash-es": "^4.17.21",

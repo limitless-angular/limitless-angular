@@ -11,7 +11,7 @@ import {
   getArrayMovePatches,
   getArrayRemovePatches,
 } from './mutation-utils';
-import type { OptimisticDocument } from './optimistic';
+import type { OptimisticDocument } from '@sanity/visual-editing/optimistic';
 import type { OverlayElementField, OverlayElementParent } from './types';
 
 export type ContextMenuTelemetryEventName =

@@ -1,9 +1,9 @@
 import { at, insert, remove } from '@sanity/mutate';
+import type { DocumentsGet } from '@sanity/visual-editing/optimistic';
 
 import { getArrayItemKeyAndParentPath } from '../mutation-utils';
 import type { DragEndEvent, DragInsertPosition } from '../types';
 import { getAtPath } from '../util/get-at-path';
-import type { DocumentsGet } from './types';
 
 function getReferenceNodeAndInsertPosition(position: DragInsertPosition) {
   if (position) {

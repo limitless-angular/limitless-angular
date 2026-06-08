@@ -1,7 +1,7 @@
 import type { SanityDocument } from '@sanity/client';
 import { at, insert, truncate, type NodePatchList } from '@sanity/mutate';
+import type { OptimisticDocument } from '@sanity/visual-editing/optimistic';
 
-import type { OptimisticDocument } from './optimistic/types';
 import type { SanityNode } from './types';
 import { getAtPath } from './util/get-at-path';
 

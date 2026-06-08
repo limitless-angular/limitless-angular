@@ -30,7 +30,7 @@ import {
   createInitialOverlayState,
   overlayStateReducer,
 } from './overlay-state-reducer';
-import type { MutatorActor } from './optimistic/context';
+import type { MutatorActor } from '@sanity/visual-editing/optimistic';
 import { VisualEditingPointerEventsComponent } from './pointer-events.component';
 import {
   createSchemaContext,
@@ -946,16 +946,14 @@ export class VisualEditingRuntime {
 
     Promise.all([
       import('xstate'),
-      import('./optimistic/context'),
+      import('@sanity/visual-editing/optimistic'),
       import('./optimistic/state/create-shared-listener'),
-      import('./optimistic/state/dataset-mutator'),
     ])
       .then(
         ([
           { createActor },
-          { setActor },
+          { createDatasetMutator, setActor },
           { createSharedListener },
-          { createDatasetMutator },
         ]) => {
           if (
             this.#mutator ||
