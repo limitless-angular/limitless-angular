@@ -2,86 +2,36 @@
   "extends": ["//"],
   "tasks": {
     "build": {
+      "inputs": ["$TURBO_DEFAULT$", ".env.local"],
       "outputs": ["dist/**"],
-      "passThroughEnv": [
-        "SANITY_STUDIO_DATASET",
-        "SANITY_STUDIO_PREVIEW_ORIGIN",
-        "SANITY_STUDIO_PROJECT_ID",
-        "VITE_SANITY_DATASET",
-        "VITE_SANITY_PROJECT_ID"
-      ]
+      "env": ["SANITY_STUDIO_*"]
     },
     "cors:add": {
       "cache": false,
-      "passThroughEnv": [
-        "SANITY_STUDIO_DATASET",
-        "SANITY_STUDIO_ORIGIN",
-        "SANITY_STUDIO_PREVIEW_ORIGIN",
-        "SANITY_STUDIO_PROJECT_ID",
-        "VITE_SANITY_DATASET",
-        "VITE_SANITY_PROJECT_ID"
-      ]
+      "passThroughEnv": ["SANITY_STUDIO_*"]
     },
     "cors:list": {
       "cache": false,
-      "passThroughEnv": [
-        "SANITY_STUDIO_DATASET",
-        "SANITY_STUDIO_PROJECT_ID",
-        "VITE_SANITY_DATASET",
-        "VITE_SANITY_PROJECT_ID"
-      ]
+      "passThroughEnv": ["SANITY_STUDIO_*"]
     },
     "schema:extract": {
       "cache": false,
-      "passThroughEnv": [
-        "SANITY_STUDIO_DATASET",
-        "SANITY_STUDIO_PROJECT_ID",
-        "VITE_SANITY_DATASET",
-        "VITE_SANITY_PROJECT_ID"
-      ]
+      "passThroughEnv": ["SANITY_STUDIO_*"]
     },
     "seed": {
       "cache": false,
-      "passThroughEnv": [
-        "SANITY_API_WRITE_TOKEN",
-        "SANITY_STUDIO_DATASET",
-        "SANITY_STUDIO_PROJECT_ID",
-        "VITE_SANITY_API_VERSION",
-        "VITE_SANITY_DATASET",
-        "VITE_SANITY_PROJECT_ID"
-      ]
+      "passThroughEnv": ["SANITY_STUDIO_*"]
     },
     "serve": {
-      "passThroughEnv": [
-        "SANITY_STUDIO_DATASET",
-        "SANITY_STUDIO_ORIGIN",
-        "SANITY_STUDIO_PREVIEW_ORIGIN",
-        "SANITY_STUDIO_PROJECT_ID",
-        "VITE_SANITY_DATASET",
-        "VITE_SANITY_PROJECT_ID"
-      ]
+      "passThroughEnv": ["SANITY_STUDIO_*"]
     },
     "setup": {
       "cache": false,
-      "passThroughEnv": [
-        "SANITY_API_WRITE_TOKEN",
-        "SANITY_STUDIO_DATASET",
-        "SANITY_STUDIO_ORIGIN",
-        "SANITY_STUDIO_PREVIEW_ORIGIN",
-        "SANITY_STUDIO_PROJECT_ID",
-        "VITE_SANITY_API_VERSION",
-        "VITE_SANITY_DATASET",
-        "VITE_SANITY_PROJECT_ID"
-      ]
+      "passThroughEnv": ["SANITY_STUDIO_*"]
     },
     "typegen": {
       "cache": false,
-      "passThroughEnv": [
-        "SANITY_STUDIO_DATASET",
-        "SANITY_STUDIO_PROJECT_ID",
-        "VITE_SANITY_DATASET",
-        "VITE_SANITY_PROJECT_ID"
-      ]
+      "passThroughEnv": ["SANITY_STUDIO_*"]
     }
   }
 }

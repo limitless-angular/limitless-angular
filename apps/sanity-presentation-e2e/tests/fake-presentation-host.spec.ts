@@ -19,15 +19,11 @@ const documentId = 'presentation-smoke-post';
 const liveTitle = 'Live presentation smoke title';
 const expectedProjectId =
   studioMode === 'real-project'
-    ? (process.env['SANITY_STUDIO_PROJECT_ID'] ??
-      process.env['VITE_SANITY_PROJECT_ID'] ??
-      'presentation-smoke-project')
+    ? (process.env['SANITY_E2E_PROJECT_ID'] ?? 'presentation-smoke-project')
     : 'presentation-smoke-project';
 const expectedDataset =
   studioMode === 'real-project'
-    ? (process.env['SANITY_STUDIO_DATASET'] ??
-      process.env['VITE_SANITY_DATASET'] ??
-      'presentation-smoke-dataset')
+    ? (process.env['SANITY_E2E_DATASET'] ?? 'presentation-smoke-dataset')
     : 'presentation-smoke-dataset';
 const expectedDataSanity = createDataAttribute({
   baseUrl: studioURL,

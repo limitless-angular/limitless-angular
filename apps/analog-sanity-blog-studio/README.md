@@ -6,7 +6,7 @@ Presentation routing, and Studio structure.
 
 ## Local Setup
 
-Set the frontend env in `apps/analog-sanity-blog-example/.env.local`:
+Set the frontend app env in `apps/analog-sanity-blog-example/.env.local`:
 
 ```dotenv
 VITE_SANITY_PROJECT_ID=your-project-id
@@ -16,15 +16,18 @@ SANITY_API_READ_TOKEN=your-read-token
 BYPASS_TOKEN=local-bypass-token
 ```
 
-If the Studio needs different env names, set them in
-`apps/analog-sanity-blog-studio/.env.local`:
+Set the Studio env in `apps/analog-sanity-blog-studio/.env.local`:
 
 ```dotenv
 SANITY_STUDIO_PROJECT_ID=your-project-id
 SANITY_STUDIO_DATASET=production
 SANITY_STUDIO_PREVIEW_ORIGIN=http://localhost:4200
 SANITY_STUDIO_ORIGIN=http://localhost:3333
+SANITY_STUDIO_WRITE_TOKEN=your-write-token
 ```
+
+`SANITY_STUDIO_WRITE_TOKEN` is optional if you are logged into the Sanity CLI,
+but it is useful for non-interactive seeding.
 
 Then log in and configure the project once:
 

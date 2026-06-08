@@ -2,13 +2,7 @@
   "extends": ["//"],
   "tasks": {
     "serve": {
-      "passThroughEnv": [
-        "SANITY_STUDIO_DATASET",
-        "SANITY_STUDIO_PREVIEW_ORIGIN",
-        "SANITY_STUDIO_PROJECT_ID",
-        "VITE_SANITY_DATASET",
-        "VITE_SANITY_PROJECT_ID"
-      ]
+      "passThroughEnv": ["SANITY_STUDIO_*"]
     }
   }
 }

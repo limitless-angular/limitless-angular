@@ -12,11 +12,11 @@ const dataset = 'presentation-smoke-dataset';
 const documentId = 'presentation-smoke-post';
 const expectedPreviewProjectId =
   studioMode === 'real-project'
-    ? (process.env['VITE_SANITY_PROJECT_ID'] ?? projectId)
+    ? (process.env['SANITY_E2E_PROJECT_ID'] ?? projectId)
     : projectId;
 const expectedPreviewDataset =
   studioMode === 'real-project'
-    ? (process.env['VITE_SANITY_DATASET'] ?? dataset)
+    ? (process.env['SANITY_E2E_DATASET'] ?? dataset)
     : dataset;
 const expectedDataSanity = createDataAttribute({
   baseUrl: studioURL,
@@ -31,7 +31,7 @@ const localRealProjectTimeout = numberEnv(
   10 * 60_000,
 );
 const studioPreviewFrameTimeout = 45_000;
-const writeToken = process.env['SANITY_API_WRITE_TOKEN'];
+const writeToken = process.env['SANITY_E2E_WRITE_TOKEN'];
 
 type ProtocolMessage = {
   connectionId?: string;
@@ -74,7 +74,9 @@ async function mockSanityApi(page: Page): Promise<void> {
         return;
       }
 
-      const body = url.pathname.includes('/users/me')
+      const body = url.pathname.includes('/users/me/keyvalue')
+        ? []
+        : url.pathname.includes('/users/me')
         ? {
             id: 'presentation-smoke-user',
             name: 'Presentation Smoke User',
@@ -265,9 +267,9 @@ async function getFrameBootCount(frame: Frame): Promise<number | undefined> {
 
 function createMutationClient(token: string): SanityClient {
   return createClient({
-    projectId: requiredEnv('VITE_SANITY_PROJECT_ID'),
-    dataset: requiredEnv('VITE_SANITY_DATASET'),
-    apiVersion: process.env['VITE_SANITY_API_VERSION'] ?? '2024-02-28',
+    projectId: requiredEnv('SANITY_E2E_PROJECT_ID'),
+    dataset: requiredEnv('SANITY_E2E_DATASET'),
+    apiVersion: process.env['SANITY_E2E_API_VERSION'] || '2024-02-28',
     token,
     useCdn: false,
     perspective: 'previewDrafts',
@@ -362,7 +364,7 @@ test('real Sanity mutations update Angular live preview without reloading', asyn
   );
   test.skip(
     !writeToken,
-    'Set SANITY_API_WRITE_TOKEN to run the real live-update mutation test.',
+    'Set SANITY_E2E_WRITE_TOKEN to run the real live-update mutation test.',
   );
 
   const previewFrameTimeout = getPreviewFrameTimeout();
@@ -405,7 +407,7 @@ test('real Sanity mutations update Angular live preview without reloading', asyn
     } catch (error) {
       if (isInsufficientUpdatePermissionError(error)) {
         throw new Error(
-          'SANITY_API_WRITE_TOKEN is set, but it cannot update Sanity documents in this project/dataset. Use a token with document update permission to run this real mutation test, or unset SANITY_API_WRITE_TOKEN to skip it.',
+          'SANITY_E2E_WRITE_TOKEN is set, but it cannot update Sanity documents in this project/dataset. Use a token with document update permission to run this real mutation test, or unset SANITY_E2E_WRITE_TOKEN to skip it.',
         );
       }
 

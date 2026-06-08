@@ -1,8 +1,13 @@
-import { existsSync, readFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { loadEnvFile } from 'node:process';
 
 const workspaceRoot = resolve(import.meta.dirname, '../../..');
+const envFile = resolve(
+  workspaceRoot,
+  'apps/sanity-presentation-e2e/.env.local',
+);
 const command = process.argv[2];
 const origin = process.argv[3] ?? 'http://localhost:3333';
 
@@ -13,26 +18,17 @@ if (command !== 'add' && command !== 'list') {
   process.exit(1);
 }
 
-const fileEnv = loadEnvFiles([
-  resolve(workspaceRoot, 'apps/analog-sanity-blog-example/.env.local'),
-  resolve(workspaceRoot, 'apps/sanity-presentation-e2e/.env.local'),
-]);
-const env = {
-  ...fileEnv,
-  ...process.env,
-};
-
-env.SANITY_STUDIO_PROJECT_ID ??= env.VITE_SANITY_PROJECT_ID;
-env.SANITY_STUDIO_DATASET ??= env.VITE_SANITY_DATASET;
-
-for (const name of ['SANITY_STUDIO_PROJECT_ID', 'SANITY_STUDIO_DATASET']) {
-  if (!env[name]) {
-    console.error(
-      `Missing ${name}. Set it or the matching VITE_SANITY_* value in .env.local.`,
-    );
-    process.exit(1);
-  }
+if (existsSync(envFile)) {
+  loadEnvFile(envFile);
 }
+
+const projectId = requiredEnv('SANITY_E2E_PROJECT_ID');
+const dataset = requiredEnv('SANITY_E2E_DATASET');
+const env = {
+  ...process.env,
+  SANITY_STUDIO_PROJECT_ID: projectId,
+  SANITY_STUDIO_DATASET: dataset,
+};
 
 const args =
   command === 'add'
@@ -54,7 +50,7 @@ const result = spawnSync('pnpm', args, {
 
 if (command === 'add' && didReportDuplicateOrigin(result)) {
   console.log(
-    `CORS origin ${origin} is already configured for project ${env.SANITY_STUDIO_PROJECT_ID}.`,
+    `CORS origin ${origin} is already configured for project ${projectId}.`,
   );
   process.exit(0);
 }
@@ -82,41 +78,15 @@ function didReportDuplicateOrigin(result) {
   );
 }
 
-function loadEnvFiles(paths) {
-  return paths.reduce((acc, path) => {
-    if (!existsSync(path)) {
-      return acc;
-    }
+function requiredEnv(name) {
+  const value = process.env[name];
 
-    for (const line of readFileSync(path, 'utf8').split(/\r?\n/)) {
-      const match = line.match(/^\s*(?:export\s+)?([\w.-]+)\s*=\s*(.*)?\s*$/);
-
-      if (!match) {
-        continue;
-      }
-
-      const [, key, rawValue = ''] = match;
-
-      if (!key || key.startsWith('#')) {
-        continue;
-      }
-
-      acc[key] = parseEnvValue(rawValue);
-    }
-
-    return acc;
-  }, {});
-}
-
-function parseEnvValue(rawValue) {
-  const value = rawValue.trim();
-
-  if (
-    (value.startsWith('"') && value.endsWith('"')) ||
-    (value.startsWith("'") && value.endsWith("'"))
-  ) {
-    return value.slice(1, -1);
+  if (!value) {
+    console.error(
+      `Missing ${name}. Set it in the shell, CI env, or apps/sanity-presentation-e2e/.env.local.`,
+    );
+    process.exit(1);
   }
 
-  return value.replace(/\s+#.*$/, '');
+  return value;
 }

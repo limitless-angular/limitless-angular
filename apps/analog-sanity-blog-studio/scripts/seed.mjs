@@ -60,7 +60,7 @@ const documents = [
   },
 ];
 
-if (env.SANITY_API_WRITE_TOKEN) {
+if (env.SANITY_STUDIO_WRITE_TOKEN) {
   await seedWithWriteToken();
 } else {
   seedWithSanityCli();
@@ -74,8 +74,8 @@ async function seedWithWriteToken() {
   const client = createClient({
     projectId: env.SANITY_STUDIO_PROJECT_ID,
     dataset: env.SANITY_STUDIO_DATASET,
-    apiVersion: env.VITE_SANITY_API_VERSION ?? '2024-02-28',
-    token: env.SANITY_API_WRITE_TOKEN,
+    apiVersion: env.SANITY_STUDIO_API_VERSION || '2024-02-28',
+    token: env.SANITY_STUDIO_WRITE_TOKEN,
     useCdn: false,
   });
 
@@ -125,7 +125,7 @@ function seedWithSanityCli() {
 
       if (result.status !== 0) {
         console.error(
-          'Unable to seed the Analog blog content. Run `pnpm --filter=analog-sanity-blog-studio exec sanity login` or set SANITY_API_WRITE_TOKEN.',
+          'Unable to seed the Analog blog content. Run `pnpm --filter=analog-sanity-blog-studio exec sanity login` or set SANITY_STUDIO_WRITE_TOKEN.',
         );
         process.exit(result.status ?? 1);
       }

@@ -3,14 +3,10 @@ import { presentationTool } from 'sanity/presentation';
 import { structureTool } from 'sanity/structure';
 
 const projectId =
-  process.env['SANITY_STUDIO_PROJECT_ID'] ??
-  process.env['VITE_SANITY_PROJECT_ID'] ??
-  'replace-me';
+  process.env['SANITY_STUDIO_PROJECT_ID'] ?? 'replace-me';
 
 const dataset =
-  process.env['SANITY_STUDIO_DATASET'] ??
-  process.env['VITE_SANITY_DATASET'] ??
-  'production';
+  process.env['SANITY_STUDIO_DATASET'] ?? 'production';
 
 const previewOrigin =
   process.env['SANITY_STUDIO_PREVIEW_ORIGIN'] ?? 'http://localhost:4200';
