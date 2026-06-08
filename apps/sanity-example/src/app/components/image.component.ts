@@ -22,7 +22,7 @@ import { PortableTextTypeComponent } from '@limitless-angular/sanity/portabletex
   `,
   styles: `
     :host {
-      display: block;
+      @apply block;
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
