@@ -1,6 +1,7 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import analog from '@analogjs/platform';
+import tailwindcss from '@tailwindcss/vite';
 import { defineConfig, loadEnv } from 'vite';
 import webfontDownload from 'vite-plugin-webfont-dl';
 import { typescriptPaths } from 'rollup-plugin-typescript-paths';
@@ -22,6 +23,7 @@ export default defineConfig(({ mode }) => {
       tsconfigPaths: true,
     },
     plugins: [
+      tailwindcss(),
       analog({
         nitro: {
           alias: {

@@ -1,0 +1,18 @@
+@import 'tailwindcss' source('./');
+@plugin '@tailwindcss/typography';
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so these compatibility styles preserve the v3 default border behavior.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+/* You can add global styles to this file, and also import other style files */

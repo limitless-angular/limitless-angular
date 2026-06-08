@@ -23,6 +23,8 @@ function slugify(text: string): string {
     }
   `,
   styles: `
+    @reference '../../styles.css';
+
     :host:hover .slug-anchor {
       opacity: 1;
     }
