@@ -1,5 +1,6 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { loadEnvFile } from 'node:process';
 
 export const workspaceRoot = resolve(import.meta.dirname, '../../..');
 export const studioRoot = resolve(
@@ -7,9 +8,9 @@ export const studioRoot = resolve(
   'apps/analog-sanity-blog-studio',
 );
 
-const envFiles = [
-  resolve(workspaceRoot, 'apps/analog-sanity-blog-example/.env.local'),
+const envFilesByPriority = [
   resolve(studioRoot, '.env.local'),
+  resolve(workspaceRoot, 'apps/analog-sanity-blog-example/.env.local'),
 ];
 
 export const blogStudioProjectEnvNames = [
@@ -18,8 +19,14 @@ export const blogStudioProjectEnvNames = [
 ];
 
 export function loadBlogStudioEnv(overrides = process.env) {
+  for (const envFile of envFilesByPriority) {
+    if (existsSync(envFile)) {
+      loadEnvFile(envFile);
+    }
+  }
+
   const env = {
-    ...loadEnvFiles(envFiles),
+    ...process.env,
     ...overrides,
   };
 
@@ -41,43 +48,4 @@ export function requireBlogStudioEnv(env, names) {
     );
     process.exit(1);
   }
-}
-
-function loadEnvFiles(paths) {
-  return paths.reduce((acc, path) => {
-    if (!existsSync(path)) {
-      return acc;
-    }
-
-    for (const line of readFileSync(path, 'utf8').split(/\r?\n/)) {
-      const match = line.match(/^\s*(?:export\s+)?([\w.-]+)\s*=\s*(.*)?\s*$/);
-
-      if (!match) {
-        continue;
-      }
-
-      const [, key, rawValue = ''] = match;
-
-      if (!key || key.startsWith('#')) {
-        continue;
-      }
-
-      acc[key] = parseEnvValue(rawValue);
-    }
-
-    return acc;
-  }, {});
-}
-
-function parseEnvValue(rawValue) {
-  const value = rawValue.trim();
-
-  if (
-    (value.startsWith('"') && value.endsWith('"')) ||
-    (value.startsWith("'") && value.endsWith("'"))
-  ) {
-    return value.slice(1, -1);
-  }
-
-  return value.replace(/\s+#.*$/, '');
 }

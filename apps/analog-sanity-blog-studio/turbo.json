@@ -2,7 +2,7 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "outputs": ["../../dist/apps/analog-sanity-blog-studio/**"],
+      "outputs": ["dist/**"],
       "passThroughEnv": [
         "SANITY_STUDIO_DATASET",
         "SANITY_STUDIO_PREVIEW_ORIGIN",
