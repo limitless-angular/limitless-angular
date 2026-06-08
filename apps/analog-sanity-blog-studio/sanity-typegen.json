@@ -1,0 +1,5 @@
+{
+  "path": "../../packages/analog-sanity-blog/src/queries/**/*.{ts,tsx,js,jsx}",
+  "schema": "./schema.json",
+  "generates": "../analog-sanity-blog-example/src/sanity/lib/types.ts"
+}

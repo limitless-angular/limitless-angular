@@ -1,6 +1,10 @@
 import type { SanityClient } from '@sanity/client';
 
-import { moreStoriesQuery, postBySlugQuery, settingsQuery } from './queries';
+import {
+  moreStoriesQuery,
+  postBySlugQuery,
+  settingsQuery,
+} from '@limitless-angular/analog-sanity-blog/queries';
 
 export async function getSettings(client: SanityClient) {
   return await client.fetch(settingsQuery);

@@ -1,4 +1,10 @@
-import { expect, test, type Frame, type Page } from '@playwright/test';
+import {
+  expect,
+  test,
+  type Frame,
+  type Locator,
+  type Page,
+} from '@playwright/test';
 import { createClient, type SanityClient } from '@sanity/client';
 import { createDataAttribute } from '@sanity/visual-editing';
 
@@ -12,11 +18,11 @@ const dataset = 'presentation-smoke-dataset';
 const documentId = 'presentation-smoke-post';
 const expectedPreviewProjectId =
   studioMode === 'real-project'
-    ? (process.env['VITE_SANITY_PROJECT_ID'] ?? projectId)
+    ? (process.env['SANITY_E2E_PROJECT_ID'] ?? projectId)
     : projectId;
 const expectedPreviewDataset =
   studioMode === 'real-project'
-    ? (process.env['VITE_SANITY_DATASET'] ?? dataset)
+    ? (process.env['SANITY_E2E_DATASET'] ?? dataset)
     : dataset;
 const expectedDataSanity = createDataAttribute({
   baseUrl: studioURL,
@@ -31,7 +37,7 @@ const localRealProjectTimeout = numberEnv(
   10 * 60_000,
 );
 const studioPreviewFrameTimeout = 45_000;
-const writeToken = process.env['SANITY_API_WRITE_TOKEN'];
+const writeToken = process.env['SANITY_E2E_WRITE_TOKEN'];
 
 type ProtocolMessage = {
   connectionId?: string;
@@ -55,6 +61,25 @@ type PresentationSmokeFrameState = {
   __presentationSmokeBootCount?: number;
 };
 
+const hermeticUser = {
+  id: 'presentation-smoke-user',
+  name: 'Presentation Smoke User',
+  email: 'presentation-smoke@example.com',
+  profileImage: null,
+  roles: [{ name: 'administrator', title: 'Administrator' }],
+};
+
+const hermeticPost = {
+  _id: documentId,
+  _type: 'post',
+  _createdAt: '2024-01-01T00:00:00.000Z',
+  _updatedAt: '2024-01-01T00:00:00.000Z',
+  _rev: 'presentation-smoke-rev',
+  title: 'Live presentation smoke title',
+};
+
+const hermeticDatasets = [{ name: dataset }];
+
 async function mockSanityApi(page: Page): Promise<void> {
   const corsHeaders = {
     'access-control-allow-credentials': 'true',
@@ -74,30 +99,20 @@ async function mockSanityApi(page: Page): Promise<void> {
         return;
       }
 
-      const body = url.pathname.includes('/users/me')
-        ? {
-            id: 'presentation-smoke-user',
-            name: 'Presentation Smoke User',
-            email: 'presentation-smoke@example.com',
-            profileImage: null,
-            roles: [{ name: 'administrator', title: 'Administrator' }],
-          }
-        : url.pathname.includes(`/data/query/${dataset}`)
-          ? {
-              ms: 0,
-              query: url.searchParams.get('query') ?? '',
-              result: {
-                _id: documentId,
-                _type: 'post',
-                _createdAt: '2024-01-01T00:00:00.000Z',
-                _updatedAt: '2024-01-01T00:00:00.000Z',
-                _rev: 'presentation-smoke-rev',
-                title: 'Live presentation smoke title',
-              },
-            }
-          : url.pathname.includes('/datasets')
-            ? [{ name: dataset }]
-            : {};
+      if (isSanityEventStream(url)) {
+        await route.fulfill({
+          body: ':\n\n',
+          contentType: 'text/event-stream',
+          headers: {
+            ...corsHeaders,
+            'cache-control': 'no-cache',
+          },
+          status: 200,
+        });
+        return;
+      }
+
+      const body = getSanityApiResponseBody(url);
 
       await route.fulfill({
         body: JSON.stringify(body),
@@ -106,6 +121,72 @@ async function mockSanityApi(page: Page): Promise<void> {
         status: 200,
       });
     },
+  );
+}
+
+function isSanityEventStream(url: URL): boolean {
+  return (
+    url.pathname.includes(`/data/listen/${dataset}`) ||
+    url.pathname.includes(`/data/live/events/${dataset}`)
+  );
+}
+
+function getSanityApiResponseBody(url: URL): unknown {
+  if (url.pathname.includes('/users/me/keyvalue')) {
+    return [];
+  }
+
+  if (url.pathname.includes('/users/me')) {
+    return hermeticUser;
+  }
+
+  if (
+    url.pathname.includes('/user-applications') ||
+    url.pathname.includes('/access/requests/me') ||
+    url.pathname.includes(`/datasets/${dataset}/acl`)
+  ) {
+    return [];
+  }
+
+  if (url.pathname.endsWith(`/projects/${projectId}/datasets`)) {
+    return hermeticDatasets;
+  }
+
+  if (url.pathname.includes(`/data/doc/${dataset}/${documentId}`)) {
+    return hermeticPost;
+  }
+
+  if (url.pathname.includes(`/data/query/${dataset}`)) {
+    const query = url.searchParams.get('query') ?? '';
+
+    return {
+      ms: 0,
+      query,
+      result: getHermeticQueryResult(query),
+    };
+  }
+
+  return {};
+}
+
+function getHermeticQueryResult(query: string): unknown {
+  if (isPresentationSecretQuery(query)) {
+    return null;
+  }
+
+  if (query.includes(documentId) || query.includes('_type == "post"')) {
+    return hermeticPost;
+  }
+
+  return null;
+}
+
+function isPresentationSecretQuery(query: string): boolean {
+  return (
+    query.includes('sanity-preview-url-secret') ||
+    query.includes('sanity.previewUrlSecret') ||
+    query.includes('sanity.vercelProtectionBypass') ||
+    query.includes('vercel-protection-bypass')
   );
 }
 
@@ -188,25 +269,66 @@ async function openPresentationPreview(
 
   await expect
     .poll(
-      () =>
-        page
-          .frames()
-          .some((frame) => frame.url().includes('/presentation-smoke')),
+      () => page.frames().some((frame) => isPresentationSmokeFrame(frame)),
       {
         timeout: previewFrameTimeout,
       },
     )
     .toBe(true);
 
-  const previewFrame = page
-    .frames()
-    .find((frame) => frame.url().includes('/presentation-smoke'));
+  return getPresentationPreviewFrame(page);
+}
+
+function findPresentationPreviewFrame(page: Page): Frame | undefined {
+  return page.frames().find((frame) => isPresentationSmokeFrame(frame));
+}
+
+function getPresentationPreviewFrame(page: Page): Frame {
+  const previewFrame = findPresentationPreviewFrame(page);
 
   if (!previewFrame) {
     throw new Error('Unable to find the Presentation smoke preview frame.');
   }
 
   return previewFrame;
+}
+
+async function getPresentationPreviewTitle(
+  page: Page,
+  timeout: number,
+): Promise<Locator> {
+  await expect
+    .poll(
+      async () => {
+        const previewFrame = findPresentationPreviewFrame(page);
+
+        if (!previewFrame) {
+          return false;
+        }
+
+        return previewFrame
+          .getByTestId('presentation-smoke-title')
+          .isVisible({ timeout: 100 });
+      },
+      { timeout },
+    )
+    .toBe(true);
+
+  return getPresentationPreviewFrame(page).getByTestId(
+    'presentation-smoke-title',
+  );
+}
+
+function isPresentationSmokeFrame(frame: Frame): boolean {
+  if (!frame.parentFrame()) {
+    return false;
+  }
+
+  try {
+    return new URL(frame.url()).pathname === '/presentation-smoke';
+  } catch {
+    return false;
+  }
 }
 
 function getPreviewFrameTimeout(): number {
@@ -265,9 +387,9 @@ async function getFrameBootCount(frame: Frame): Promise<number | undefined> {
 
 function createMutationClient(token: string): SanityClient {
   return createClient({
-    projectId: requiredEnv('VITE_SANITY_PROJECT_ID'),
-    dataset: requiredEnv('VITE_SANITY_DATASET'),
-    apiVersion: process.env['VITE_SANITY_API_VERSION'] ?? '2024-02-28',
+    projectId: requiredEnv('SANITY_E2E_PROJECT_ID'),
+    dataset: requiredEnv('SANITY_E2E_DATASET'),
+    apiVersion: process.env['SANITY_E2E_API_VERSION'] || '2024-02-28',
     token,
     useCdn: false,
     perspective: 'previewDrafts',
@@ -293,27 +415,20 @@ test('Sanity Studio Presentation opens the Angular preview frame', async ({
   const previewFrameTimeout = getPreviewFrameTimeout();
   extendTimeoutForPreviewFrame(testInfo, previewFrameTimeout);
 
-  const previewFrame = await openPresentationPreview(page, previewFrameTimeout);
+  await openPresentationPreview(page, previewFrameTimeout);
 
-  await expect(
-    previewFrame.getByTestId('presentation-smoke-kicker'),
-  ).toBeVisible();
-
-  const title = previewFrame.getByTestId('presentation-smoke-title');
+  const title = await getPresentationPreviewTitle(page, previewFrameTimeout);
+  await expect(title).toBeVisible();
   await expect(title).not.toHaveText('');
 
   if (studioMode === 'real-project') {
-    await expect(
-      previewFrame.getByTestId('presentation-smoke-client-mode'),
-    ).toHaveText('real-client');
+    await expect(title).toHaveAttribute('data-client-mode', 'real-client');
     await expect(title).toHaveAttribute(
       'data-sanity',
       /^id=[^;]+;type=post;path=title;base=/,
     );
   } else {
-    await expect(
-      previewFrame.getByTestId('presentation-smoke-client-mode'),
-    ).toHaveText('fake-client');
+    await expect(title).toHaveAttribute('data-client-mode', 'fake-client');
     await expect(title).toContainText('Live presentation smoke title');
     await expect(title).toHaveAttribute('data-sanity', expectedDataSanity);
   }
@@ -362,14 +477,14 @@ test('real Sanity mutations update Angular live preview without reloading', asyn
   );
   test.skip(
     !writeToken,
-    'Set SANITY_API_WRITE_TOKEN to run the real live-update mutation test.',
+    'Set SANITY_E2E_WRITE_TOKEN to run the real live-update mutation test.',
   );
 
   const previewFrameTimeout = getPreviewFrameTimeout();
   extendTimeoutForPreviewFrame(testInfo, previewFrameTimeout);
 
-  const previewFrame = await openPresentationPreview(page, previewFrameTimeout);
-  const title = previewFrame.getByTestId('presentation-smoke-title');
+  await openPresentationPreview(page, previewFrameTimeout);
+  const title = await getPresentationPreviewTitle(page, previewFrameTimeout);
 
   await expect(title).not.toHaveText('');
 
@@ -395,7 +510,9 @@ test('real Sanity mutations update Angular live preview without reloading', asyn
   }
 
   const nextTitle = `Real presentation smoke ${Date.now()}`;
-  const initialBootCount = await getFrameBootCount(previewFrame);
+  const initialBootCount = await getFrameBootCount(
+    getPresentationPreviewFrame(page),
+  );
   let didPatchTitle = false;
 
   try {
@@ -405,7 +522,7 @@ test('real Sanity mutations update Angular live preview without reloading', asyn
     } catch (error) {
       if (isInsufficientUpdatePermissionError(error)) {
         throw new Error(
-          'SANITY_API_WRITE_TOKEN is set, but it cannot update Sanity documents in this project/dataset. Use a token with document update permission to run this real mutation test, or unset SANITY_API_WRITE_TOKEN to skip it.',
+          'SANITY_E2E_WRITE_TOKEN is set, but it cannot update Sanity documents in this project/dataset. Use a token with document update permission to run this real mutation test, or unset SANITY_E2E_WRITE_TOKEN to skip it.',
         );
       }
 
@@ -417,7 +534,7 @@ test('real Sanity mutations update Angular live preview without reloading', asyn
     });
 
     await expect
-      .poll(() => getFrameBootCount(previewFrame), {
+      .poll(() => getFrameBootCount(getPresentationPreviewFrame(page)), {
         timeout: 15_000,
       })
       .toBe(initialBootCount);

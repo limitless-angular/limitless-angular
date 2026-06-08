@@ -1,16 +1,17 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { dirname, isAbsolute, resolve } from 'node:path';
+import { loadEnvFile } from 'node:process';
 import { fileURLToPath } from 'node:url';
 import { defineConfig, devices } from '@playwright/test';
 
 const workspaceRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const envFileValues = loadEnvFiles([
-  resolve(workspaceRoot, 'apps/analog-sanity-blog-example/.env.local'),
-  resolve(workspaceRoot, 'apps/sanity-presentation-e2e/.env.local'),
-]);
+const envFile = resolve(
+  workspaceRoot,
+  'apps/sanity-presentation-e2e/.env.local',
+);
 
-for (const [key, value] of Object.entries(envFileValues)) {
-  process.env[key] ??= value;
+if (existsSync(envFile)) {
+  loadEnvFile(envFile);
 }
 
 const previewPort = Number(process.env['SANITY_E2E_PREVIEW_PORT'] ?? 4200);
@@ -39,13 +40,13 @@ const desktopChromeUse = {
 
 const previewEnv = useRealProject
   ? {
-      VITE_SANITY_PROJECT_ID: requiredEnv('VITE_SANITY_PROJECT_ID'),
-      VITE_SANITY_DATASET: requiredEnv('VITE_SANITY_DATASET'),
-      VITE_SANITY_API_VERSION: process.env['VITE_SANITY_API_VERSION'],
+      VITE_SANITY_PROJECT_ID: requiredEnv('SANITY_E2E_PROJECT_ID'),
+      VITE_SANITY_DATASET: requiredEnv('SANITY_E2E_DATASET'),
+      VITE_SANITY_API_VERSION: optionalEnv('SANITY_E2E_API_VERSION'),
       VITE_SANITY_STUDIO_URL: studioURL,
-      SANITY_API_READ_TOKEN: requiredEnv('SANITY_API_READ_TOKEN'),
+      SANITY_API_READ_TOKEN: requiredEnv('SANITY_E2E_READ_TOKEN'),
       SANITY_PRESENTATION_E2E_REAL_CLIENT: '1',
-      BYPASS_TOKEN: requiredEnv('BYPASS_TOKEN'),
+      BYPASS_TOKEN: requiredEnv('SANITY_E2E_BYPASS_TOKEN'),
     }
   : {
       VITE_SANITY_PROJECT_ID: 'presentation-smoke-project',
@@ -71,12 +72,10 @@ const webServer = [
 
 if (studioMode !== 'off') {
   const studioProjectId = useRealProject
-    ? (process.env['SANITY_STUDIO_PROJECT_ID'] ??
-      requiredEnv('VITE_SANITY_PROJECT_ID'))
+    ? requiredEnv('SANITY_E2E_PROJECT_ID')
     : 'presentation-smoke-project';
   const studioDataset = useRealProject
-    ? (process.env['SANITY_STUDIO_DATASET'] ??
-      requiredEnv('VITE_SANITY_DATASET'))
+    ? requiredEnv('SANITY_E2E_DATASET')
     : 'presentation-smoke-dataset';
 
   webServer.push({
@@ -119,51 +118,12 @@ export default defineConfig({
   ],
 });
 
-function loadEnvFiles(paths: string[]): Record<string, string> {
-  return paths.reduce<Record<string, string>>((acc, path) => {
-    if (!existsSync(path)) {
-      return acc;
-    }
-
-    for (const line of readFileSync(path, 'utf8').split(/\r?\n/)) {
-      const match = line.match(/^\s*(?:export\s+)?([\w.-]+)\s*=\s*(.*)?\s*$/);
-
-      if (!match) {
-        continue;
-      }
-
-      const [, key, rawValue = ''] = match;
-
-      if (!key || key.startsWith('#')) {
-        continue;
-      }
-
-      acc[key] = parseEnvValue(rawValue);
-    }
-
-    return acc;
-  }, {});
-}
-
-function parseEnvValue(rawValue: string): string {
-  const value = rawValue.trim();
-
-  if (
-    (value.startsWith('"') && value.endsWith('"')) ||
-    (value.startsWith("'") && value.endsWith("'"))
-  ) {
-    return value.slice(1, -1);
-  }
-
-  return value.replace(/\s+#.*$/, '');
-}
-
 function requiredEnv(name: string): string {
   const value = process.env[name];
 
   if (!value) {
     throw new Error(
-      `Missing ${name}. Set it in the shell, CI env, apps/analog-sanity-blog-example/.env.local, or apps/sanity-presentation-e2e/.env.local.`,
+      `Missing ${name}. Set it in the shell, CI env, or apps/sanity-presentation-e2e/.env.local.`,
     );
   }
 

@@ -1,0 +1,29 @@
+{
+  "name": "analog-sanity-blog-studio",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/with-env.mjs sanity build dist --yes",
+    "cors:add": "node scripts/sanity-cors.mjs add",
+    "cors:list": "node scripts/sanity-cors.mjs list",
+    "lint": "eslint .",
+    "schema:extract": "node scripts/with-env.mjs --require-project sanity schema extract --path schema.json",
+    "seed": "node scripts/seed.mjs",
+    "serve": "node scripts/with-env.mjs --require-project sanity dev --host 0.0.0.0 --port 3333",
+    "setup": "pnpm run cors:add && pnpm run seed",
+    "typegen": "pnpm run schema:extract && node scripts/with-env.mjs sanity typegen generate"
+  },
+  "dependencies": {
+    "@limitless-angular/analog-sanity-blog": "workspace:*",
+    "@sanity/client": "^7.22.1",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "sanity": "5.30.0",
+    "styled-components": "6.4.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.8.0"
+  }
+}

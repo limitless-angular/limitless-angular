@@ -10,6 +10,7 @@ Limitless Angular is a powerful collection of Angular libraries focused on Sanit
 
 - 🚀 [Portable Text Live Demo](https://limitless-angular-sanity-example.netlify.app/)
 - 💻 [Example Project](/apps/sanity-example)
+- 📝 [Analog Blog + Sanity Studio](/apps/analog-sanity-blog-studio)
 - 📦 [NPM Package](https://www.npmjs.com/package/@limitless-angular/sanity)
 
 ## Features
@@ -185,6 +186,28 @@ export class AppComponent {}
 ```
 
 [📚 Visual Editing Documentation](packages/sanity/visual-editing/README.md)
+
+## Analog Blog Studio
+
+The Analog blog example can be edited inside a first-class Sanity Studio through
+Presentation. The shared blog contract lives in the source-only
+`@limitless-angular/analog-sanity-blog` workspace package, so the Analog app and
+Studio import the same schemas, GROQ queries, Presentation routes, and Studio
+structure without adding another build artifact.
+
+```bash
+pnpm blog:setup
+pnpm blog:dev
+```
+
+Open `http://localhost:3333/presentation` after both dev servers start.
+
+After changing blog schemas or GROQ queries, regenerate the frontend query
+types:
+
+```bash
+pnpm blog:typegen
+```
 
 ## Roadmap
 

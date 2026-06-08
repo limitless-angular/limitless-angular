@@ -1,59 +1,51 @@
 import { spawnSync } from 'node:child_process';
-import {
-  existsSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
+import { existsSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { loadEnvFile } from 'node:process';
 import { createClient } from '@sanity/client';
 
 const workspaceRoot = resolve(import.meta.dirname, '../../..');
+const envFile = resolve(
+  workspaceRoot,
+  'apps/sanity-presentation-e2e/.env.local',
+);
 const document = {
   _id: 'presentation-smoke-post',
   _type: 'post',
   title: 'Presentation smoke title',
 };
 
-const fileEnv = loadEnvFiles([
-  resolve(workspaceRoot, 'apps/analog-sanity-blog-example/.env.local'),
-  resolve(workspaceRoot, 'apps/sanity-presentation-e2e/.env.local'),
-]);
-const env = {
-  ...fileEnv,
-  ...process.env,
-};
-
-env.SANITY_STUDIO_PROJECT_ID ??= env.VITE_SANITY_PROJECT_ID;
-env.SANITY_STUDIO_DATASET ??= env.VITE_SANITY_DATASET;
-
-for (const name of ['SANITY_STUDIO_PROJECT_ID', 'SANITY_STUDIO_DATASET']) {
-  if (!env[name]) {
-    console.error(
-      `Missing ${name}. Set it or the matching VITE_SANITY_* value in .env.local.`,
-    );
-    process.exit(1);
-  }
+if (existsSync(envFile)) {
+  loadEnvFile(envFile);
 }
 
-if (env.SANITY_API_WRITE_TOKEN) {
+const projectId = requiredEnv('SANITY_E2E_PROJECT_ID');
+const dataset = requiredEnv('SANITY_E2E_DATASET');
+const apiVersion = process.env.SANITY_E2E_API_VERSION || '2024-02-28';
+const writeToken = process.env.SANITY_E2E_WRITE_TOKEN;
+const env = {
+  ...process.env,
+  SANITY_STUDIO_PROJECT_ID: projectId,
+  SANITY_STUDIO_DATASET: dataset,
+};
+
+if (writeToken) {
   await createWithWriteToken();
 } else {
   createWithSanityCli();
 }
 
 console.log(
-  `Real Sanity document ${document._id} is available in dataset ${env.SANITY_STUDIO_DATASET}.`,
+  `Real Sanity document ${document._id} is available in dataset ${dataset}.`,
 );
 
 async function createWithWriteToken() {
   const client = createClient({
-    projectId: env.SANITY_STUDIO_PROJECT_ID,
-    dataset: env.SANITY_STUDIO_DATASET,
-    apiVersion: env.VITE_SANITY_API_VERSION ?? '2024-02-28',
-    token: env.SANITY_API_WRITE_TOKEN,
+    projectId,
+    dataset,
+    apiVersion,
+    token: writeToken,
     useCdn: false,
   });
 
@@ -77,7 +69,7 @@ function createWithSanityCli() {
         documentPath,
         '--missing',
         '--dataset',
-        env.SANITY_STUDIO_DATASET,
+        dataset,
       ],
       {
         cwd: workspaceRoot,
@@ -100,7 +92,7 @@ function createWithSanityCli() {
 
     if (result.status !== 0) {
       console.error(
-        'Unable to seed the real Sanity document. Run `pnpm --dir=apps/sanity-presentation-e2e-studio sanity login` or set SANITY_API_WRITE_TOKEN.',
+        'Unable to seed the real Sanity document. Run `pnpm --dir=apps/sanity-presentation-e2e-studio sanity login` or set SANITY_E2E_WRITE_TOKEN.',
       );
       process.exit(result.status ?? 1);
     }
@@ -109,41 +101,15 @@ function createWithSanityCli() {
   }
 }
 
-function loadEnvFiles(paths) {
-  return paths.reduce((acc, path) => {
-    if (!existsSync(path)) {
-      return acc;
-    }
+function requiredEnv(name) {
+  const value = process.env[name];
 
-    for (const line of readFileSync(path, 'utf8').split(/\r?\n/)) {
-      const match = line.match(/^\s*(?:export\s+)?([\w.-]+)\s*=\s*(.*)?\s*$/);
-
-      if (!match) {
-        continue;
-      }
-
-      const [, key, rawValue = ''] = match;
-
-      if (!key || key.startsWith('#')) {
-        continue;
-      }
-
-      acc[key] = parseEnvValue(rawValue);
-    }
-
-    return acc;
-  }, {});
-}
-
-function parseEnvValue(rawValue) {
-  const value = rawValue.trim();
-
-  if (
-    (value.startsWith('"') && value.endsWith('"')) ||
-    (value.startsWith("'") && value.endsWith("'"))
-  ) {
-    return value.slice(1, -1);
+  if (!value) {
+    console.error(
+      `Missing ${name}. Set it in the shell, CI env, or apps/sanity-presentation-e2e/.env.local.`,
+    );
+    process.exit(1);
   }
 
-  return value.replace(/\s+#.*$/, '');
+  return value;
 }

@@ -71,39 +71,28 @@ The real-project smoke asserts that:
 - the preview route renders data loaded by the app's real Sanity client
 - `@limitless-angular/sanity/preview-kit` announces the real document in use to Studio
 - `@limitless-angular/sanity/visual-editing` connects to Studio and exposes an editable `data-sanity` marker
-- when `SANITY_API_WRITE_TOKEN` is set in the shell, CI env, or one of the `.env.local` files below, a real Sanity mutation updates the Angular live preview without reloading the iframe, then restores the title; that token must have document update permission for the configured project and dataset
+- when `SANITY_E2E_WRITE_TOKEN` is set, a real Sanity mutation updates the Angular live preview without reloading the iframe, then restores the title; that token must have document update permission for the configured project and dataset
 
-It uses real project env with shell or CI variables taking precedence over local files:
+It uses real project env from the shell, CI, or `apps/sanity-presentation-e2e/.env.local`. Shell and CI variables take precedence over the local file. The harness maps these E2E variables into the preview app and Studio fixture internally.
 
-1. `apps/analog-sanity-blog-example/.env.local`
-2. `apps/sanity-presentation-e2e/.env.local`
-3. shell or CI environment variables
-
-At minimum, set these in `apps/analog-sanity-blog-example/.env.local` or your shell:
+At minimum, set these in `apps/sanity-presentation-e2e/.env.local` or your shell:
 
 ```dotenv
-VITE_SANITY_PROJECT_ID=your-project-id
-VITE_SANITY_DATASET=your-dataset
-SANITY_API_READ_TOKEN=your-read-token
-BYPASS_TOKEN=local-bypass-token
+SANITY_E2E_PROJECT_ID=your-project-id
+SANITY_E2E_DATASET=your-dataset
+SANITY_E2E_READ_TOKEN=your-read-token
+SANITY_E2E_BYPASS_TOKEN=local-bypass-token
 ```
 
-To enable the real live-update mutation test, also set a token with document update permission in `apps/analog-sanity-blog-example/.env.local`, `apps/sanity-presentation-e2e/.env.local`, or your shell/CI env:
+To enable the real live-update mutation test, also set a token with document update permission:
 
 ```dotenv
-SANITY_API_WRITE_TOKEN=your-write-token
+SANITY_E2E_WRITE_TOKEN=your-write-token
 ```
 
-Without `SANITY_API_WRITE_TOKEN`, the mutation test is skipped and the non-destructive real Studio smoke still runs. If the token is present but cannot update documents, the mutation test fails because the real live-update proof did not run.
+Without `SANITY_E2E_WRITE_TOKEN`, the mutation test is skipped and the non-destructive real Studio smoke still runs. If the token is present but cannot update documents, the mutation test fails because the real live-update proof did not run.
 
 The fake Presentation host tests intentionally stay in `pnpm turbo run e2e --filter=sanity-presentation-e2e`. There is no real-project "all" target that mixes fake-host coverage with real Studio coverage.
-
-If the Studio should use different names than the app env, set these in `apps/sanity-presentation-e2e/.env.local` or the shell:
-
-```dotenv
-SANITY_STUDIO_PROJECT_ID=your-project-id
-SANITY_STUDIO_DATASET=your-dataset
-```
 
 ### One-time local project setup
 
@@ -127,7 +116,7 @@ You can confirm it is present with:
 node apps/sanity-presentation-e2e/scripts/sanity-cors.mjs list
 ```
 
-The helper reads the same `.env.local` files above, maps `SANITY_STUDIO_PROJECT_ID` from `VITE_SANITY_PROJECT_ID` and `SANITY_STUDIO_DATASET` from `VITE_SANITY_DATASET` when needed, and keeps shell or CI variables as the final override.
+The helper reads `apps/sanity-presentation-e2e/.env.local`, keeps shell or CI variables as the final override, and maps the E2E project and dataset into the Studio CLI process.
 
 Seed the real project with the smoke document if it does not already exist:
 
@@ -135,7 +124,7 @@ Seed the real project with the smoke document if it does not already exist:
 node apps/sanity-presentation-e2e/scripts/sanity-seed-post.mjs
 ```
 
-The seed helper creates a real `post` document with `_id: presentation-smoke-post`. It uses `SANITY_API_WRITE_TOKEN` when available, otherwise it uses your logged-in Sanity CLI session.
+The seed helper creates a real `post` document with `_id: presentation-smoke-post`. It uses `SANITY_E2E_WRITE_TOKEN` when available, otherwise it uses your logged-in Sanity CLI session.
 
 ### Browser auth for real-project mode
 

@@ -1,5 +1,5 @@
 /**
- * Demo data used as placeholders and initial values for the blog
+ * Demo data used as placeholders and initial values for the blog.
  */
 
 export const title = 'Blog.';

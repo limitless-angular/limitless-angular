@@ -8,15 +8,15 @@
     "serve": "sanity dev --host 0.0.0.0"
   },
   "dependencies": {
-    "@sanity/client": "^6.21.1",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "sanity": "3.67.0",
-    "styled-components": "6.1.13"
+    "@sanity/client": "^7.22.1",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "sanity": "5.30.0",
+    "styled-components": "6.4.2"
   },
   "devDependencies": {
-    "eslint": "^9.8.0",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1"
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.8.0"
   }
 }

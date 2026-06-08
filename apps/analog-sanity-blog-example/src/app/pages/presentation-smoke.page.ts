@@ -107,8 +107,8 @@ function getPresentationSmokeTitle(): string {
   template: `
     <article class="mx-auto max-w-3xl px-6 py-16">
       <p data-testid="presentation-smoke-kicker">Presentation smoke route</p>
-      <p data-testid="presentation-smoke-client-mode" hidden>fake-client</p>
       <h1
+        data-client-mode="fake-client"
         data-testid="presentation-smoke-title"
         [attr.data-sanity]="dataSanity"
       >
@@ -172,8 +172,8 @@ export class PresentationSmokeFakeShellComponent {}
   template: `
     <article class="mx-auto max-w-3xl px-6 py-16">
       <p data-testid="presentation-smoke-kicker">Presentation smoke route</p>
-      <p data-testid="presentation-smoke-client-mode" hidden>real-client</p>
       <h1
+        data-client-mode="real-client"
         data-testid="presentation-smoke-title"
         [attr.data-sanity]="dataSanity()"
       >

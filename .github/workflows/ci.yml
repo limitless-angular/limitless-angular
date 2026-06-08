@@ -292,7 +292,7 @@ jobs:
           fi
 
           changed_files="$(git diff --name-only "$base_ref" HEAD)"
-          matched_paths="$(printf '%s\n' "$changed_files" | grep -E '^(\.github/workflows/ci\.yml|angular\.json|turbo\.json|package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|tsconfig\.base\.json|eslint\.config\.js|apps/(analog-sanity-blog-example|sanity-presentation-e2e|sanity-presentation-e2e-studio)/|packages/sanity/)' || true)"
+          matched_paths="$(printf '%s\n' "$changed_files" | grep -E '^(\.github/workflows/ci\.yml|angular\.json|turbo\.json|package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|tsconfig\.base\.json|eslint\.config\.js|apps/(analog-sanity-blog-example|analog-sanity-blog-studio|sanity-presentation-e2e|sanity-presentation-e2e-studio)/|packages/(analog-sanity-blog|sanity)/)' || true)"
 
           echo "Changed files since $base_ref:"
           printf '%s\n' "$changed_files"
@@ -354,16 +354,16 @@ jobs:
 
           {
             echo "RUN_REAL_STUDIO_E2E=true"
-            echo "VITE_SANITY_PROJECT_ID=$SANITY_E2E_PROJECT_ID"
-            echo "VITE_SANITY_DATASET=$SANITY_E2E_DATASET"
-            echo "SANITY_API_READ_TOKEN=$SANITY_E2E_READ_TOKEN"
-            echo "BYPASS_TOKEN=$SANITY_E2E_BYPASS_TOKEN"
+            echo "SANITY_E2E_PROJECT_ID=$SANITY_E2E_PROJECT_ID"
+            echo "SANITY_E2E_DATASET=$SANITY_E2E_DATASET"
+            echo "SANITY_E2E_READ_TOKEN=$SANITY_E2E_READ_TOKEN"
+            echo "SANITY_E2E_BYPASS_TOKEN=$SANITY_E2E_BYPASS_TOKEN"
             echo "SANITY_E2E_STORAGE_STATE=apps/sanity-presentation-e2e/.auth/sanity-storage-state.json"
           } >> "$GITHUB_ENV"
 
           if [ -n "$SANITY_E2E_WRITE_TOKEN" ]; then
             {
-              echo "SANITY_API_WRITE_TOKEN=$SANITY_E2E_WRITE_TOKEN"
+              echo "SANITY_E2E_WRITE_TOKEN=$SANITY_E2E_WRITE_TOKEN"
               echo "SEED_REAL_STUDIO_E2E=true"
             } >> "$GITHUB_ENV"
           else
