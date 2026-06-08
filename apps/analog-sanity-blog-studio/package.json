@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "rm -rf dist && node scripts/with-env.mjs sanity build dist --yes",
+    "build": "node scripts/with-env.mjs sanity build dist --yes",
     "cors:add": "node scripts/sanity-cors.mjs add",
     "cors:list": "node scripts/sanity-cors.mjs list",
     "lint": "eslint .",
