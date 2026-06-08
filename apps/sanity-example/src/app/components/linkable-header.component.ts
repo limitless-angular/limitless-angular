@@ -28,7 +28,16 @@ function slugify(text: string): string {
     }
 
     .slug-anchor {
-      @apply opacity-0 no-underline text-gray-500 inline-block px-2 py-1 ml-1 hover:bg-[#eee];
+      color: var(--color-gray-500, #6b7280);
+      display: inline-block;
+      margin-left: 0.25rem;
+      opacity: 0;
+      padding: 0.25rem 0.5rem;
+      text-decoration-line: none;
+    }
+
+    .slug-anchor:hover {
+      background-color: #eee;
     }
   `,
   host: {
