@@ -189,6 +189,7 @@ test('release workflows delegate to the release tools package', () => {
 
   assertIncludes(publishWorkflow, [
     turboReleaseCommand('release:publish', { forwardsArgs: true }),
+    'environment: npm-release',
     'NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}',
     'NPM_CONFIG_PROVENANCE: true',
   ]);
@@ -220,7 +221,7 @@ test('release tools package owns the release command mapping', () => {
       'release:dry-run': 'node cli.mjs dry-run',
       'release:plan': 'node cli.mjs plan',
       'release:publish': 'node cli.mjs publish',
-      test: 'node --test *.test.mjs',
+      test: 'node --test src/*.test.mjs',
     },
   );
 });

@@ -51,4 +51,6 @@ planned `nextVersion`. It never receives npm credentials in GitHub Actions and
 does not perform git, npm, or GitHub release side effects.
 
 Publish mode performs external side effects only after tests, linting, artifact
-validation, and compatibility consumer checks pass.
+validation, and compatibility consumer checks pass. The GitHub workflow also
+targets the `npm-release` environment so repository environment protection rules
+can require approval before npm credentials are exposed.

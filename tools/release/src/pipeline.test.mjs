@@ -8,7 +8,7 @@ import {
   compatibilityValidationSteps,
   releaseModes,
   runReleasePipeline,
-} from './src/pipeline.mjs';
+} from './pipeline.mjs';
 
 test('dry-run validates the planned artifact version and restores release files', () => {
   const fixture = createReleaseFixture();

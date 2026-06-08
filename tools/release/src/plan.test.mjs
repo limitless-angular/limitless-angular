@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 
-import { createReleasePlan, resolveReleaseSpecifier } from './src/plan.mjs';
+import { createReleasePlan, resolveReleaseSpecifier } from './plan.mjs';
 
 test('release specifier accepts semver increments and explicit versions', () => {
   assert.equal(resolveReleaseSpecifier('1.2.3', 'patch'), '1.2.4');

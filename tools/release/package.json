@@ -8,7 +8,7 @@
     "release:dry-run": "node cli.mjs dry-run",
     "release:plan": "node cli.mjs plan",
     "release:publish": "node cli.mjs publish",
-    "test": "node --test *.test.mjs"
+    "test": "node --test src/*.test.mjs"
   },
   "dependencies": {
     "semver": "^7.8.2",
