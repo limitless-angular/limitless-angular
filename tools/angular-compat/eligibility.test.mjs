@@ -42,6 +42,29 @@ test('matching compatibility contract paths run without invoking Turbo', () => {
   );
 });
 
+test('release tooling changes run without invoking Turbo', () => {
+  const { calls, capture } = createCapture();
+
+  const result = evaluateSanityCompatEligibility({
+    baseRef: 'base',
+    capture,
+    changedFiles: [
+      '.github/workflows/release-dry-run.yml',
+      'tools/release/src/pipeline.mjs',
+    ],
+  });
+
+  assert.equal(result.run, true);
+  assert.deepEqual(
+    result.matchedPaths.map(({ file }) => file),
+    ['.github/workflows/release-dry-run.yml', 'tools/release/src/pipeline.mjs'],
+  );
+  assert.equal(
+    calls.some(({ command }) => command === 'pnpm'),
+    false,
+  );
+});
+
 test('unmatched files skip when Turbo reports the package is unaffected', () => {
   const { calls, capture } = createCapture({ gitDiff: 'CONTRIBUTING.md\n' });
 

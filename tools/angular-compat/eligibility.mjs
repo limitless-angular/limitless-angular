@@ -12,9 +12,13 @@ const compatibilityContractPathRules = [
     path: '.github/workflows/release-and-publish.yml',
     reason: 'release workflow changed',
   },
+  {
+    path: '.github/workflows/release-dry-run.yml',
+    reason: 'release dry-run workflow changed',
+  },
   { path: '.nvmrc', reason: 'Node runtime changed' },
   { path: 'turbo.json', reason: 'Turbo pipeline changed' },
-  { path: 'tools/scripts/release.ts', reason: 'release script changed' },
+  { path: 'tools/release/', reason: 'release tooling changed' },
 ];
 
 export function evaluateSanityCompatEligibility(options = {}) {
