@@ -8,16 +8,16 @@
   "sideEffects": false,
   "type": "module",
   "peerDependencies": {
-    "@sanity/client": "^6.21.3",
+    "@sanity/client": "^6.21.3 || ^7.0.0",
     "@sanity/comlink": "^1.1.2",
     "@sanity/visual-editing": "^2.7.0",
-    "@sanity/types": "^3.64.1"
+    "@sanity/types": "^3.64.1 || ^4.0.0 || ^5.0.0"
   },
   "devDependencies": {
-    "@sanity/client": "^6.21.3",
+    "@sanity/client": "^7.22.1",
     "@sanity/comlink": "^1.1.2",
-    "@sanity/types": "^3.64.1",
-    "@sanity/visual-editing": "^2.7.0",
+    "@sanity/types": "^5.30.0",
+    "@sanity/visual-editing": "2.15.4",
     "eslint": "^9.8.0"
   }
 }

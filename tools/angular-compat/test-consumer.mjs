@@ -8,6 +8,7 @@ import {
   config,
   createWorkspace,
   findVersionSet,
+  packageRoot,
   readPackageJson,
   readJson,
   resolveAngularToolchain,
@@ -90,6 +91,12 @@ function writeConsumerProject(
   { versionSet, packageJson, tarballPath, toolchain },
 ) {
   const tarballDependency = `file:${tarballPath}`;
+  const previewKitCompatPackageJson = readJson(
+    join(packageRoot, 'preview-kit-compat/package.json'),
+  );
+  const visualEditingHelpersPackageJson = readJson(
+    join(packageRoot, 'visual-editing-helpers/package.json'),
+  );
   const packageName = `sanity-${versionSet.id}-compat-consumer`;
   const runtimePort = getRuntimePort(versionSet.id);
   const sharedSanityDeps = {
@@ -97,9 +104,11 @@ function writeConsumerProject(
       packageJson.peerDependencies['@portabletext/toolkit'],
     '@portabletext/types': packageJson.peerDependencies['@portabletext/types'],
     '@sanity/client': packageJson.peerDependencies['@sanity/client'],
-    '@sanity/comlink': '^1.1.2',
+    '@sanity/comlink':
+      previewKitCompatPackageJson.peerDependencies['@sanity/comlink'],
     '@sanity/image-url': packageJson.peerDependencies['@sanity/image-url'],
-    '@sanity/types': '^3.64.1',
+    '@sanity/types':
+      visualEditingHelpersPackageJson.peerDependencies['@sanity/types'],
     '@sanity/visual-editing':
       packageJson.peerDependencies['@sanity/visual-editing'],
     rxjs: packageJson.peerDependencies.rxjs,

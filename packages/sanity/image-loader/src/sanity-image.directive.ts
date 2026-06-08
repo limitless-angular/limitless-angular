@@ -15,10 +15,6 @@ import {
   NgOptimizedImage,
 } from '@angular/common';
 
-import type {
-  ImageUrlBuilderOptions,
-  SanityImageSource,
-} from '@sanity/image-url/lib/types/types';
 import imageUrlBuilder from '@sanity/image-url';
 
 import {
@@ -26,6 +22,7 @@ import {
   type SanityConfig,
 } from '@limitless-angular/sanity/shared';
 import { sanityImageLoader } from './loader';
+import type { ImageUrlBuilderOptions, SanityImageSource } from './types';
 
 type LoaderParams = Omit<ImageUrlBuilderOptions, 'quality'>;
 

@@ -18,13 +18,16 @@ import {
 export interface PortableTextComponents {
   types?: Record<string, Type<PortableTextTypeComponent>>;
   marks?: Record<string, Type<PortableTextMarkComponent> | undefined>;
-  block?: Record<
-    PortableTextBlockStyle,
-    Type<PortableTextBlockComponent> | undefined
+  block?: Partial<
+    Record<PortableTextBlockStyle, Type<PortableTextBlockComponent> | undefined>
   >;
-  list?: Record<PortableTextListItemType, Type<PortableTextListComponent>>;
+  list?: Partial<
+    Record<PortableTextListItemType, Type<PortableTextListComponent>>
+  >;
   listItem?:
-    | Record<PortableTextListItemType, Type<PortableTextListItemComponent>>
+    | Partial<
+        Record<PortableTextListItemType, Type<PortableTextListItemComponent>>
+      >
     | Type<PortableTextListItemComponent>;
   hardBreak?: Type<unknown> | false;
   unknownMark?: Type<PortableTextMarkComponent>;
