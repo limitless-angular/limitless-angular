@@ -19,7 +19,10 @@
     "compat:release-parity": "pnpm turbo run compat:release-parity --filter=@limitless-angular/angular-compat",
     "compat:test": "pnpm turbo run compat:test --filter=@limitless-angular/angular-compat --",
     "format:write": "prettier --write .",
-    "release": "node tools/scripts/release.ts"
+    "release": "pnpm turbo run release --filter=@limitless-angular/release-tools --",
+    "release:dry-run": "pnpm turbo run release:dry-run --filter=@limitless-angular/release-tools --",
+    "release:plan": "pnpm --filter=@limitless-angular/release-tools run --silent release:plan",
+    "release:publish": "pnpm turbo run release:publish --filter=@limitless-angular/release-tools --"
   },
   "packageManager": "pnpm@11.5.2",
   "volta": {

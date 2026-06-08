@@ -1,0 +1,18 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "release": {
+      "cache": false
+    },
+    "release:dry-run": {
+      "cache": false
+    },
+    "release:plan": {
+      "cache": false
+    },
+    "release:publish": {
+      "cache": false
+    }
+  }
+}

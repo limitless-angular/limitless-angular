@@ -8,9 +8,13 @@ import { readJson, workspaceRoot } from './lib.mjs';
 const compatPackageName = '@limitless-angular/angular-compat';
 const compatFilter = `--filter=${compatPackageName}`;
 const compatPackageDir = 'tools/angular-compat';
+const releasePackageName = '@limitless-angular/release-tools';
+const releaseFilter = `--filter=${releasePackageName}`;
 
 const turboCompatCommand = (task, { forwardsArgs = false } = {}) =>
   `pnpm turbo run ${task} ${compatFilter}${forwardsArgs ? ' --' : ''}`;
+const turboReleaseCommand = (task, { forwardsArgs = false } = {}) =>
+  `pnpm turbo run ${task} ${releaseFilter}${forwardsArgs ? ' --' : ''}`;
 
 const rootScriptContract = {
   compat: turboCompatCommand('compat:pipeline'),
@@ -32,6 +36,17 @@ const rootScriptContract = {
   'compat:pack': turboCompatCommand('compat:pack'),
   'compat:release-parity': turboCompatCommand('compat:release-parity'),
   'compat:test': turboCompatCommand('compat:test', { forwardsArgs: true }),
+};
+
+const rootReleaseScriptContract = {
+  release: turboReleaseCommand('release', { forwardsArgs: true }),
+  'release:dry-run': turboReleaseCommand('release:dry-run', {
+    forwardsArgs: true,
+  }),
+  'release:plan': `pnpm --filter=${releasePackageName} run --silent release:plan`,
+  'release:publish': turboReleaseCommand('release:publish', {
+    forwardsArgs: true,
+  }),
 };
 
 const packageScriptContract = {
@@ -80,6 +95,19 @@ test('root compat scripts route package lifecycle tasks through Turbo', () => {
     ...rootScriptContract,
   });
   assert.doesNotMatch(scripts['compat:matrix'], /turbo/);
+});
+
+test('root release scripts route side-effecting tasks through Turbo', () => {
+  const { scripts } = readWorkspaceJson('package.json');
+
+  assert.deepEqual(pick(scripts, Object.keys(rootReleaseScriptContract)), {
+    ...rootReleaseScriptContract,
+  });
+  assert.doesNotMatch(
+    scripts['release:plan'],
+    /turbo/,
+    'release:plan supports clean JSON output and should remain a direct package command',
+  );
 });
 
 test('compat package scripts own the CLI command mapping', () => {
@@ -151,21 +179,72 @@ test('CI workflow follows the compat orchestration contract', () => {
   assert.doesNotMatch(workflow, /turbo run compat:matrix/);
 });
 
-test('release workflow publishes the validated compatibility tarball', () => {
-  const workflow = readWorkspaceText(
+test('release workflows delegate to the release tools package', () => {
+  const publishWorkflow = readWorkspaceText(
     '.github/workflows/release-and-publish.yml',
   );
+  const dryRunWorkflow = readWorkspaceText(
+    '.github/workflows/release-dry-run.yml',
+  );
 
-  assertIncludes(workflow, [
-    turboCompatCommand('compat:release-parity'),
-    turboCompatCommand('compat:pack'),
-    turboCompatCommand('compat:artifact'),
-    `pnpm --dir ${compatPackageDir} exec playwright install --with-deps chromium`,
-    turboCompatCommand('compat:test'),
-    'npm publish "$TARBALL" --access public --registry https://registry.npmjs.org',
+  assertIncludes(publishWorkflow, [
+    turboReleaseCommand('release:publish', { forwardsArgs: true }),
+    'environment: npm-release',
+    'NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}',
+    'NPM_CONFIG_PROVENANCE: true',
+  ]);
+  assertIncludes(dryRunWorkflow, [
+    turboReleaseCommand('release:dry-run', { forwardsArgs: true }),
+    'permissions:',
+    'contents: read',
   ]);
 
-  assert.doesNotMatch(workflow, /pnpm run compat:/);
+  assert.doesNotMatch(publishWorkflow, /compat:pack/);
+  assert.doesNotMatch(publishWorkflow, /npm publish/);
+  assert.doesNotMatch(dryRunWorkflow, /NODE_AUTH_TOKEN/);
+  assert.doesNotMatch(dryRunWorkflow, /NPM_ACCESS_TOKEN/);
+});
+
+test('release tools package owns the release command mapping', () => {
+  const { scripts } = readWorkspaceJson('tools/release/package.json');
+
+  assert.deepEqual(
+    pick(scripts, [
+      'release',
+      'release:dry-run',
+      'release:plan',
+      'release:publish',
+      'test',
+    ]),
+    {
+      release: 'node cli.mjs run',
+      'release:dry-run': 'node cli.mjs dry-run',
+      'release:plan': 'node cli.mjs plan',
+      'release:publish': 'node cli.mjs publish',
+      test: 'node --test src/*.test.mjs',
+    },
+  );
+});
+
+test('release-only Turbo task settings are scoped to the release package', () => {
+  const rootTurbo = readWorkspaceJson('turbo.json');
+  const releaseTurbo = readWorkspaceJson('tools/release/turbo.json');
+
+  assert.deepEqual(releaseTurbo.extends, ['//']);
+  assert.equal(
+    Object.keys(rootTurbo.tasks).some((task) => task.startsWith('release:')),
+    false,
+    'root turbo.json should keep shared tasks only',
+  );
+
+  for (const task of [
+    'release',
+    'release:dry-run',
+    'release:plan',
+    'release:publish',
+  ]) {
+    assert.deepEqual(releaseTurbo.tasks[task], { cache: false });
+  }
 });
 
 function readWorkspaceJson(path) {

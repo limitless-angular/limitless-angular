@@ -119,7 +119,7 @@ compatibility jobs are relevant. The decision asks Turbo whether either
 `@limitless-angular/sanity` or `@limitless-angular/angular-compat` has affected
 package tasks. A small explicit contract list covers files that are outside
 package ownership but still define the compatibility workflow, such as
-CI/release workflows, `.nvmrc`, `turbo.json`, and the release script.
+CI/release workflows, `.nvmrc`, `turbo.json`, and the release tooling package.
 `workflow_dispatch` always runs the compatibility jobs.
 
 When eligible, CI runs stable consumers as required jobs and `angular-next` as

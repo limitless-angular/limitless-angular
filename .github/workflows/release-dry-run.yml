@@ -1,10 +1,10 @@
-name: Release and Publish
+name: Release Dry Run
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to publish (optional - will use conventional commits if not specified)'
+        description: 'Version to validate (optional - will use conventional commits if not specified)'
         required: false
         default: ''
       verbose:
@@ -17,18 +17,16 @@ env:
   TURBO_TELEMETRY_DISABLED: '1'
 
 concurrency:
-  group: release-publish-${{ github.ref }}
+  group: release-dry-run-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  release-and-publish:
+  release-dry-run:
     if: github.repository == 'limitless-angular/limitless-angular'
-    name: Release and Publish to npm
+    name: Validate Release Dry Run
     runs-on: ubuntu-22.04
     permissions:
-      contents: write
-      id-token: write
-    environment: npm-release
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -62,16 +60,8 @@ jobs:
       - name: Check for lint errors
         run: pnpm turbo run lint --filter=@limitless-angular/sanity
 
-      - name: Set up Git user
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-
-      - name: Validate and publish release
+      - name: Validate release dry run
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
           RELEASE_VERBOSE: ${{ inputs.verbose }}
           RELEASE_VERSION: ${{ inputs.version }}
         run: |
@@ -83,13 +73,13 @@ jobs:
             ARGS+=(--verbose)
           fi
 
-          pnpm turbo run release:publish --filter=@limitless-angular/release-tools -- "${ARGS[@]}"
+          pnpm turbo run release:dry-run --filter=@limitless-angular/release-tools -- "${ARGS[@]}"
 
-      - name: Generate release summary
+      - name: Generate release dry-run summary
         if: always()
         env:
           RELEASE_VERSION: ${{ inputs.version }}
         run: |
-          echo "## Release Process Summary" > "$GITHUB_STEP_SUMMARY"
-          echo "- Mode: publish" >> "$GITHUB_STEP_SUMMARY"
+          echo "## Release Dry Run Summary" > "$GITHUB_STEP_SUMMARY"
+          echo "- Mode: dry-run" >> "$GITHUB_STEP_SUMMARY"
           echo "- Version input: ${RELEASE_VERSION:-conventional commits}" >> "$GITHUB_STEP_SUMMARY"

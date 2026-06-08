@@ -492,6 +492,15 @@ importers:
         specifier: 1.44.1
         version: 1.44.1
 
+  tools/release:
+    dependencies:
+      semver:
+        specifier: ^7.8.2
+        version: 7.8.2
+      yargs:
+        specifier: ^17.7.2
+        version: 17.7.2
+
 packages:
 
   '@adobe/css-tools@4.3.3':
