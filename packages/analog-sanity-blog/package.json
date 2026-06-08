@@ -1,0 +1,25 @@
+{
+  "name": "@limitless-angular/analog-sanity-blog",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./demo": "./src/demo/index.ts",
+    "./env": "./src/env/index.ts",
+    "./presentation": "./src/presentation/index.ts",
+    "./queries": "./src/queries/index.ts",
+    "./schema": "./src/schema/index.ts",
+    "./structure": "./src/structure/index.ts"
+  },
+  "dependencies": {
+    "groq": "^3.53.0"
+  },
+  "peerDependencies": {
+    "sanity": "^3.67.0 || ^5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "sanity": {
+      "optional": true
+    }
+  }
+}

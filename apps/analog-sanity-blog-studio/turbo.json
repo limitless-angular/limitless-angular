@@ -1,0 +1,87 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "outputs": ["../../dist/apps/analog-sanity-blog-studio/**"],
+      "passThroughEnv": [
+        "SANITY_STUDIO_DATASET",
+        "SANITY_STUDIO_PREVIEW_ORIGIN",
+        "SANITY_STUDIO_PROJECT_ID",
+        "VITE_SANITY_DATASET",
+        "VITE_SANITY_PROJECT_ID"
+      ]
+    },
+    "cors:add": {
+      "cache": false,
+      "passThroughEnv": [
+        "SANITY_STUDIO_DATASET",
+        "SANITY_STUDIO_ORIGIN",
+        "SANITY_STUDIO_PREVIEW_ORIGIN",
+        "SANITY_STUDIO_PROJECT_ID",
+        "VITE_SANITY_DATASET",
+        "VITE_SANITY_PROJECT_ID"
+      ]
+    },
+    "cors:list": {
+      "cache": false,
+      "passThroughEnv": [
+        "SANITY_STUDIO_DATASET",
+        "SANITY_STUDIO_PROJECT_ID",
+        "VITE_SANITY_DATASET",
+        "VITE_SANITY_PROJECT_ID"
+      ]
+    },
+    "schema:extract": {
+      "cache": false,
+      "passThroughEnv": [
+        "SANITY_STUDIO_DATASET",
+        "SANITY_STUDIO_PROJECT_ID",
+        "VITE_SANITY_DATASET",
+        "VITE_SANITY_PROJECT_ID"
+      ]
+    },
+    "seed": {
+      "cache": false,
+      "passThroughEnv": [
+        "SANITY_API_WRITE_TOKEN",
+        "SANITY_STUDIO_DATASET",
+        "SANITY_STUDIO_PROJECT_ID",
+        "VITE_SANITY_API_VERSION",
+        "VITE_SANITY_DATASET",
+        "VITE_SANITY_PROJECT_ID"
+      ]
+    },
+    "serve": {
+      "passThroughEnv": [
+        "SANITY_STUDIO_DATASET",
+        "SANITY_STUDIO_ORIGIN",
+        "SANITY_STUDIO_PREVIEW_ORIGIN",
+        "SANITY_STUDIO_PROJECT_ID",
+        "VITE_SANITY_DATASET",
+        "VITE_SANITY_PROJECT_ID"
+      ]
+    },
+    "setup": {
+      "cache": false,
+      "passThroughEnv": [
+        "SANITY_API_WRITE_TOKEN",
+        "SANITY_STUDIO_DATASET",
+        "SANITY_STUDIO_ORIGIN",
+        "SANITY_STUDIO_PREVIEW_ORIGIN",
+        "SANITY_STUDIO_PROJECT_ID",
+        "VITE_SANITY_API_VERSION",
+        "VITE_SANITY_DATASET",
+        "VITE_SANITY_PROJECT_ID"
+      ]
+    },
+    "typegen": {
+      "cache": false,
+      "passThroughEnv": [
+        "SANITY_STUDIO_DATASET",
+        "SANITY_STUDIO_PROJECT_ID",
+        "VITE_SANITY_DATASET",
+        "VITE_SANITY_PROJECT_ID"
+      ]
+    }
+  }
+}

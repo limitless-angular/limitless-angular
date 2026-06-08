@@ -29,6 +29,15 @@
       "cache": false,
       "persistent": true
     },
+    "setup": {
+      "cache": false
+    },
+    "seed": {
+      "cache": false
+    },
+    "typegen": {
+      "cache": false
+    },
     "e2e": {
       "cache": false
     },

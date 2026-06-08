@@ -12,6 +12,24 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "paths": {
+      "@limitless-angular/analog-sanity-blog/demo": [
+        "./packages/analog-sanity-blog/src/demo/index.ts"
+      ],
+      "@limitless-angular/analog-sanity-blog/env": [
+        "./packages/analog-sanity-blog/src/env/index.ts"
+      ],
+      "@limitless-angular/analog-sanity-blog/presentation": [
+        "./packages/analog-sanity-blog/src/presentation/index.ts"
+      ],
+      "@limitless-angular/analog-sanity-blog/queries": [
+        "./packages/analog-sanity-blog/src/queries/index.ts"
+      ],
+      "@limitless-angular/analog-sanity-blog/schema": [
+        "./packages/analog-sanity-blog/src/schema/index.ts"
+      ],
+      "@limitless-angular/analog-sanity-blog/structure": [
+        "./packages/analog-sanity-blog/src/structure/index.ts"
+      ],
       "@/analog-sanity-blog-example/sanity": [
         "./apps/analog-sanity-blog-example/src/sanity/lib/index.ts"
       ],

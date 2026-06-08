@@ -5,6 +5,10 @@
   "type": "module",
   "scripts": {
     "build": "turbo run build",
+    "blog:dev": "turbo run serve --filter=analog-sanity-blog-example --filter=analog-sanity-blog-studio",
+    "blog:seed": "turbo run seed --filter=analog-sanity-blog-studio",
+    "blog:setup": "turbo run setup --filter=analog-sanity-blog-studio",
+    "blog:typegen": "turbo run typegen --filter=analog-sanity-blog-studio",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "compat": "pnpm turbo run compat:pipeline --filter=@limitless-angular/angular-compat",
