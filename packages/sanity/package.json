@@ -44,13 +44,15 @@
   },
   "dependencies": {
     "@sanity/comlink": "^3.0.1",
+    "@sanity/mutate": "0.16.1",
     "@sanity/presentation-comlink": "^1.0.8",
     "@sanity/visual-editing-csm": "^2.0.6",
     "@vercel/stega": "0.1.2",
     "lodash-es": "^4.17.21",
     "lru-cache": "^11.0.0",
     "mendoza": "3.0.8",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "xstate": "^5.19.2"
   },
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "^2.6.0",

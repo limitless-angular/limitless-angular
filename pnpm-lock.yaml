@@ -375,6 +375,9 @@ importers:
       '@sanity/comlink':
         specifier: ^3.0.1
         version: 3.1.1
+      '@sanity/mutate':
+        specifier: 0.16.1
+        version: 0.16.1(xstate@5.32.0)
       '@sanity/presentation-comlink':
         specifier: ^1.0.8
         version: 1.0.33(@sanity/client@7.22.1)(@sanity/types@5.30.0(@types/react@19.2.17))
@@ -396,6 +399,9 @@ importers:
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
+      xstate:
+        specifier: ^5.19.2
+        version: 5.32.0
     devDependencies:
       '@analogjs/vite-plugin-angular':
         specifier: ^2.6.0
