@@ -77,29 +77,29 @@ async function mockSanityApi(page: Page): Promise<void> {
       const body = url.pathname.includes('/users/me/keyvalue')
         ? []
         : url.pathname.includes('/users/me')
-        ? {
-            id: 'presentation-smoke-user',
-            name: 'Presentation Smoke User',
-            email: 'presentation-smoke@example.com',
-            profileImage: null,
-            roles: [{ name: 'administrator', title: 'Administrator' }],
-          }
-        : url.pathname.includes(`/data/query/${dataset}`)
           ? {
-              ms: 0,
-              query: url.searchParams.get('query') ?? '',
-              result: {
-                _id: documentId,
-                _type: 'post',
-                _createdAt: '2024-01-01T00:00:00.000Z',
-                _updatedAt: '2024-01-01T00:00:00.000Z',
-                _rev: 'presentation-smoke-rev',
-                title: 'Live presentation smoke title',
-              },
+              id: 'presentation-smoke-user',
+              name: 'Presentation Smoke User',
+              email: 'presentation-smoke@example.com',
+              profileImage: null,
+              roles: [{ name: 'administrator', title: 'Administrator' }],
             }
-          : url.pathname.includes('/datasets')
-            ? [{ name: dataset }]
-            : {};
+          : url.pathname.includes(`/data/query/${dataset}`)
+            ? {
+                ms: 0,
+                query: url.searchParams.get('query') ?? '',
+                result: {
+                  _id: documentId,
+                  _type: 'post',
+                  _createdAt: '2024-01-01T00:00:00.000Z',
+                  _updatedAt: '2024-01-01T00:00:00.000Z',
+                  _rev: 'presentation-smoke-rev',
+                  title: 'Live presentation smoke title',
+                },
+              }
+            : url.pathname.includes('/datasets')
+              ? [{ name: dataset }]
+              : {};
 
       await route.fulfill({
         body: JSON.stringify(body),

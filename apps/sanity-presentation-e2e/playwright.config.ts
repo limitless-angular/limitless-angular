@@ -5,7 +5,10 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig, devices } from '@playwright/test';
 
 const workspaceRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const envFile = resolve(workspaceRoot, 'apps/sanity-presentation-e2e/.env.local');
+const envFile = resolve(
+  workspaceRoot,
+  'apps/sanity-presentation-e2e/.env.local',
+);
 
 if (existsSync(envFile)) {
   loadEnvFile(envFile);

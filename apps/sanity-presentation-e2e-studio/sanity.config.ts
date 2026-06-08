@@ -2,11 +2,9 @@ import { defineConfig, defineField, defineType } from 'sanity';
 import { presentationTool } from 'sanity/presentation';
 import { structureTool } from 'sanity/structure';
 
-const projectId =
-  process.env['SANITY_STUDIO_PROJECT_ID'] ?? 'replace-me';
+const projectId = process.env['SANITY_STUDIO_PROJECT_ID'] ?? 'replace-me';
 
-const dataset =
-  process.env['SANITY_STUDIO_DATASET'] ?? 'production';
+const dataset = process.env['SANITY_STUDIO_DATASET'] ?? 'production';
 
 const previewOrigin =
   process.env['SANITY_STUDIO_PREVIEW_ORIGIN'] ?? 'http://localhost:4200';
