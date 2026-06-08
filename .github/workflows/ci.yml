@@ -314,17 +314,9 @@ jobs:
         if: steps.affected-presentation-e2e.outputs.run == 'true'
         run: pnpm turbo run e2e --filter=sanity-presentation-e2e
 
-      - name: Stop Sanity Presentation E2E servers
-        if: always() && steps.affected-presentation-e2e.outputs.run == 'true'
-        run: fuser -k 4200/tcp 3333/tcp || true
-
       - name: Run hermetic Sanity Studio E2E
         if: steps.affected-presentation-e2e.outputs.run == 'true'
         run: pnpm turbo run e2e-studio --filter=sanity-presentation-e2e
-
-      - name: Stop hermetic Sanity Studio E2E servers
-        if: always() && steps.affected-presentation-e2e.outputs.run == 'true'
-        run: fuser -k 4200/tcp 3333/tcp || true
 
       - name: Prepare real-project Sanity Studio E2E
         if: ${{ (steps.affected-presentation-e2e.outputs.run == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.run_real_studio) }}

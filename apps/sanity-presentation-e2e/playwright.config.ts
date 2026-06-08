@@ -60,10 +60,8 @@ const previewEnv = useRealProject
 const webServer = [
   {
     cwd: workspaceRoot,
-    command: [
-      ...toShellEnv(previewEnv),
-      'pnpm turbo run serve --filter=analog-sanity-blog-example',
-    ].join(' '),
+    command: `pnpm --dir apps/analog-sanity-blog-example exec vite dev --host 0.0.0.0 --port ${previewPort}`,
+    env: definedEnv(previewEnv),
     url: `${previewURL}/api/presentation-smoke-health`,
     reuseExistingServer: !process.env['CI'],
     timeout: 120_000,
@@ -80,14 +78,12 @@ if (studioMode !== 'off') {
 
   webServer.push({
     cwd: workspaceRoot,
-    command: [
-      ...toShellEnv({
-        SANITY_STUDIO_PROJECT_ID: studioProjectId,
-        SANITY_STUDIO_DATASET: studioDataset,
-        SANITY_STUDIO_PREVIEW_ORIGIN: previewURL,
-      }),
-      'pnpm turbo run serve --filter=sanity-presentation-e2e-studio',
-    ].join(' '),
+    command: `pnpm --dir apps/sanity-presentation-e2e-studio exec sanity dev --host 0.0.0.0 --port ${studioPort}`,
+    env: definedEnv({
+      SANITY_STUDIO_PROJECT_ID: studioProjectId,
+      SANITY_STUDIO_DATASET: studioDataset,
+      SANITY_STUDIO_PREVIEW_ORIGIN: previewURL,
+    }),
     url: studioURL,
     reuseExistingServer: !process.env['CI'],
     timeout: 120_000,
@@ -159,8 +155,12 @@ function existingStorageStatePath(
   return undefined;
 }
 
-function toShellEnv(env: Record<string, string | undefined>): string[] {
-  return Object.entries(env)
-    .filter((entry): entry is [string, string] => entry[1] !== undefined)
-    .map(([key, value]) => `${key}=${JSON.stringify(value)}`);
+function definedEnv(
+  env: Record<string, string | undefined>,
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(env).filter(
+      (entry): entry is [string, string] => entry[1] !== undefined,
+    ),
+  );
 }
