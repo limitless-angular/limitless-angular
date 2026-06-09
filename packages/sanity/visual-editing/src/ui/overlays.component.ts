@@ -20,6 +20,7 @@ import type {
   AngularOverlayComponentResolver,
   ElementState,
   OverlayMsg,
+  VisualEditingOptions,
   VisualEditingNode,
 } from '../types';
 import { sanityNodesExistInSameArray } from '../util/find-sanity-nodes';
@@ -150,17 +151,22 @@ function targetsLink(target: EventTarget | null): boolean {
       @for (element of elementsToRender(); track element.id) {
         <sanity-visual-editing-element-overlay
           [componentResolver]="componentResolver()"
+          [comlink]="comlink()"
           [draggable]="element.draggable"
           [element]="element.element"
+          [elementType]="element.elementType"
           [enableScrollIntoView]="enableScrollIntoView()"
           [focused]="element.focused"
           [hovered]="element.hovered"
+          [id]="element.id"
           [isDragging]="
             overlayState().isDragging || overlayState().dragMinimapTransition
           "
           [node]="element.sanity"
+          [plugins]="plugins()"
           [rect]="element.rect"
           [showActions]="!inFrame()"
+          [targets]="element.targets"
           [wasMaybeCollapsed]="
             element.focused && overlayState().wasMaybeCollapsed
           "
@@ -207,6 +213,7 @@ export class OverlaysComponent {
   comlink = input<VisualEditingNode>();
   comlinkStatus = input<Status>('idle');
   components = input<AngularOverlayComponentResolver>();
+  plugins = input<VisualEditingOptions['plugins']>();
   inFrame = input.required<boolean>();
   inPopUp = input.required<boolean>();
   zIndex = input<string | number>();

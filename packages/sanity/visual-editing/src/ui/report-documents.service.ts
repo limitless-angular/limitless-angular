@@ -22,9 +22,9 @@ function isEqualSets(a: Set<string>, b: Set<string>): boolean {
 }
 
 function isReportableSanityNode(
-  node: ElementState['sanity'],
+  node: ElementState['sanity'] | undefined,
 ): node is SanityNode {
-  return 'id' in node;
+  return !!node && 'id' in node;
 }
 
 @Injectable()

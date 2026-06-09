@@ -13,6 +13,7 @@ export {
   VisualEditingUnionInsertMenuOverlayComponent,
   defineOverlayComponent,
   defineOverlayComponents,
+  defineOverlayPlugin,
 } from './overlay-components';
 export { getArrayItemKeyAndParentPath } from './util/mutations';
 export {
@@ -31,6 +32,7 @@ export type {
   AngularOverlayComponentProps,
   AngularOverlayComponentResolver,
   DocumentSchema,
+  ElementChildTarget,
   ElementFocusedState,
   ElementNode,
   ElementState,
@@ -69,8 +71,14 @@ export type {
   OverlayMsgElementUnregister,
   OverlayMsgElementUpdate,
   OverlayMsgElementUpdateRect,
+  OverlayMsgResetMouseState,
   OverlayMsgSetCursor,
   OverlayOptions,
+  OverlayPluginComponent,
+  OverlayPluginDefinition,
+  OverlayPluginDefinitionBase,
+  OverlayPluginExclusiveDefinition,
+  OverlayPluginHudDefinition,
   OverlayRect,
   PreviewSnapshot,
   ResolvedSchemaTypeMap,

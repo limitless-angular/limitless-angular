@@ -15,13 +15,10 @@ import type {
   DragSkeleton,
   ElementFocusedState,
   ElementNode,
-  ElementState,
   HistoryAdapter,
   HistoryAdapterNavigate,
   Msg,
   OverlayController,
-  OverlayEventHandler,
-  OverlayMsg,
   OverlayMsgActivate,
   OverlayMsgBlur,
   OverlayMsgDeactivate,
@@ -42,17 +39,14 @@ import type {
   OverlayMsgElementDeactivate,
   OverlayMsgElementMouseEnter,
   OverlayMsgElementMouseLeave,
-  OverlayMsgElementRegister,
   OverlayMsgElementUnregister,
-  OverlayMsgElementUpdate,
   OverlayMsgElementUpdateRect,
   OverlayMsgSetCursor,
-  OverlayOptions,
   OverlayRect,
   VisualEditingOptions as SanityVisualEditingOptions,
 } from '@sanity/visual-editing';
 import type {
-  OverlayComponentResolverContext as SanityOverlayComponentResolverContext,
+  OverlayElementField,
   OverlayElementParent,
 } from '@sanity/visual-editing/unstable_overlay-components';
 import type {
@@ -91,13 +85,10 @@ export type {
   DragSkeleton,
   ElementFocusedState,
   ElementNode,
-  ElementState,
   HistoryAdapter,
   HistoryAdapterNavigate,
   Msg,
   OverlayController,
-  OverlayEventHandler,
-  OverlayMsg,
   OverlayMsgActivate,
   OverlayMsgBlur,
   OverlayMsgDeactivate,
@@ -118,12 +109,9 @@ export type {
   OverlayMsgElementDeactivate,
   OverlayMsgElementMouseEnter,
   OverlayMsgElementMouseLeave,
-  OverlayMsgElementRegister,
   OverlayMsgElementUnregister,
-  OverlayMsgElementUpdate,
   OverlayMsgElementUpdateRect,
   OverlayMsgSetCursor,
-  OverlayOptions,
   OverlayRect,
 };
 export type {
@@ -179,21 +167,116 @@ export interface DragInsertPositionRects {
   right?: OverlayRect | null;
 }
 
+export type OverlayMsgElementRegister = OverlayMsgElement<'register'> & {
+  element: ElementNode;
+  sanity: SanityNode | SanityStegaNode;
+  rect: OverlayRect;
+  dragDisabled: boolean;
+  targets: ElementChildTarget[];
+  elementType: 'element' | 'group';
+};
+
+export type OverlayMsgElementUpdate = OverlayMsgElement<'update'> & {
+  sanity: SanityNode | SanityStegaNode;
+  rect: OverlayRect;
+  targets: ElementChildTarget[];
+  elementType: 'element' | 'group';
+};
+
+export type OverlayMsgResetMouseState = Msg<'overlay/reset-mouse-state'>;
+
+export type OverlayMsg =
+  | OverlayMsgActivate
+  | OverlayMsgBlur
+  | OverlayMsgDeactivate
+  | OverlayMsgDragEnd
+  | OverlayMsgDragEndMinimapTransition
+  | OverlayMsgDragStart
+  | OverlayMsgDragStartMinimapTransition
+  | OverlayMsgDragToggleMinimap
+  | OverlayMsgDragToggleMinimapPrompt
+  | OverlayMsgDragUpdateCursorPosition
+  | OverlayMsgDragUpdateGroupRect
+  | OverlayMsgDragUpdateInsertPosition
+  | OverlayMsgDragUpdateSkeleton
+  | OverlayMsgElementActivate
+  | OverlayMsgElementClick
+  | OverlayMsgElementContextMenu
+  | OverlayMsgElementDeactivate
+  | OverlayMsgElementMouseEnter
+  | OverlayMsgElementMouseLeave
+  | OverlayMsgElementRegister
+  | OverlayMsgElementUnregister
+  | OverlayMsgElementUpdate
+  | OverlayMsgElementUpdateRect
+  | OverlayMsgSetCursor
+  | OverlayMsgResetMouseState;
+
+export type OverlayEventHandler = (message: OverlayMsg) => void;
+
+export interface OverlayOptions {
+  handler: OverlayEventHandler;
+  overlayElement: HTMLElement;
+  inFrame: boolean;
+  inPopUp: boolean;
+  optimisticActorReady: boolean;
+}
+
+export interface ElementChildTarget {
+  sanity: SanityNode | SanityStegaNode;
+  element: ElementNode;
+}
+
+export interface ElementState {
+  id: string;
+  activated: boolean;
+  element: ElementNode;
+  focused: ElementFocusedState;
+  hovered: boolean;
+  rect: OverlayRect;
+  sanity: SanityNode | SanityStegaNode;
+  dragDisabled: boolean;
+  targets: ElementChildTarget[];
+  elementType: 'element' | 'group';
+}
+
 export interface SanityNodeElements {
   element: ElementNode;
   measureElement: ElementNode;
 }
 
-export interface ResolvedElement {
+export type ResolvedElementReason =
+  | 'edit-target'
+  | 'stega-text'
+  | 'stega-attribute'
+  | 'data-attribute';
+
+export interface ResolvingElement {
   elements: SanityNodeElements;
   sanity: SanityNode | SanityStegaNode;
+  reason: ResolvedElementReason;
+  preventGrouping?: boolean;
+}
+
+export interface ResolvedElementTarget {
+  sanity: SanityNode | SanityStegaNode;
+  elements: SanityNodeElements;
+  reason: ResolvedElementReason;
+}
+
+export interface ResolvedElement {
+  elements: SanityNodeElements;
+  commonSanity?: SanityNode | SanityStegaNode;
+  targets: ResolvedElementTarget[];
+  type: 'element' | 'group';
 }
 
 export interface OverlayElement {
+  type: 'element' | 'group';
   id: string;
   elements: SanityNodeElements;
   handlers: EventHandlers;
-  sanity: SanityNode | SanityStegaNode;
+  sanity?: SanityNode | SanityStegaNode;
 }
 
 export interface EventHandlers {
@@ -207,7 +290,16 @@ export interface EventHandlers {
 
 export type OverlayComponentResolverContext<
   P extends OverlayElementParent = OverlayElementParent,
-> = SanityOverlayComponentResolverContext<P>;
+> = {
+  document: DocumentSchema;
+  element: ElementNode;
+  targetElement: ElementNode;
+  field: OverlayElementField;
+  focused: boolean;
+  node: SanityNode;
+  parent: P;
+  type: string;
+};
 
 export interface AngularOverlayComponentProps<
   P extends OverlayElementParent = OverlayElementParent,
@@ -240,8 +332,43 @@ export type AngularOverlayComponentResolver<
   | undefined
   | void;
 
+export interface OverlayPluginDefinitionBase {
+  name: string;
+  title?: string;
+  icon?: Type<unknown>;
+  guard?: (context: OverlayComponentResolverContext) => boolean;
+}
+
+export type OverlayPluginComponent<
+  T extends Record<string, unknown> = Record<string, unknown>,
+  P extends OverlayElementParent = OverlayElementParent,
+> = Type<OverlayComponentResolverContext<P | undefined> & T>;
+
+export interface OverlayPluginExclusiveDefinition
+  extends OverlayPluginDefinitionBase {
+  type: 'exclusive';
+  component?: OverlayPluginComponent<
+    Record<string, unknown> & { closeExclusiveView: () => void }
+  >;
+}
+
+export interface OverlayPluginHudDefinition
+  extends OverlayPluginDefinitionBase {
+  type: 'hud';
+  component?: OverlayPluginComponent;
+}
+
+export type OverlayPluginDefinition =
+  | OverlayPluginExclusiveDefinition
+  | OverlayPluginHudDefinition;
+
 export interface VisualEditingOptions
-  extends Omit<SanityVisualEditingOptions, 'components'> {
+  extends Omit<SanityVisualEditingOptions, 'components' | 'plugins'> {
+  /**
+   * @alpha Angular-native overlay plugins matching the visual-editing plugin
+   * model with Angular component types.
+   */
+  plugins?: OverlayPluginDefinition[];
   /**
    * @alpha Angular-native custom overlay resolver. Reserved for the custom
    * overlay component parity layer.

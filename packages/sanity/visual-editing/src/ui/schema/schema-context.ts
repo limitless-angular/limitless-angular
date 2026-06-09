@@ -26,8 +26,6 @@ export interface SchemaContextValue {
   ) => T extends 'document'
     ? DocumentSchema | undefined
     : TypeSchema | undefined;
-  resolvedTypes: ResolvedSchemaTypeMap;
-  schema: SchemaType[];
 }
 
 function isSanityNode(node: SanityNode | SanityStegaNode): node is SanityNode {
@@ -288,7 +286,5 @@ export function createSchemaContext(
   return {
     getField,
     getType,
-    resolvedTypes,
-    schema,
   };
 }

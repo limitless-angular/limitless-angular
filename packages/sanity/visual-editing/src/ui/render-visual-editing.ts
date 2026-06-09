@@ -13,10 +13,17 @@ let cleanup: ReturnType<typeof setTimeout> | null = null;
 
 function setInputs(
   ref: ComponentRef<VisualEditingUiComponent>,
-  { components, history, refresh, zIndex }: VisualEditingRuntimeOptions,
+  {
+    components,
+    history,
+    plugins,
+    refresh,
+    zIndex,
+  }: VisualEditingRuntimeOptions,
 ): void {
   ref.setInput('components', components);
   ref.setInput('history', history);
+  ref.setInput('plugins', plugins);
   ref.setInput('refresh', refresh);
   ref.setInput('zIndex', zIndex);
   ref.changeDetectorRef.detectChanges();

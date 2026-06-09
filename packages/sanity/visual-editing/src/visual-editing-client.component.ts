@@ -54,6 +54,8 @@ export interface VisualEditingProps
 export class VisualEditingClientComponent {
   components = input<VisualEditingProps['components']>();
 
+  plugins = input<VisualEditingProps['plugins']>();
+
   refresh = input<VisualEditingProps['refresh']>();
 
   zIndex = input<VisualEditingProps['zIndex']>();
@@ -99,6 +101,7 @@ export class VisualEditingClientComponent {
   constructor() {
     effect((onCleanup) => {
       const components = this.components();
+      const plugins = this.plugins();
       const zIndex = this.zIndex();
       const refresh = this.refresh();
       const basePath = this.basePath();
@@ -109,6 +112,7 @@ export class VisualEditingClientComponent {
           components,
           environmentInjector: this.environmentInjector,
           injector: this.injector,
+          plugins,
           zIndex,
           refresh: refresh || this.defaultRefresh,
           history: {

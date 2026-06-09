@@ -21,6 +21,7 @@ import {
     @if (isBrowser) {
       <visual-editing-client
         [components]="components()"
+        [plugins]="plugins()"
         [refresh]="refresh()"
         [zIndex]="zIndex()"
         [basePath]="computedBasePath()"
@@ -32,6 +33,7 @@ import {
 })
 export class VisualEditingComponent {
   components = input<VisualEditingProps['components']>();
+  plugins = input<VisualEditingProps['plugins']>();
   refresh = input<VisualEditingProps['refresh']>();
   zIndex = input<VisualEditingProps['zIndex']>();
   basePath = input<VisualEditingProps['basePath']>(undefined);

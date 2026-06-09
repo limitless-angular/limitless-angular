@@ -1,4 +1,4 @@
-import { Injectable, type OnDestroy, signal } from '@angular/core';
+import { Injectable, type OnDestroy, effect, signal } from '@angular/core';
 import { createNode, createNodeMachine, type Status } from '@sanity/comlink';
 import {
   createCompatibilityActors,
@@ -16,6 +16,43 @@ export class ComlinkService implements OnDestroy {
   readonly status = signal<Status>('idle');
 
   #cleanup: Unsubscribe[] = [];
+
+  constructor() {
+    effect((onCleanup) => {
+      if (this.status() === 'connected') {
+        return;
+      }
+
+      const controller = new AbortController();
+      window.addEventListener(
+        'message',
+        ({ data, origin }: MessageEvent<unknown>) => {
+          if (
+            data &&
+            typeof data === 'object' &&
+            'domain' in data &&
+            data.domain === 'sanity/channels' &&
+            'from' in data &&
+            data.from === 'presentation' &&
+            'type' in data &&
+            data.type === 'presentation/status'
+          ) {
+            window.parent.postMessage(
+              {
+                domain: 'sanity/channels',
+                type: 'visual-editing/status',
+                data: { origin: location.origin },
+              },
+              origin,
+            );
+          }
+        },
+        { signal: controller.signal },
+      );
+
+      onCleanup(() => controller.abort());
+    });
+  }
 
   start(enabled: boolean): void {
     if (!enabled || this.node()) {

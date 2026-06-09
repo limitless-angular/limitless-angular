@@ -38,6 +38,7 @@ import { DatasetMutatorService } from './dataset-mutator.service';
         [comlink]="comlink.node()"
         [comlinkStatus]="comlink.status()"
         [components]="components()"
+        [plugins]="plugins()"
         [inFrame]="inFrame() === true"
         [inPopUp]="inPopUp() === true"
         [zIndex]="zIndex()"
@@ -69,6 +70,7 @@ import { DatasetMutatorService } from './dataset-mutator.service';
 })
 export class VisualEditingUiComponent {
   components = input<VisualEditingOptions['components']>();
+  plugins = input<VisualEditingOptions['plugins']>();
   history = input<HistoryAdapter>();
   refresh = input<VisualEditingOptions['refresh']>();
   zIndex = input<VisualEditingOptions['zIndex']>();

@@ -99,7 +99,9 @@ export class SchemaService implements OnDestroy {
 
     this.unresolvedTypesFetch?.abort();
     const controller = new AbortController();
+    const initialReportedPaths = this.reportedUnresolvedPaths;
     this.unresolvedTypesFetch = controller;
+    this.reportedUnresolvedPaths = paths;
 
     comlink
       .fetch(
@@ -114,10 +116,16 @@ export class SchemaService implements OnDestroy {
 
         if (isObject(data) && data['types'] instanceof Map) {
           this.resolvedTypes.set(data['types']);
-          this.reportedUnresolvedPaths = paths;
+        }
+
+        if (this.unresolvedTypesFetch === controller) {
+          this.unresolvedTypesFetch = undefined;
         }
       })
       .catch(() => {
+        if (controller.signal.aborted) {
+          this.reportedUnresolvedPaths = initialReportedPaths;
+        }
         // Optional Presentation capability; unsupported versions fail silently.
       });
   }

@@ -26,6 +26,8 @@ export function elementsReducer(
           rect: message.rect,
           sanity: message.sanity,
           dragDisabled: message.dragDisabled,
+          targets: message.targets,
+          elementType: message.elementType,
         },
       ];
     }
@@ -36,7 +38,13 @@ export function elementsReducer(
     case 'element/update':
       return elements.map((element) =>
         element.id === message.id
-          ? { ...element, sanity: message.sanity, rect: message.rect }
+          ? {
+              ...element,
+              sanity: message.sanity,
+              rect: message.rect,
+              targets: message.targets,
+              elementType: message.elementType,
+            }
           : element,
       );
     case 'element/unregister':
@@ -67,6 +75,12 @@ export function elementsReducer(
       return elements.map((element) => ({
         ...element,
         focused: element.id === message.id && 'clicked',
+      }));
+    case 'overlay/reset-mouse-state':
+      return elements.map((element) => ({
+        ...element,
+        focused: false,
+        hovered: false,
       }));
     case 'overlay/blur':
     case 'presentation/blur':
