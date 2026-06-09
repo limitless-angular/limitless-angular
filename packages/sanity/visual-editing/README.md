@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/@limitless-angular/sanity.svg)](https://www.npmjs.com/package/@limitless-angular/sanity)
 [![npm downloads](https://img.shields.io/npm/dm/@limitless-angular/sanity.svg)](https://www.npmjs.com/package/@limitless-angular/sanity)
 
-Based on [Visual Editing v2.1.9](https://github.com/sanity-io/visual-editing/blob/main/packages/visual-editing/CHANGELOG.md#219-2024-08-12) and [Next Sanity 9.8.13](https://github.com/sanity-io/next-sanity/blob/main/packages/next-sanity/CHANGELOG.md#9813-2024-11-13)
+Based on [Visual Editing v2.13.6](https://github.com/sanity-io/visual-editing/tree/main/packages/visual-editing) and adapted to Angular-native components and services.
 
 This secondary entry point is used to create clickable elements to take editors right from previews to the document and field they want to edit.
 
@@ -55,13 +55,15 @@ In this example, the `<visual-editing />` component is conditionally rendered ba
 
 The `VisualEditingComponent` accepts several input properties:
 
-1. `refresh`: A function to refresh the content when changes are made.
+1. `components`: An Angular-native custom overlay component resolver.
 
-2. `zIndex`: A number to set the z-index of the visual editing overlay.
+2. `refresh`: A function to refresh the content when changes are made.
 
-3. `basePath`: A string to set the base path for routing (optional).
+3. `zIndex`: A number to set the z-index of the visual editing overlay.
 
-4. `trailingSlash`: A boolean to indicate if URLs should include a trailing slash (optional).
+4. `basePath`: A string to set the base path for routing (optional).
+
+5. `trailingSlash`: A boolean to indicate if URLs should include a trailing slash (optional).
 
 ## Configuration
 

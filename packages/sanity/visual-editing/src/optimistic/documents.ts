@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { SanityDocument } from '@sanity/client';
 import { getDraftId, getPublishedId } from '@sanity/client/csm';
-import { createIfNotExists, patch } from '@sanity/mutate';
+import { createIfNotExists, patch, type Mutation } from '@sanity/mutate';
 import type {
   DocumentsGet,
+  DocumentsMutate,
   MutatorActor,
   OptimisticDocumentPatches,
   Path,
@@ -42,13 +43,12 @@ function getDocumentsAndSnapshot<T extends Record<string, any>>(
     throw new Error(`Document "${id}" not found`);
   }
 
-  if (!draftDoc) {
-    throw new Error(`Draft document actor "${draftId}" not found`);
-  }
+  const draftDocument = draftDoc as NonNullable<typeof draftDoc>;
+  const publishedDocument = publishedDoc as NonNullable<typeof publishedDoc>;
 
   const getDocumentSnapshot = () =>
-    (draftDoc?.getSnapshot().context?.local ||
-      publishedDoc?.getSnapshot().context?.local) as
+    (draftDocument.getSnapshot().context?.local ||
+      publishedDocument.getSnapshot().context?.local) as
       | SanityDocument<T>
       | null
       | undefined;
@@ -72,10 +72,10 @@ function getDocumentsAndSnapshot<T extends Record<string, any>>(
   const getSnapshot = () => snapshotPromise;
 
   return {
-    draftDoc,
+    draftDoc: draftDocument,
     draftId,
     getSnapshot,
-    publishedDoc,
+    publishedDoc: publishedDocument,
     publishedId,
     /**
      * @deprecated - use `getSnapshot` instead
@@ -187,4 +187,32 @@ export function createDocumentsGet(actor: MutatorActor): DocumentsGet {
     getSnapshot: createDocumentGetSnapshot<T>(documentId, actor),
     patch: createDocumentPatch<T>(documentId, actor),
   });
+}
+
+export function createDocumentsMutate(actor: MutatorActor): DocumentsMutate {
+  return (
+    id: string,
+    mutations: Mutation[],
+    options?: { commit?: boolean | { debounce: number } },
+  ): void => {
+    const { draftDoc } = getDocumentsAndSnapshot(id, actor);
+    const { commit = true } = options || {};
+
+    draftDoc.send({
+      type: 'mutate',
+      mutations,
+    });
+
+    if (commit) {
+      if (typeof commit === 'object' && 'debounce' in commit) {
+        const debouncedCommit = debounce(
+          () => draftDoc.send({ type: 'submit' }),
+          commit.debounce,
+        );
+        debouncedCommit();
+      } else {
+        draftDoc.send({ type: 'submit' });
+      }
+    }
+  };
 }

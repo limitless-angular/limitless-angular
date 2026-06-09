@@ -3,6 +3,7 @@ import type {
   SchemaArrayItem,
   SchemaNode,
   SchemaUnionNode,
+  SchemaUnionOption,
 } from '@sanity/presentation-comlink';
 
 import {
@@ -10,9 +11,10 @@ import {
   getArrayInsertPatches,
   getArrayMovePatches,
   getArrayRemovePatches,
-} from './mutation-utils';
+} from '../../util/mutations';
 import type { OptimisticDocument } from '@sanity/visual-editing/optimistic';
-import type { OverlayElementField, OverlayElementParent } from './types';
+import type { OverlayElementField, OverlayElementParent } from '../../types';
+import { getNodeIcon, type NodeIconDescriptor } from '../../util/get-node-icon';
 
 export type ContextMenuTelemetryEventName =
   | 'Visual Editing Context Menu Item Duplicated'
@@ -22,6 +24,7 @@ export type ContextMenuTelemetryEventName =
 
 export type ContextMenuActionNode = {
   action?: () => void;
+  icon?: NodeIconDescriptor;
   label: string;
   telemetryEvent: ContextMenuTelemetryEventName;
   type: 'action';
@@ -32,15 +35,26 @@ export type ContextMenuDividerNode = {
 };
 
 export type ContextMenuGroupNode = {
+  icon?: NodeIconDescriptor;
   items: ContextMenuNode[];
   label: string;
   type: 'group';
 };
 
+export type ContextMenuInsertMenuNode = {
+  action: (schemaType: SchemaUnionOption<SchemaNode>) => void;
+  icon?: NodeIconDescriptor;
+  label: string;
+  parent: SchemaUnionNode<SchemaNode>;
+  telemetryEvent: ContextMenuTelemetryEventName;
+  type: 'insert-menu';
+};
+
 export type ContextMenuNode =
   | ContextMenuActionNode
   | ContextMenuDividerNode
-  | ContextMenuGroupNode;
+  | ContextMenuGroupNode
+  | ContextMenuInsertMenuNode;
 
 type SchemaUnionMember = SchemaUnionNode<SchemaNode>['of'][number];
 type SchemaUnionOptionMember = Extract<
@@ -109,6 +123,7 @@ function getDuplicateItem(context: {
   return [
     {
       action: getDuplicateAction(node, doc),
+      icon: { label: 'Duplicate', text: 'Copy' },
       label: 'Duplicate',
       telemetryEvent: 'Visual Editing Context Menu Item Duplicated',
       type: 'action',
@@ -125,6 +140,7 @@ function getRemoveItems(context: {
   return [
     {
       action: getArrayRemoveAction(node, doc),
+      icon: { label: 'Remove', text: 'Del' },
       label: 'Remove',
       telemetryEvent: 'Visual Editing Context Menu Item Removed',
       type: 'action',
@@ -154,6 +170,7 @@ async function getMoveItems(
   if (moveFirstPatches.length) {
     groupItems.push({
       action: () => doc.patch(moveFirstPatches),
+      icon: { label: 'To top', text: 'Top' },
       label: 'To top',
       telemetryEvent: 'Visual Editing Context Menu Item Moved',
       type: 'action',
@@ -163,6 +180,7 @@ async function getMoveItems(
   if (moveUpPatches.length) {
     groupItems.push({
       action: () => doc.patch(moveUpPatches),
+      icon: { label: 'Up', text: 'Up' },
       label: 'Up',
       telemetryEvent: 'Visual Editing Context Menu Item Moved',
       type: 'action',
@@ -172,6 +190,7 @@ async function getMoveItems(
   if (moveDownPatches.length) {
     groupItems.push({
       action: () => doc.patch(moveDownPatches),
+      icon: { label: 'Down', text: 'Down' },
       label: 'Down',
       telemetryEvent: 'Visual Editing Context Menu Item Moved',
       type: 'action',
@@ -181,6 +200,7 @@ async function getMoveItems(
   if (moveLastPatches.length) {
     groupItems.push({
       action: () => doc.patch(moveLastPatches),
+      icon: { label: 'To bottom', text: 'End' },
       label: 'To bottom',
       telemetryEvent: 'Visual Editing Context Menu Item Moved',
       type: 'action',
@@ -189,6 +209,7 @@ async function getMoveItems(
 
   if (groupItems.length) {
     items.push({
+      icon: { label: 'Move', text: 'Move' },
       items: groupItems,
       label: 'Move',
       type: 'group',
@@ -215,12 +236,14 @@ async function getContextMenuArrayItems(context: {
     ...(await getMoveItems(context)),
     {
       action: getArrayInsertAction(node, doc, field.name, 'before'),
+      icon: { label: 'Insert before', text: '+Up' },
       label: 'Insert before',
       telemetryEvent: 'Visual Editing Context Menu Item Inserted',
       type: 'action',
     },
     {
       action: getArrayInsertAction(node, doc, field.name, 'after'),
+      icon: { label: 'Insert after', text: '+Dn' },
       label: 'Insert after',
       telemetryEvent: 'Visual Editing Context Menu Item Inserted',
       type: 'action',
@@ -238,6 +261,30 @@ function getSchemaTypeLabel(node: SchemaUnionOptionMember): string {
   return node.name === 'block' ? 'Paragraph' : node.title || node.name;
 }
 
+function getUnionInsertMenuItem(
+  context: {
+    doc: OptimisticDocument;
+    node: SanityNode;
+    parent: SchemaUnionNode<SchemaNode>;
+  },
+  position: 'before' | 'after',
+): ContextMenuInsertMenuNode {
+  const { doc, node, parent } = context;
+
+  return {
+    action: (schemaType) =>
+      getArrayInsertAction(node, doc, schemaType.name, position)(),
+    icon:
+      position === 'before'
+        ? { label: 'Insert before', text: '+Up' }
+        : { label: 'Insert after', text: '+Dn' },
+    label: position === 'before' ? 'Insert before' : 'Insert after',
+    parent,
+    telemetryEvent: 'Visual Editing Context Menu Item Inserted',
+    type: 'insert-menu',
+  };
+}
+
 function getUnionInsertItems(
   context: {
     doc: OptimisticDocument;
@@ -249,8 +296,13 @@ function getUnionInsertItems(
   const { doc, node, parent } = context;
 
   return {
+    icon:
+      position === 'before'
+        ? { label: 'Insert before', text: '+Up' }
+        : { label: 'Insert after', text: '+Dn' },
     items: parent.of.filter(isSchemaUnionOption).map((schemaType) => ({
       action: getArrayInsertAction(node, doc, schemaType.name, position),
+      icon: getNodeIcon(schemaType),
       label: getSchemaTypeLabel(schemaType),
       telemetryEvent: 'Visual Editing Context Menu Item Inserted',
       type: 'action',
@@ -265,10 +317,22 @@ async function getContextMenuUnionItems(context: {
   node: SanityNode;
   parent: SchemaUnionNode<SchemaNode>;
 }): Promise<ContextMenuNode[]> {
-  return [
+  const baseItems = [
     ...getDuplicateItem(context),
     ...getRemoveItems(context),
     ...(await getMoveItems(context)),
+  ];
+
+  if (context.parent.options?.insertMenu) {
+    return [
+      ...baseItems,
+      getUnionInsertMenuItem(context, 'before'),
+      getUnionInsertMenuItem(context, 'after'),
+    ];
+  }
+
+  return [
+    ...baseItems,
     getUnionInsertItems(context, 'before'),
     getUnionInsertItems(context, 'after'),
   ];
@@ -276,6 +340,12 @@ async function getContextMenuUnionItems(context: {
 
 export function getContextMenuTitle(field: OverlayElementField): string {
   return field?.title || field?.name || 'Unknown type';
+}
+
+export function getContextMenuIcon(
+  field: OverlayElementField,
+): NodeIconDescriptor {
+  return getNodeIcon(field);
 }
 
 export function getContextMenuItems(context: {

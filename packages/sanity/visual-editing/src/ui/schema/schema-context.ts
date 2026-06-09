@@ -13,7 +13,7 @@ import type {
   ElementState,
   OverlayElementField,
   OverlayElementParent,
-} from './types';
+} from '../../types';
 
 export interface SchemaContextValue {
   getField: (node: SanityNode | SanityStegaNode) => {
@@ -162,14 +162,10 @@ export function createSchemaContext(
 
       const [next, ...rest] = path;
 
-      if (!next) {
-        return { field: undefined, parent };
-      }
-
       if ('fields' in currentSchemaType) {
-        const objectField = currentSchemaType.fields[next];
+        const objectField = next ? currentSchemaType.fields[next] : undefined;
 
-        if (!objectField && 'rest' in currentSchemaType) {
+        if (next && !objectField && 'rest' in currentSchemaType) {
           return fieldFromPath(
             currentSchemaType.rest,
             path,
@@ -218,6 +214,10 @@ export function createSchemaContext(
       }
 
       if (currentSchemaType.type === 'union') {
+        if (!next) {
+          return { field: undefined, parent };
+        }
+
         const name = next.startsWith('[_key==')
           ? (resolvedTypes
               .get(sanityNode.id)

@@ -1,6 +1,6 @@
 import type { VisualEditingControllerMsg } from '@sanity/presentation-comlink';
 
-import type { ElementState, OverlayMsg } from './types';
+import type { ElementState, OverlayMsg } from '../types';
 
 export function elementsReducer(
   elements: ElementState[],

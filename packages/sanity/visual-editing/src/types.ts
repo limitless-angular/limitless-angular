@@ -53,10 +53,8 @@ import type {
 } from '@sanity/visual-editing';
 import type {
   OverlayComponentResolverContext as SanityOverlayComponentResolverContext,
-  OverlayElementField,
   OverlayElementParent,
 } from '@sanity/visual-editing/unstable_overlay-components';
-import type { VisualEditingNode } from '@sanity/visual-editing/optimistic';
 import type {
   DocumentSchema,
   HistoryRefresh,

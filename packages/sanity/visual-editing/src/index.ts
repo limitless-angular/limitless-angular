@@ -1,18 +1,26 @@
 export { VisualEditingComponent } from './visual-editing.component';
-export { VisualEditingPointerEventsComponent } from './pointer-events.component';
 export { enableVisualEditing } from './enable-visual-editing';
 export { createOverlayController } from './controller';
+export { DocumentsService, injectDocuments } from './ui/documents.service';
+export { OptimisticService, injectOptimistic } from './ui/optimistic.service';
 export {
+  SharedStateService,
+  injectSharedState,
+} from './ui/shared-state/shared-state.service';
+export {
+  VisualEditingInsertMenuComponent,
+  VisualEditingPointerEventsComponent,
+  VisualEditingUnionInsertMenuOverlayComponent,
   defineOverlayComponent,
   defineOverlayComponents,
 } from './overlay-components';
-export { getArrayItemKeyAndParentPath } from './mutation-utils';
+export { getArrayItemKeyAndParentPath } from './util/mutations';
 export {
   createDataAttribute,
   type CreateDataAttribute,
   type CreateDataAttributeProps,
   type WithRequired,
-} from '@sanity/visual-editing/create-data-attribute';
+} from './create-data-attribute';
 export type {
   DisableVisualEditing,
   DragEndEvent,

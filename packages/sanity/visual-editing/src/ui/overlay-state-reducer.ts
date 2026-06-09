@@ -5,7 +5,7 @@ import type {
 } from '@sanity/presentation-comlink';
 
 import { elementsReducer } from './elements-reducer';
-import type { OverlayMsg, OverlayRect, OverlayState } from './types';
+import type { OverlayMsg, OverlayRect, OverlayState } from '../types';
 
 export function createInitialOverlayState(): OverlayState {
   return {

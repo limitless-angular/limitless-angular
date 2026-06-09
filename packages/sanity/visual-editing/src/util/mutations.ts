@@ -2,25 +2,9 @@ import type { SanityDocument } from '@sanity/client';
 import { at, insert, truncate, type NodePatchList } from '@sanity/mutate';
 import type { OptimisticDocument } from '@sanity/visual-editing/optimistic';
 
-import type { SanityNode } from './types';
-import { getAtPath } from './util/get-at-path';
-
-function randomKey(length?: number): string {
-  const byteLength = length ?? 16;
-  const bytes = new Uint8Array(byteLength);
-
-  if (globalThis.crypto?.getRandomValues) {
-    globalThis.crypto.getRandomValues(bytes);
-  } else {
-    for (let index = 0; index < byteLength; index += 1) {
-      bytes[index] = Math.floor(Math.random() * 256);
-    }
-  }
-
-  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0'))
-    .join('')
-    .slice(0, length);
-}
+import type { SanityNode } from '../types';
+import { getAtPath } from './get-at-path';
+import { randomKey } from './random-key';
 
 export function getArrayItemKeyAndParentPath(pathOrNode: string | SanityNode): {
   path: string;
