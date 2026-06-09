@@ -124,17 +124,32 @@ interface ActiveExclusivePlugin {
   context: OverlayComponentResolverContext;
 }
 
-function createIntentLink(node: SanityNode): string {
-  const { baseUrl, id, path, tool, type, workspace } = node;
+type SanityNodeWithPerspective = SanityNode & {
+  perspective?: string;
+};
 
-  return createEditUrl({
+function createIntentLink(node: SanityNode): string {
+  const { baseUrl, id, path, perspective, tool, type, workspace } =
+    node as SanityNodeWithPerspective;
+
+  const [url, search] = createEditUrl({
     baseUrl,
     id,
     path: path ? pathToUrlString(studioPath.fromString(path)) : [],
     tool,
     type: type ?? '',
     workspace,
-  });
+  }).split('?');
+  const searchParams = new URLSearchParams(search);
+  const resolvedPerspective = perspective || searchParams.get('perspective');
+
+  if (resolvedPerspective === 'drafts') {
+    searchParams.delete('perspective');
+  } else if (resolvedPerspective) {
+    searchParams.set('perspective', resolvedPerspective);
+  }
+
+  return `${url}?${searchParams}`;
 }
 
 @Component({
@@ -181,7 +196,11 @@ function createIntentLink(node: SanityNode): string {
         <sanity-visual-editing-pointer-events>
           @if (showActions()) {
             <div class="actions">
-              <a [href]="linkHref()" target="_blank" rel="noopener noreferrer">
+              <a
+                [href]="linkHref()"
+                [attr.target]="inFrame() ? null : '_blank'"
+                [attr.rel]="inFrame() ? 'noopener' : 'noopener noreferrer'"
+              >
                 Open in Studio
               </a>
             </div>
@@ -538,6 +557,7 @@ export class ElementOverlayComponent {
   draggable = input.required<boolean>();
   element = input.required<ElementNode>();
   elementType = input.required<'element' | 'group'>();
+  inFrame = input.required<boolean>();
   enableScrollIntoView = input.required<boolean>();
   focused = input.required<ElementFocusedState>();
   hovered = input.required<boolean>();

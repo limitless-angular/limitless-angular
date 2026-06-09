@@ -165,11 +165,12 @@ function targetsLink(target: EventTarget | null): boolean {
           [node]="element.sanity"
           [plugins]="plugins()"
           [rect]="element.rect"
-          [showActions]="!inFrame()"
+          [showActions]="!shouldHideActions()"
           [targets]="element.targets"
           [wasMaybeCollapsed]="
             element.focused && overlayState().wasMaybeCollapsed
           "
+          [inFrame]="inFrame()"
         />
       }
 
@@ -228,6 +229,7 @@ export class OverlaysComponent {
   protected fadingOut = signal(false);
   protected rootHeight = signal(0);
   protected overlayEnabled = signal(true);
+  protected shouldHideActions = signal(false);
   protected rootElementRef = viewChild<ElementRef<HTMLElement>>('rootElement');
 
   private fadeOutTimeoutRef: ReturnType<typeof setTimeout> | undefined;
@@ -252,11 +254,7 @@ export class OverlaysComponent {
   protected elementsToRender = computed<RenderElement[]>(() => {
     const state = this.overlayState();
 
-    if (
-      ((this.inFrame() || this.inPopUp()) &&
-        this.comlinkStatus() !== 'connected') ||
-      state.isDragging
-    ) {
+    if (state.isDragging) {
       return [];
     }
 
@@ -305,6 +303,16 @@ export class OverlaysComponent {
 
     effect(() => {
       this.telemetry.comlink.set(this.comlink());
+    });
+
+    effect(() => {
+      if (
+        !this.shouldHideActions() &&
+        this.inFrame() &&
+        this.comlinkStatus() === 'connected'
+      ) {
+        this.shouldHideActions.set(true);
+      }
     });
 
     effect((onCleanup) => {
@@ -360,14 +368,35 @@ export class OverlaysComponent {
         this.overlayEnabled.update((enabled) => !enabled);
       };
 
+      let altPressed = false;
+
       const handleKeydown = (event: KeyboardEvent) => {
-        if (isAltKey(event) || isHotkey(['mod', '\\'], event)) {
+        if (isAltKey(event)) {
+          if (event.ctrlKey || event.metaKey || event.shiftKey) {
+            return;
+          }
+
+          if (!altPressed) {
+            altPressed = true;
+            toggleOverlay();
+          }
+        }
+
+        if (isHotkey(['mod', '\\'], event)) {
           toggleOverlay();
         }
       };
 
       const handleKeyup = (event: KeyboardEvent) => {
-        if (isAltKey(event)) {
+        if (isAltKey(event) && altPressed) {
+          altPressed = false;
+          toggleOverlay();
+        }
+      };
+
+      const handleWindowBlur = () => {
+        if (altPressed) {
+          altPressed = false;
           toggleOverlay();
         }
       };
@@ -375,6 +404,7 @@ export class OverlaysComponent {
       window.addEventListener('click', handleClick);
       window.addEventListener('keydown', handleKeydown);
       window.addEventListener('keyup', handleKeyup);
+      window.addEventListener('blur', handleWindowBlur);
       window.addEventListener('resize', this.updateRootHeight);
 
       this.updateRootHeight();
@@ -383,6 +413,7 @@ export class OverlaysComponent {
         window.removeEventListener('click', handleClick);
         window.removeEventListener('keydown', handleKeydown);
         window.removeEventListener('keyup', handleKeyup);
+        window.removeEventListener('blur', handleWindowBlur);
         window.removeEventListener('resize', this.updateRootHeight);
       });
     });
