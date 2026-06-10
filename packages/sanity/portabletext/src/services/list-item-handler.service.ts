@@ -8,7 +8,7 @@ import { memoize } from 'lodash-es';
 
 import {
   MissingComponentHandler,
-  PortableTextComponents,
+  PortableTextAngularComponents,
   Serializable,
 } from '../types';
 import { serializeBlock } from '../utils';
@@ -41,7 +41,7 @@ export class ListItemHandlerService {
       PortableTextSpan
     >,
     missingHandler: MissingComponentHandler,
-    components: Required<PortableTextComponents>,
+    components: PortableTextAngularComponents,
   ) {
     const renderer = components.listItem;
     const handler =
@@ -76,7 +76,7 @@ export class ListItemHandlerService {
       // Wrap any other style in whatever the block serializer says to use
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { listItem, ...blockNode } = node;
-      children = [{ ...blockNode, isInline: false }];
+      children = [{ ...blockNode, index, isInline: false }];
     }
 
     return children;
@@ -96,14 +96,13 @@ export class ListItemHandlerService {
       PortableTextSpan
     >,
     index: number | undefined,
-    isInline: boolean,
+    _isInline: boolean,
   ): Record<string, unknown> {
     return {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      children: this.getChildren({ node, index: index! }),
+      children: this.getChildren({ node, index: index ?? 0 }),
       value: node,
       index,
-      isInline,
+      isInline: false,
     };
   }
 }

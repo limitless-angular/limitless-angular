@@ -15,9 +15,8 @@ import { PortableTextComponents } from '../types';
   // prettier-ignore
   template: `<ng-template let-node let-components="components">
     @if (node.text === '\\n') {
-      @if (components.hardBreak === undefined) {<br />}
-      @else if (components.hardBreak === false) {{{ '\\n' }}}
-      @else {<ng-container *ngComponentOutlet="components.hardBreak" />}
+      @if (components.hardBreak) {<ng-container *ngComponentOutlet="components.hardBreak" />}
+      @else {{{ '\\n' }}}
     } @else {{{ node.text }}}
   </ng-template>`,
   changeDetection: ChangeDetectionStrategy.OnPush,

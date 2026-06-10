@@ -13,7 +13,11 @@ import {
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 
-import { LIST_NEST_MODE_HTML, nestLists } from '@portabletext/toolkit';
+import {
+  LIST_NEST_MODE_HTML,
+  nestLists,
+  type ToolkitListNestMode,
+} from '@portabletext/toolkit';
 import {
   ArbitraryTypedObject,
   PortableTextBlock,
@@ -22,6 +26,7 @@ import {
 
 import {
   MissingComponentHandler,
+  PortableTextAngularComponents,
   PortableTextComponents,
   RenderNodeContext,
 } from '../types';
@@ -66,16 +71,16 @@ import { TextComponent } from './text.component';
       }
     </ng-template>
 
-    <ng-template #unknownTmpl let-node="node" let-isInline="isInline">
+    <ng-template
+      #unknownTmpl
+      let-node="node"
+      let-isInline="isInline"
+      let-warning="warning"
+    >
       @if (isInline) {
-        <span style="display: none" aria-hidden="true">{{
-          'Unknown block type: ' + node._type
-        }}</span>
+        <span style="display: none">{{ warning }}</span>
       } @else {
-        <!-- display: inline -->
-        <div style="display: none" aria-hidden="true">{{
-          'Unknown block type: ' + node._type
-        }}</div>
+        <div style="display: none">{{ warning }}</div>
       }
     </ng-template>
   `,
@@ -95,20 +100,26 @@ export class PortableTextComponent<
    * The Portable Text content to render.
    * Can be a single block or an array of blocks.
    */
-  value = input.required<B | B[]>();
+  value = input.required<B | B[] | null | undefined>();
 
   /**
    * Custom components to override the default rendering.
    * @see PortableTextComponents
    */
-  componentOverrides = input<Partial<PortableTextComponents>>(
-    {},
+  componentOverrides = input<PortableTextComponents<B> | undefined>(
+    undefined,
     // eslint-disable-next-line @angular-eslint/no-input-rename
     { alias: 'components' },
   );
 
   /**
-   * Template reference for rendering nodes
+   * Determines whether lists are nested inside list items (`html`) or as a
+   * direct child of another list (`direct`).
+   */
+  listNestingMode = input<ToolkitListNestMode>();
+
+  /**
+   * @internal Template reference for rendering nodes.
    */
   renderNode =
     viewChild.required<TemplateRef<RenderNodeContext<B>>>('renderNode');
@@ -126,17 +137,20 @@ export class PortableTextComponent<
   /**
    * Merged components from default and overrides
    */
-  availableComponents = computed(() =>
-    mergeComponents(defaultComponents, this.componentOverrides()),
-  );
+  availableComponents = computed<PortableTextAngularComponents<B>>(() => {
+    const overrides = this.componentOverrides();
+    return overrides
+      ? mergeComponents(defaultComponents, overrides)
+      : (defaultComponents as PortableTextAngularComponents<B>);
+  });
 
   /**
    * Template reference for rendering unknown block types
    */
   unknownTmpl =
-    viewChild.required<TemplateRef<{ node: TypedObject; isInline: boolean }>>(
-      'unknownTmpl',
-    );
+    viewChild.required<
+      TemplateRef<{ node: TypedObject; isInline: boolean; warning: string }>
+    >('unknownTmpl');
 
   /**
    * Creates a template for rendering children
@@ -160,8 +174,21 @@ export class PortableTextComponent<
    * Handles both single blocks and arrays of blocks
    */
   nestedBlocks = computed(() => {
-    const blocks = Array.isArray(this.value()) ? this.value() : [this.value()];
-    return nestLists(blocks as TypedObject[], LIST_NEST_MODE_HTML);
+    const input = this.value();
+    let blocks: B[];
+
+    if (Array.isArray(input)) {
+      blocks = input;
+    } else if (input == null) {
+      blocks = [];
+    } else {
+      blocks = [input];
+    }
+
+    return nestLists(
+      blocks as TypedObject[],
+      this.listNestingMode() || LIST_NEST_MODE_HTML,
+    );
   });
 
   /**

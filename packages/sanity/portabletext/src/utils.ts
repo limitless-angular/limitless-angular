@@ -16,6 +16,7 @@ export function serializeBlock(
   return {
     _key: trackBy(node._key, index, 'block'),
     children,
+    index,
     isInline,
     node,
   };

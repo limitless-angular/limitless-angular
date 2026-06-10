@@ -5,7 +5,7 @@
 
 Render [Portable Text](https://portabletext.org/) with Angular.
 
-Based on [@portabletext/react v3.1.0](https://github.com/portabletext/react-portabletext/blob/main/CHANGELOG.md#310-2024-05-28).
+Based on [@portabletext/react v6.2.0](https://github.com/portabletext/react-portabletext/releases/tag/v6.2.0).
 
 ## Demo
 
@@ -17,6 +17,7 @@ You can also see the example project in the monorepo: [`apps/sanity-example`](/a
 
 - [Installation](#installation)
 - [Basic usage](#basic-usage)
+- [Inputs](#inputs)
 - [Styling](#styling-the-output)
 - [Customizing components](#customizing-components)
 - [Available components](#available-components)
@@ -26,6 +27,7 @@ You can also see the example project in the monorepo: [`apps/sanity-example`](/a
   - [list](#list)
   - [listItem](#listitem)
   - [hardBreak](#hardbreak)
+  - [Fallback components](#fallback-components)
 - [Architecture Documentation](./ARCHITECTURE.md)
 
 ## Installation
@@ -56,6 +58,15 @@ export class YourComponent {
   };
 }
 ```
+
+## Inputs
+
+The Angular component follows the `@portabletext/react` prop contract with Angular inputs:
+
+- `value`: a single Portable Text node, an array of nodes, `null`, or `undefined`. `null` and `undefined` render nothing.
+- `components`: optional Angular component overrides.
+- `onMissingComponent`: warning handler, or `false` to disable warnings.
+- `listNestingMode`: optional `ListNestMode` (`html` by default, or `direct`).
 
 ## Styling the output
 
@@ -714,6 +725,33 @@ The `listItem` property can also be set to a single Angular component, which wou
 Component to use for rendering "hard breaks", eg `\n` inside of text spans.
 
 Will by default render a `<br />`. Pass `false` to render as-is (`\n`)
+
+### Fallback components
+
+You can also override the fallback components used when no renderer is registered:
+
+- `unknownType`
+- `unknownMark`
+- `unknownBlockStyle`
+- `unknownList`
+- `unknownListItem`
+
+For example:
+
+```typescript
+import { Component } from '@angular/core';
+import { PortableTextComponents, PortableTextTypeComponent } from '@limitless-angular/sanity/portabletext';
+
+@Component({
+  selector: 'div',
+  template: `Unknown type: {{ value()._type }}`,
+})
+export class UnknownTypeComponent extends PortableTextTypeComponent {}
+
+export const components: PortableTextComponents = {
+  unknownType: UnknownTypeComponent,
+};
+```
 
 ## Rendering Plain Text
 

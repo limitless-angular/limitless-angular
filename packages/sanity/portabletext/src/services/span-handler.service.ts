@@ -6,7 +6,10 @@ import {
 } from '@portabletext/toolkit';
 
 import { unknownMarkWarning } from '../warnings';
-import { MissingComponentHandler, PortableTextComponents } from '../types';
+import {
+  MissingComponentHandler,
+  PortableTextAngularComponents,
+} from '../types';
 
 /**
  * Service for handling span nodes in Portable Text
@@ -31,7 +34,7 @@ export class SpanHandlerService {
   getComponent(
     node: ToolkitNestedPortableTextSpan,
     missingHandler: MissingComponentHandler,
-    components: Required<PortableTextComponents>,
+    components: PortableTextAngularComponents,
   ) {
     const Span = components.marks?.[node.markType] ?? components.unknownMark;
 

@@ -1,9 +1,12 @@
-import type { PortableTextComponents } from '../types';
+import type {
+  PortableTextAngularComponents,
+  PortableTextComponents,
+} from '../types';
 
 export function mergeComponents(
-  parent: PortableTextComponents,
-  overrides: Partial<PortableTextComponents>,
-): Required<PortableTextComponents> {
+  parent: PortableTextAngularComponents,
+  overrides: PortableTextComponents,
+): PortableTextAngularComponents {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { block, list, listItem, marks, types, ...rest } = overrides;
   return {
@@ -14,21 +17,21 @@ export function mergeComponents(
     marks: mergeDeeply(parent, overrides, 'marks'),
     types: mergeDeeply(parent, overrides, 'types'),
     ...rest,
-  } as Required<PortableTextComponents>;
+  } as PortableTextAngularComponents;
 }
 
 function mergeDeeply<
   T extends 'block' | 'list' | 'listItem' | 'marks' | 'types',
 >(
-  parent: PortableTextComponents,
-  overrides: Partial<PortableTextComponents>,
+  parent: PortableTextAngularComponents,
+  overrides: PortableTextComponents,
   key: T,
-): PortableTextComponents[T] {
+): PortableTextAngularComponents[T] {
   const override = overrides[key];
   const parentVal = parent[key];
 
   if (typeof override === 'function') {
-    return override as PortableTextComponents[T];
+    return override as PortableTextAngularComponents[T];
   }
 
   if (override && typeof parentVal === 'function') {
@@ -36,7 +39,7 @@ function mergeDeeply<
   }
 
   if (override) {
-    return { ...parentVal, ...override };
+    return { ...parentVal, ...override } as PortableTextAngularComponents[T];
   }
 
   return parentVal;
