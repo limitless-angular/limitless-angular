@@ -9,6 +9,7 @@ import {
   EnvironmentInjector,
   Injector,
   input,
+  output,
   untracked,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -16,8 +17,9 @@ import { Location } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 
 import { filter } from 'rxjs/operators';
+import type { ClientPerspective } from '@sanity/client';
 
-import { enableVisualEditing } from './enable-visual-editing';
+import { enableVisualEditing } from './ui/enable-visual-editing';
 import type { HistoryAdapterNavigate, VisualEditingOptions } from './types';
 import {
   addPathPrefix,
@@ -26,7 +28,7 @@ import {
 } from './utils';
 
 export interface VisualEditingProps
-  extends Omit<VisualEditingOptions, 'history'> {
+  extends Omit<VisualEditingOptions, 'history' | 'onPerspectiveChange'> {
   /**
    * If next.config.ts is configured with a basePath we try to configure it automatically,
    * you can disable this by setting basePath to ''.
@@ -59,6 +61,10 @@ export class VisualEditingClientComponent {
   refresh = input<VisualEditingProps['refresh']>();
 
   zIndex = input<VisualEditingProps['zIndex']>();
+
+  handlesPerspectiveChange = input(false);
+
+  perspectiveChange = output<ClientPerspective>();
 
   basePath = input<string, VisualEditingProps['basePath']>('', {
     transform: (value) => value ?? '',
@@ -105,6 +111,12 @@ export class VisualEditingClientComponent {
       const zIndex = this.zIndex();
       const refresh = this.refresh();
       const basePath = this.basePath();
+      const handlesPerspectiveChange = this.handlesPerspectiveChange();
+      const onPerspectiveChange = handlesPerspectiveChange
+        ? (perspective: ClientPerspective) => {
+            this.perspectiveChange.emit(perspective);
+          }
+        : undefined;
 
       untracked(() => {
         const disable = enableVisualEditing({
@@ -114,6 +126,7 @@ export class VisualEditingClientComponent {
           injector: this.injector,
           plugins,
           zIndex,
+          onPerspectiveChange,
           refresh: refresh || this.defaultRefresh,
           history: {
             subscribe: (_navigate) => {

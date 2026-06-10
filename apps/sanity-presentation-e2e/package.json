@@ -12,8 +12,8 @@
   "devDependencies": {
     "@limitless-angular/sanity": "workspace:*",
     "@playwright/test": "1.44.1",
-    "@sanity/client": "^6.21.1",
-    "@sanity/visual-editing-csm": "^2.0.6",
+    "@sanity/client": "^7.22.1",
+    "@sanity/visual-editing-csm": "^3.0.9",
     "@types/node": "~22.19.20",
     "eslint": "^9.8.0"
   }

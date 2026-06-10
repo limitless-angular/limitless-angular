@@ -66,7 +66,7 @@ export class DatasetMutatorService implements OnDestroy {
         }
 
         console.warn(
-          '[@limitless-angular/sanity] Package version mismatch detected: Please update your Sanity studio to prevent potential compatibility issues.',
+          '[@sanity/visual-editing] Package version mismatch detected: Please update your Sanity studio to prevent potential compatibility issues.',
         );
       });
   }
@@ -107,7 +107,7 @@ export class DatasetMutatorService implements OnDestroy {
       const actor = createActor(datasetMutator, {
         input: {
           client: {
-            withConfig: () => ({}),
+            withConfig: () => undefined,
           } as unknown as SanityClient,
           sharedListener,
         },

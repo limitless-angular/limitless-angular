@@ -68,9 +68,13 @@ export class ReportDocumentsService {
     const documents: ContentSourceMapDocuments = Array.from(nodeIds).map(
       (_id) => {
         const node = nodes.find((candidate) => candidate.id === _id);
-        const _type = node?.type ?? '';
-        return node?.projectId && node.dataset
-          ? { _id, _type, _projectId: node.projectId, _dataset: node.dataset }
+        if (!node) {
+          throw new Error(`Unable to report missing Sanity node "${_id}"`);
+        }
+        const { dataset: _dataset, projectId: _projectId, type } = node;
+        const _type = type as NonNullable<typeof type>;
+        return _projectId && _dataset
+          ? { _id, _type, _projectId, _dataset }
           : { _id, _type };
       },
     );

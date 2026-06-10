@@ -6,9 +6,11 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
   viewChild,
 } from '@angular/core';
+import type { ClientPerspective } from '@sanity/client';
 import type { Status } from '@sanity/comlink';
 import type { VisualEditingControllerMsg } from '@sanity/presentation-comlink';
 
@@ -128,6 +130,8 @@ function targetsLink(target: EventTarget | null): boolean {
       />
       <sanity-visual-editing-perspective-sync
         [comlink]="comlink()"
+        [handlesPerspectiveChange]="handlesPerspectiveChange()"
+        (perspectiveChange)="perspectiveChange.emit($event)"
         (perspectiveMessage)="dispatch($event)"
       />
       <sanity-visual-editing-overlays-controller
@@ -215,6 +219,8 @@ export class OverlaysComponent {
   comlinkStatus = input<Status>('idle');
   components = input<AngularOverlayComponentResolver>();
   plugins = input<VisualEditingOptions['plugins']>();
+  handlesPerspectiveChange = input(false);
+  perspectiveChange = output<ClientPerspective>();
   inFrame = input.required<boolean>();
   inPopUp = input.required<boolean>();
   zIndex = input<string | number>();

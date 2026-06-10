@@ -60,7 +60,7 @@ function getDocumentsAndSnapshot<T extends Record<string, any>>(
       return;
     }
 
-    const subscriber = doc.on('ready', (event) => {
+    const subscriber = doc.on('ready', (event: unknown) => {
       const { snapshot } = event as unknown as {
         snapshot: SanityDocument<T> | null | undefined;
       };

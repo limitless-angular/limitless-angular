@@ -1,18 +1,16 @@
-import {
-  computed,
-  effect,
-  inject,
-  signal,
-  type Signal,
-  untracked,
-} from '@angular/core';
+import { computed, inject, type Signal, untracked } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
-import { combineLatest, type Observable, startWith } from 'rxjs';
+import { combineLatest, type Observable, startWith, switchMap } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { LivePreviewService } from './live-preview.service';
 
 type QueryConfig = { query: string; params?: Record<string, unknown> };
 
 type QueriesConfig<T> = { [K in keyof T]?: QueryConfig };
+type LiveDataState<T> = { value: T } | typeof NO_VALUE;
+
+const NO_VALUE = Symbol('NO_VALUE');
 
 // Single query overload
 export function createLiveData<T>(
@@ -32,63 +30,45 @@ export function createLiveData<T>(
   queries: () => QueryConfig | QueriesConfig<T>,
 ): Signal<T> {
   const livePreviewService = inject(LivePreviewService);
+  const config = computed(() => ({
+    initial: untracked(initialData),
+    queryConfig: queries(),
+  }));
 
-  return computedAsync(() => {
-    const queryConfig = queries();
-    const initial = untracked(initialData);
+  const liveData = toSignal(
+    toObservable(config).pipe(
+      switchMap(({ initial, queryConfig }) => {
+        if ('query' in queryConfig) {
+          return livePreviewService
+            .listenLiveQuery(initial, queryConfig.query, queryConfig.params)
+            .pipe(startWith(initial));
+        }
 
-    // Handle single query configuration
-    if ('query' in queryConfig) {
-      return livePreviewService
-        .listenLiveQuery(initial, queryConfig.query, queryConfig.params)
-        .pipe(startWith(initial));
-    }
-
-    // Handle multiple queries configuration
-    const observables = Object.entries(
-      queryConfig as QueriesConfig<Record<string, unknown>>,
-    ).reduce(
-      (acc, [key, config]) => {
-        acc[key as keyof T] = livePreviewService.listenLiveQuery(
-          initial[key as keyof T],
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          config!.query,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          config!.params,
+        const observables = Object.entries(
+          queryConfig as QueriesConfig<Record<string, unknown>>,
+        ).reduce(
+          (acc, [key, config]) => {
+            acc[key as keyof T] = livePreviewService.listenLiveQuery(
+              initial[key as keyof T],
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              config!.query,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              config!.params,
+            );
+            return acc;
+          },
+          {} as { [K in keyof T]: Observable<T[K]> },
         );
-        return acc;
-      },
-      {} as { [K in keyof T]: Observable<T[K]> },
-    );
 
-    return combineLatest(observables).pipe(startWith(initial));
-  }, initialData) as Signal<T>;
-}
-
-function computedAsync<T>(
-  computation: () => Observable<T>,
-  initialValue: () => T,
-): Signal<T | undefined> {
-  const value = signal<T | undefined>(undefined);
-  const error = signal<unknown | undefined>(undefined);
-
-  effect(
-    (onCleanup) => {
-      const subscription = computation().subscribe({
-        next: (v) => value.set(v),
-        error: (e) => error.set(e),
-      });
-
-      onCleanup(() => subscription.unsubscribe());
-    },
-    { allowSignalWrites: true },
+        return combineLatest(observables).pipe(startWith(initial));
+      }),
+      map((value) => ({ value }) as LiveDataState<T>),
+    ),
+    { initialValue: NO_VALUE as LiveDataState<T> },
   );
 
   return computed(() => {
-    if (error()) {
-      throw error();
-    }
-
-    return value() ?? untracked(initialValue);
-  });
+    const state = liveData();
+    return state === NO_VALUE ? untracked(initialData) : state.value;
+  }) as Signal<T>;
 }

@@ -1,10 +1,7 @@
-import type {
-  DisableVisualEditing,
-  VisualEditingRuntimeOptions,
-} from '../types';
+import type { DisableVisualEditing, VisualEditingOptions } from '../types';
 
 export function enableVisualEditing(
-  options: VisualEditingRuntimeOptions = {},
+  options: VisualEditingOptions = {},
 ): DisableVisualEditing {
   const controller = new AbortController();
 

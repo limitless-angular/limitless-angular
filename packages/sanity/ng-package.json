@@ -12,6 +12,7 @@
     "@sanity/visual-editing",
     "@sanity/visual-editing-csm",
     "@vercel/stega",
+    "dequal",
     "lodash-es",
     "lru-cache",
     "mendoza",

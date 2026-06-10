@@ -59,8 +59,11 @@ export class SharedStateService {
             this.store.set(data.state);
           }
         })
-        .catch(() => {
-          // Optional Presentation capability; unsupported versions fail silently.
+        .catch((reason) => {
+          console.debug(reason);
+          console.warn(
+            '[@sanity/visual-editing]: Failed to fetch shared state. Check your version of `sanity` is up-to-date',
+          );
         });
 
       onCleanup(() => {

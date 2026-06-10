@@ -391,10 +391,6 @@ export interface VisualEditingOptions
   injector?: Injector;
 }
 
-export interface VisualEditingRuntimeOptions extends VisualEditingOptions {
-  portal?: boolean;
-}
-
 export interface ContextMenuProps {
   node: SanityNode;
   onDismiss: () => void;

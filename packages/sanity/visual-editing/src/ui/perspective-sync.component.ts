@@ -5,6 +5,7 @@ import {
   input,
   output,
 } from '@angular/core';
+import type { ClientPerspective } from '@sanity/client';
 import type { VisualEditingControllerMsg } from '@sanity/presentation-comlink';
 
 import type { VisualEditingNode } from '../types';
@@ -23,12 +24,15 @@ type PerspectiveMessage = Extract<
 })
 export class PerspectiveSyncComponent {
   comlink = input<VisualEditingNode>();
+  handlesPerspectiveChange = input(false);
 
   perspectiveMessage = output<PerspectiveMessage>();
+  perspectiveChange = output<ClientPerspective>();
 
   constructor() {
     effect((onCleanup) => {
       const comlink = this.comlink();
+      const handlesPerspectiveChange = this.handlesPerspectiveChange();
 
       if (!comlink) {
         return;
@@ -37,10 +41,14 @@ export class PerspectiveSyncComponent {
       const controller = new AbortController();
 
       comlink
-        .fetch('visual-editing/fetch-perspective', undefined, {
-          signal: controller.signal,
-          suppressWarnings: true,
-        })
+        .fetch(
+          'visual-editing/fetch-perspective',
+          { handlesPerspectiveChange },
+          {
+            signal: controller.signal,
+            suppressWarnings: true,
+          },
+        )
         .then((data) => {
           this.emitPerspective(data as PerspectiveMessage['data']);
         })
@@ -64,5 +72,6 @@ export class PerspectiveSyncComponent {
       type: 'presentation/perspective',
       data,
     } as PerspectiveMessage);
+    this.perspectiveChange.emit(data.perspective);
   }
 }

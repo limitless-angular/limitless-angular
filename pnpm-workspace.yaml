@@ -5,7 +5,6 @@ packages:
   - 'tools/*'
 overrides:
   '@babel/traverse': 7.26.4
-  '@sanity/visual-editing>@sanity/mutate': 0.16.1
 allowBuilds:
   '@parcel/watcher': true
   '@swc/core': true

@@ -4,6 +4,19 @@ export { createOverlayController } from './controller';
 export { DocumentsService, injectDocuments } from './ui/documents.service';
 export { OptimisticService, injectOptimistic } from './ui/optimistic.service';
 export {
+  PresentationQueryService,
+  injectPresentationQuery,
+  type PresentationQueryReturns,
+  type PresentationQueryReturnsActive,
+  type PresentationQueryReturnsInactive,
+} from './ui/loader-comlink/presentation-query.service';
+export {
+  VisualEditingEnvironmentService,
+  injectIsPresentationTool,
+  injectVisualEditingEnvironment,
+  type VisualEditingEnvironment,
+} from './ui/environment/environment.service';
+export {
   SharedStateService,
   injectSharedState,
 } from './ui/shared-state/shared-state.service';

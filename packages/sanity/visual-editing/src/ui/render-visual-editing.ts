@@ -1,27 +1,36 @@
 import {
   createComponent,
   type ComponentRef,
+  type OutputRefSubscription,
   type ViewRef,
 } from '@angular/core';
 
-import type { VisualEditingRuntimeOptions } from '../types';
+import type { VisualEditingOptions } from '../types';
 import { VisualEditingUiComponent } from './visual-editing.component';
 
 let node: HTMLElement | null = null;
 let componentRef: ComponentRef<VisualEditingUiComponent> | null = null;
 let cleanup: ReturnType<typeof setTimeout> | null = null;
+let perspectiveChangeSubscription: OutputRefSubscription | null = null;
 
 function setInputs(
   ref: ComponentRef<VisualEditingUiComponent>,
   {
     components,
     history,
+    onPerspectiveChange,
     plugins,
     refresh,
     zIndex,
-  }: VisualEditingRuntimeOptions,
+  }: VisualEditingOptions,
 ): void {
+  perspectiveChangeSubscription?.unsubscribe();
+  perspectiveChangeSubscription = onPerspectiveChange
+    ? ref.instance.perspectiveChange.subscribe(onPerspectiveChange)
+    : null;
+
   ref.setInput('components', components);
+  ref.setInput('handlesPerspectiveChange', !!onPerspectiveChange);
   ref.setInput('history', history);
   ref.setInput('plugins', plugins);
   ref.setInput('refresh', refresh);
@@ -31,7 +40,7 @@ function setInputs(
 
 export function renderVisualEditing(
   signal: AbortSignal,
-  options: VisualEditingRuntimeOptions,
+  options: VisualEditingOptions,
 ): void {
   const { applicationRef, environmentInjector, injector } = options;
 
@@ -49,6 +58,8 @@ export function renderVisualEditing(
 
   signal.addEventListener('abort', () => {
     cleanup = setTimeout(() => {
+      perspectiveChangeSubscription?.unsubscribe();
+      perspectiveChangeSubscription = null;
       if (componentRef) {
         applicationRef.detachView(componentRef.hostView as ViewRef);
         componentRef.destroy();

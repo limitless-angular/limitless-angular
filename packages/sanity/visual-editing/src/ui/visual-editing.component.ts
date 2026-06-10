@@ -5,9 +5,11 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
   untracked,
 } from '@angular/core';
+import type { ClientPerspective } from '@sanity/client';
 import {
   isMaybePreviewIframe,
   isMaybePreviewWindow,
@@ -15,11 +17,14 @@ import {
 
 import type { HistoryAdapter, VisualEditingOptions } from '../types';
 import { HistoryComponent } from './history.component';
+import { LoaderComlinkComponent } from './loader-comlink.component';
+import { LoaderComlinkService } from './loader-comlink/loader-comlink.service';
 import { MetaComponent } from './meta.component';
 import { OverlaysComponent } from './overlays.component';
 import { RefreshComponent } from './refresh.component';
 import { ComlinkService } from './comlink.service';
 import { DatasetMutatorService } from './dataset-mutator.service';
+import { VisualEditingEnvironmentService } from './environment/environment.service';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -27,6 +32,7 @@ import { DatasetMutatorService } from './dataset-mutator.service';
   standalone: true,
   imports: [
     HistoryComponent,
+    LoaderComlinkComponent,
     MetaComponent,
     OverlaysComponent,
     RefreshComponent,
@@ -39,9 +45,11 @@ import { DatasetMutatorService } from './dataset-mutator.service';
         [comlinkStatus]="comlink.status()"
         [components]="components()"
         [plugins]="plugins()"
+        [handlesPerspectiveChange]="handlesPerspectiveChange()"
         [inFrame]="inFrame() === true"
         [inPopUp]="inPopUp() === true"
         [zIndex]="zIndex()"
+        (perspectiveChange)="perspectiveChange.emit($event)"
       />
     }
 
@@ -50,6 +58,14 @@ import { DatasetMutatorService } from './dataset-mutator.service';
       <sanity-visual-editing-meta [comlink]="node" />
       @if (refresh(); as refresh) {
         <sanity-visual-editing-refresh [comlink]="node" [refresh]="refresh" />
+      }
+    }
+
+    @if (
+      comlink.status() === 'connected' && loaderComlink.hasQueryListeners()
+    ) {
+      @defer (on immediate) {
+        <sanity-visual-editing-loader-comlink />
       }
     }
   `,
@@ -73,10 +89,14 @@ export class VisualEditingUiComponent {
   plugins = input<VisualEditingOptions['plugins']>();
   history = input<HistoryAdapter>();
   refresh = input<VisualEditingOptions['refresh']>();
+  handlesPerspectiveChange = input(false);
   zIndex = input<VisualEditingOptions['zIndex']>();
+  perspectiveChange = output<ClientPerspective>();
 
   protected comlink = inject(ComlinkService);
+  protected loaderComlink = inject(LoaderComlinkService);
   private datasetMutator = inject(DatasetMutatorService);
+  private environment = inject(VisualEditingEnvironmentService);
 
   protected inFrame = signal<boolean | null>(null);
   protected inPopUp = signal<boolean | null>(null);
@@ -102,6 +122,39 @@ export class VisualEditingUiComponent {
 
       untracked(() => this.datasetMutator.connect(comlink));
       onCleanup(() => untracked(() => this.datasetMutator.disconnect()));
+    });
+
+    effect((onCleanup) => {
+      const comlinkStatus = this.comlink.status();
+      const inFrame = this.inFrame();
+      const inPopUp = this.inPopUp();
+
+      if (comlinkStatus === 'connected') {
+        untracked(() =>
+          this.environment.setEnvironment(
+            inPopUp ? 'presentation-window' : 'presentation-iframe',
+          ),
+        );
+        onCleanup(() => untracked(() => this.environment.setEnvironment(null)));
+        return;
+      }
+
+      if (inFrame || inPopUp) {
+        const timeout = setTimeout(() => {
+          this.environment.setEnvironment('standalone');
+        }, 1000);
+
+        onCleanup(() => {
+          clearTimeout(timeout);
+          untracked(() => this.environment.setEnvironment(null));
+        });
+        return;
+      }
+
+      if (inFrame === false && inPopUp === false) {
+        untracked(() => this.environment.setEnvironment('standalone'));
+        onCleanup(() => untracked(() => this.environment.setEnvironment(null)));
+      }
     });
   }
 }
