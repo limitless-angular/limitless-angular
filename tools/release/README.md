@@ -11,19 +11,27 @@ Plan a release without changing files:
 ```bash
 pnpm run release:plan --version patch
 pnpm run release:plan --version 19.3.0 --json
+pnpm run release:plan --prerelease
 ```
 
 Validate a prospective release without publishing:
 
 ```bash
 pnpm run release:dry-run --version patch
+pnpm run release:dry-run --prerelease
 ```
 
 Publish a release:
 
 ```bash
 pnpm turbo run release:publish --filter=@limitless-angular/release-tools -- --version patch
+pnpm turbo run release:publish --filter=@limitless-angular/release-tools -- --prerelease
 ```
+
+Prerelease mode infers the release level from conventional commits and uses the
+`next` prerelease identifier. For example, a feature-level release from
+`19.2.0` becomes `19.3.0-next.0`; the next prerelease in that train becomes
+`19.3.0-next.1`.
 
 ## Pipeline
 
@@ -39,6 +47,10 @@ Both dry-run and publish mode use the same release pipeline:
 7. Test the same artifact with `compat:test`.
 8. In publish mode only, commit, tag, publish the tarball to npm, push the
    release commit and tag, and create the GitHub release.
+
+Prerelease versions are published to npm with the `next` dist-tag and their
+GitHub releases are marked as prereleases. Stable versions use npm's `latest`
+dist-tag.
 
 Dry-run mode restores `packages/sanity/package.json` and
 `packages/sanity/CHANGELOG.md` after validation. The packed tarball remains under

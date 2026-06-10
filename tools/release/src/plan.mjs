@@ -9,6 +9,10 @@ import {
 import { capture as defaultCapture } from './commands.mjs';
 import { readJson } from './files.mjs';
 
+const prereleaseIdentifier = 'next';
+const prereleaseNpmDistTag = 'next';
+const stableNpmDistTag = 'latest';
+
 export function createReleasePlan(options = {}) {
   const paths = resolveReleasePaths(options.paths);
   const commandCapture = options.capture ?? defaultCapture;
@@ -20,8 +24,12 @@ export function createReleasePlan(options = {}) {
   });
   const commits = getCommitsSince(latestTag, { capture: commandCapture });
   const nextVersion = options.versionSpecifier
-    ? resolveVersionSpecifier(currentVersion, options.versionSpecifier)
-    : inferVersionFromCommits(currentVersion, commits);
+    ? resolveVersionSpecifier(currentVersion, options.versionSpecifier, {
+        prerelease: options.prerelease,
+      })
+    : inferVersionFromCommits(currentVersion, commits, {
+        prerelease: options.prerelease,
+      });
 
   if (!nextVersion) {
     throw new Error(
@@ -36,6 +44,7 @@ export function createReleasePlan(options = {}) {
   const resolvedReleaseTagPrefix = options.releaseTagPrefix ?? releaseTagPrefix;
   const generatedAt = options.now ?? new Date();
   const releaseTag = `${resolvedReleaseTagPrefix}${nextVersion}`;
+  const isPrerelease = Boolean(semver.prerelease(nextVersion));
 
   return {
     changelogSection: buildChangelogSection(nextVersion, commits, {
@@ -46,14 +55,20 @@ export function createReleasePlan(options = {}) {
     generatedAt: generatedAt.toISOString(),
     latestTag,
     nextVersion,
+    npmDistTag: isPrerelease ? prereleaseNpmDistTag : stableNpmDistTag,
     packageName: packageJson.name,
     paths,
+    prerelease: isPrerelease,
     releaseTag,
   };
 }
 
-export function resolveReleaseSpecifier(currentVersion, specifier) {
-  return resolveVersionSpecifier(currentVersion, specifier);
+export function resolveReleaseSpecifier(
+  currentVersion,
+  specifier,
+  options = {},
+) {
+  return resolveVersionSpecifier(currentVersion, specifier, options);
 }
 
 export function summarizeReleasePlan(plan) {
@@ -63,7 +78,9 @@ export function summarizeReleasePlan(plan) {
     generatedAt: plan.generatedAt,
     latestTag: plan.latestTag,
     nextVersion: plan.nextVersion,
+    npmDistTag: plan.npmDistTag,
     packageName: plan.packageName,
+    prerelease: plan.prerelease,
     releaseTag: plan.releaseTag,
   };
 }
@@ -75,6 +92,7 @@ export function printReleasePlan(plan) {
   console.log(`Current version: ${summary.currentVersion}`);
   console.log(`Latest tag: ${summary.latestTag ?? 'none'}`);
   console.log(`Next version: ${summary.nextVersion}`);
+  console.log(`npm dist-tag: ${summary.npmDistTag}`);
   console.log(`Release tag: ${summary.releaseTag}`);
   console.log(`Release commits: ${summary.commitCount}`);
 }
@@ -86,23 +104,49 @@ function resolveReleasePaths(paths = {}) {
   };
 }
 
-function resolveVersionSpecifier(currentVersion, specifier) {
+function resolveVersionSpecifier(currentVersion, specifier, options = {}) {
   const trimmedSpecifier = specifier.trim();
 
   if (semver.valid(trimmedSpecifier)) {
+    if (options.prerelease && !semver.prerelease(trimmedSpecifier)) {
+      return appendPrereleaseIdentifier(trimmedSpecifier);
+    }
+
     return trimmedSpecifier;
+  }
+
+  if (options.prerelease) {
+    const prereleaseIncrement = toPrereleaseIncrement(trimmedSpecifier);
+
+    if (prereleaseIncrement) {
+      return semver.inc(
+        currentVersion,
+        prereleaseIncrement,
+        prereleaseIdentifier,
+      );
+    }
   }
 
   return semver.inc(currentVersion, trimmedSpecifier);
 }
 
-function inferVersionFromCommits(currentVersion, commits) {
+function inferVersionFromCommits(currentVersion, commits, options = {}) {
+  const releaseType = inferReleaseTypeFromCommits(commits);
+
+  if (options.prerelease) {
+    return inferPrereleaseVersion(currentVersion, releaseType);
+  }
+
+  return releaseType ? semver.inc(currentVersion, releaseType) : null;
+}
+
+function inferReleaseTypeFromCommits(commits) {
   if (commits.some(isBreakingCommit)) {
-    return semver.inc(currentVersion, 'major');
+    return 'major';
   }
 
   if (commits.some((commit) => getCommitType(commit) === 'feat')) {
-    return semver.inc(currentVersion, 'minor');
+    return 'minor';
   }
 
   if (
@@ -110,10 +154,48 @@ function inferVersionFromCommits(currentVersion, commits) {
       ['fix', 'perf', 'refactor'].includes(getCommitType(commit) ?? ''),
     )
   ) {
-    return semver.inc(currentVersion, 'patch');
+    return 'patch';
   }
 
   return null;
+}
+
+function inferPrereleaseVersion(currentVersion, releaseType) {
+  if (!releaseType) {
+    return null;
+  }
+
+  if (semver.prerelease(currentVersion)) {
+    return semver.inc(currentVersion, 'prerelease', prereleaseIdentifier);
+  }
+
+  return semver.inc(currentVersion, `pre${releaseType}`, prereleaseIdentifier);
+}
+
+function appendPrereleaseIdentifier(version) {
+  const prereleaseVersion = `${version}-${prereleaseIdentifier}.0`;
+
+  if (!semver.valid(prereleaseVersion)) {
+    throw new Error(`Could not create prerelease version from ${version}.`);
+  }
+
+  return prereleaseVersion;
+}
+
+function toPrereleaseIncrement(specifier) {
+  switch (specifier) {
+    case 'major':
+    case 'minor':
+    case 'patch':
+      return `pre${specifier}`;
+    case 'premajor':
+    case 'preminor':
+    case 'prepatch':
+    case 'prerelease':
+      return specifier;
+    default:
+      return null;
+  }
 }
 
 function getLatestTag(currentVersion, { capture, releaseTagPrefix }) {

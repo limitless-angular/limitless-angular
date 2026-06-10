@@ -106,6 +106,61 @@ test('publish mode validates before starting release side effects', () => {
   }
 });
 
+test('publish mode tags npm and GitHub prereleases', () => {
+  const fixture = createReleaseFixture();
+  const commands = [];
+
+  try {
+    const result = runReleasePipeline({
+      artifact: {
+        readTarballPackageJson() {
+          return {
+            name: '@limitless-angular/sanity',
+            version: '1.1.0-next.0',
+          };
+        },
+        tarballPath: '/tmp/release.tgz',
+      },
+      capture: createCapture({
+        gitLog:
+          'abc1234\x01feat(sanity): add release validation\x01\x01Alfonso\x02',
+      }),
+      env: { GITHUB_TOKEN: 'token' },
+      mode: releaseModes.publish,
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: fixture.paths,
+      prerelease: true,
+      run: recordCommand(commands),
+    });
+
+    assert.equal(result.published, true);
+    assert.equal(result.plan.nextVersion, '1.1.0-next.0');
+    assert.equal(result.plan.npmDistTag, 'next');
+
+    const npmPublish = commands.find(
+      ({ command, args }) => command === 'npm' && args[0] === 'publish',
+    );
+    assert.deepEqual(npmPublish?.args, [
+      'publish',
+      '/tmp/release.tgz',
+      '--access',
+      'public',
+      '--registry',
+      'https://registry.npmjs.org',
+      '--tag',
+      'next',
+    ]);
+
+    const githubRelease = commands.find(
+      ({ command, args }) =>
+        command === 'gh' && args[0] === 'release' && args[1] === 'create',
+    );
+    assert.ok(githubRelease?.args.includes('--prerelease'));
+  } finally {
+    fixture.cleanup();
+  }
+});
+
 test('artifact version mismatch fails before publish side effects', () => {
   const fixture = createReleaseFixture();
   const commands = [];
@@ -159,14 +214,14 @@ function createReleaseFixture() {
   };
 }
 
-function createCapture() {
+function createCapture({ gitLog = '' } = {}) {
   return (command, args) => {
     if (command === 'git' && args[0] === 'rev-parse') {
       return '';
     }
 
     if (command === 'git' && args[0] === 'log') {
-      return '';
+      return gitLog;
     }
 
     throw new Error(`Unexpected command: ${command} ${args.join(' ')}`);
