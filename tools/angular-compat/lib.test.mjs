@@ -37,9 +37,7 @@ test('Angular CLI-owned packages resolve from their own dist-tag', () => {
     ),
     '22.0.0',
   );
-  assert.deepEqual(calls, [
-    { field: 'version', spec: '@angular/build@next' },
-  ]);
+  assert.deepEqual(calls, [{ field: 'version', spec: '@angular/build@next' }]);
 });
 
 test('canary toolchain allows framework and CLI next tags to move independently', () => {
