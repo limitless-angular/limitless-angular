@@ -5,7 +5,7 @@ import {
   type Locator,
   type Page,
 } from '@playwright/test';
-import { createDataAttribute } from '@sanity/visual-editing';
+import { createDataAttribute } from '@sanity/visual-editing-csm';
 
 const previewURL =
   process.env['SANITY_E2E_PREVIEW_URL'] ?? 'http://localhost:4200';

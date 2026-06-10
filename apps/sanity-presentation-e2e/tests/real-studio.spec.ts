@@ -6,7 +6,7 @@ import {
   type Page,
 } from '@playwright/test';
 import { createClient, type SanityClient } from '@sanity/client';
-import { createDataAttribute } from '@sanity/visual-editing';
+import { createDataAttribute } from '@sanity/visual-editing-csm';
 
 const studioURL =
   process.env['SANITY_E2E_STUDIO_URL'] ?? 'http://localhost:3333';

@@ -6,7 +6,10 @@ import {
   PLATFORM_ID,
   inject,
 } from '@angular/core';
+import { outputFromObservable } from '@angular/core/rxjs-interop';
 import { isPlatformBrowser } from '@angular/common';
+import type { ClientPerspective } from '@sanity/client';
+import { Subject } from 'rxjs';
 
 import {
   VisualEditingClientComponent,
@@ -20,20 +23,28 @@ import {
   template: `
     @if (isBrowser) {
       <visual-editing-client
+        [components]="components()"
+        [plugins]="plugins()"
         [refresh]="refresh()"
         [zIndex]="zIndex()"
         [basePath]="computedBasePath()"
         [trailingSlash]="computedTrailingSlash()"
+        [handlesPerspectiveChange]="perspectiveChangeEmitter.observed"
+        (perspectiveChange)="perspectiveChangeEmitter.next($event)"
       />
     }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VisualEditingComponent {
+  components = input<VisualEditingProps['components']>();
+  plugins = input<VisualEditingProps['plugins']>();
   refresh = input<VisualEditingProps['refresh']>();
   zIndex = input<VisualEditingProps['zIndex']>();
   basePath = input<VisualEditingProps['basePath']>(undefined);
   trailingSlash = input<VisualEditingProps['trailingSlash']>();
+  protected perspectiveChangeEmitter = new Subject<ClientPerspective>();
+  perspectiveChange = outputFromObservable(this.perspectiveChangeEmitter);
 
   isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 

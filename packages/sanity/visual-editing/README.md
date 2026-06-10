@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/@limitless-angular/sanity.svg)](https://www.npmjs.com/package/@limitless-angular/sanity)
 [![npm downloads](https://img.shields.io/npm/dm/@limitless-angular/sanity.svg)](https://www.npmjs.com/package/@limitless-angular/sanity)
 
-Based on [Visual Editing v2.1.9](https://github.com/sanity-io/visual-editing/blob/main/packages/visual-editing/CHANGELOG.md#219-2024-08-12) and [Next Sanity 9.8.13](https://github.com/sanity-io/next-sanity/blob/main/packages/next-sanity/CHANGELOG.md#9813-2024-11-13)
+Based on [Visual Editing v5.4.3](https://github.com/sanity-io/visual-editing/tree/main/packages/visual-editing) and adapted to Angular-native components and services.
 
 This secondary entry point is used to create clickable elements to take editors right from previews to the document and field they want to edit.
 
@@ -13,6 +13,7 @@ This secondary entry point is used to create clickable elements to take editors 
 - [Importing the Component](#importing-the-component)
 - [Basic Usage](#basic-usage)
 - [Component Properties](#component-properties)
+- [Presentation Queries](#presentation-queries)
 
 ## Installation
 
@@ -51,22 +52,36 @@ export default class AppComponent {}
 
 In this example, the `<visual-editing />` component is conditionally rendered based on whether the application is in draft mode.
 
-## Component Properties
+## Component API
 
-The `VisualEditingComponent` accepts several input properties:
+The `VisualEditingComponent` accepts several inputs and outputs:
 
-1. `refresh`: A function to refresh the content when changes are made.
+1. `components`: An Angular-native custom overlay component resolver.
 
-2. `zIndex`: A number to set the z-index of the visual editing overlay.
+2. `refresh`: A function to refresh the content when changes are made.
 
-3. `basePath`: A string to set the base path for routing (optional).
+3. `zIndex`: A number to set the z-index of the visual editing overlay.
 
-4. `trailingSlash`: A boolean to indicate if URLs should include a trailing slash (optional).
+4. `basePath`: A string to set the base path for routing (optional).
+
+5. `trailingSlash`: A boolean to indicate if URLs should include a trailing slash (optional).
+
+6. `perspectiveChange`: An output that emits the current Studio perspective, useful when server-side data fetching needs to stay aligned with Presentation.
 
 ## Configuration
 
 The component attempts to auto-detect some configuration settings, but you can manually set them if needed:
 
 ```html
-<visual-editing [refresh]="yourRefreshFunction" [zIndex]="1000" basePath="/your-base-path" [trailingSlash]="true" />
+<visual-editing [refresh]="yourRefreshFunction" [zIndex]="1000" basePath="/your-base-path" [trailingSlash]="true" (perspectiveChange)="handlePerspectiveChange($event)" />
 ```
+
+## Presentation Queries
+
+The Angular implementation exposes Angular-native helpers for the v5 Presentation query and environment APIs:
+
+```typescript
+import { injectIsPresentationTool, injectPresentationQuery, injectVisualEditingEnvironment } from '@limitless-angular/sanity/visual-editing';
+```
+
+`injectPresentationQuery` returns a signal with `{data, sourceMap, perspective}` when Presentation is connected, and `{data: null, sourceMap: null, perspective: null}` otherwise.

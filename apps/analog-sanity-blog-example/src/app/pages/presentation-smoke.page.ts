@@ -12,7 +12,7 @@ import {
   type SanityClient,
   type SanityDocument,
 } from '@sanity/client';
-import { createDataAttribute } from '@sanity/visual-editing';
+import { createDataAttribute } from '@limitless-angular/sanity/visual-editing';
 
 import {
   createLiveData,

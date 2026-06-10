@@ -1,26 +1,26 @@
 import {
+  ApplicationRef,
   Component,
   inject,
   effect,
   signal,
   computed,
   ChangeDetectionStrategy,
+  EnvironmentInjector,
+  Injector,
   input,
+  output,
   untracked,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Location } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 
-import {
-  enableVisualEditing,
-  type HistoryAdapterNavigate,
-  type VisualEditingOptions,
-} from '@sanity/visual-editing';
 import { filter } from 'rxjs/operators';
+import type { ClientPerspective } from '@sanity/client';
 
-// import { revalidateRootLayout } from 'next-sanity/visual-editing/server-actions'; // You might need to adapt this import
-
+import { enableVisualEditing } from './ui/enable-visual-editing';
+import type { HistoryAdapterNavigate, VisualEditingOptions } from './types';
 import {
   addPathPrefix,
   normalizePathTrailingSlash,
@@ -28,7 +28,7 @@ import {
 } from './utils';
 
 export interface VisualEditingProps
-  extends Omit<VisualEditingOptions, 'history'> {
+  extends Omit<VisualEditingOptions, 'history' | 'onPerspectiveChange'> {
   /**
    * If next.config.ts is configured with a basePath we try to configure it automatically,
    * you can disable this by setting basePath to ''.
@@ -54,9 +54,17 @@ export interface VisualEditingProps
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VisualEditingClientComponent {
+  components = input<VisualEditingProps['components']>();
+
+  plugins = input<VisualEditingProps['plugins']>();
+
   refresh = input<VisualEditingProps['refresh']>();
 
   zIndex = input<VisualEditingProps['zIndex']>();
+
+  handlesPerspectiveChange = input(false);
+
+  perspectiveChange = output<ClientPerspective>();
 
   basePath = input<string, VisualEditingProps['basePath']>('', {
     transform: (value) => value ?? '',
@@ -68,16 +76,20 @@ export class VisualEditingClientComponent {
 
   private navigate = signal<HistoryAdapterNavigate | undefined>(undefined);
 
+  private applicationRef = inject(ApplicationRef);
+
   private currentUrl = computed(() => {
     const urlTree = this.router.parseUrl(this.router.url);
-    const pathname =
+    const primaryPath =
       urlTree.root.children['primary']?.segments
         .map((segment) => segment.path)
-        .join('/') || '/';
+        .join('/') ?? '';
+    const pathname = primaryPath ? `/${primaryPath}` : '/';
     const searchParams = new URLSearchParams(urlTree.queryParams).toString();
+    const hash = urlTree.fragment ? `#${urlTree.fragment}` : '';
     return normalizePathTrailingSlash(
       addPathPrefix(
-        `${pathname}${searchParams ? `?${searchParams}` : ''}`,
+        `${pathname}${searchParams ? `?${searchParams}` : ''}${hash}`,
         this.basePath(),
       ),
       this.trailingSlash(),
@@ -86,17 +98,35 @@ export class VisualEditingClientComponent {
 
   private location = inject(Location);
 
+  private environmentInjector = inject(EnvironmentInjector);
+
+  private injector = inject(Injector);
+
   private router = inject(Router);
 
   constructor() {
-    effect(() => {
+    effect((onCleanup) => {
+      const components = this.components();
+      const plugins = this.plugins();
       const zIndex = this.zIndex();
       const refresh = this.refresh();
       const basePath = this.basePath();
+      const handlesPerspectiveChange = this.handlesPerspectiveChange();
+      const onPerspectiveChange = handlesPerspectiveChange
+        ? (perspective: ClientPerspective) => {
+            this.perspectiveChange.emit(perspective);
+          }
+        : undefined;
 
-      return untracked(() => {
+      untracked(() => {
         const disable = enableVisualEditing({
+          applicationRef: this.applicationRef,
+          components,
+          environmentInjector: this.environmentInjector,
+          injector: this.injector,
+          plugins,
           zIndex,
+          onPerspectiveChange,
           refresh: refresh || this.defaultRefresh,
           history: {
             subscribe: (_navigate) => {
@@ -123,7 +153,7 @@ export class VisualEditingClientComponent {
           },
         });
 
-        return () => disable();
+        onCleanup(() => disable());
       });
     });
 
@@ -162,56 +192,17 @@ export class VisualEditingClientComponent {
   }
 
   private defaultRefresh: VisualEditingOptions['refresh'] = (payload) => {
-    switch (payload.source) {
-      case 'manual':
-        return payload.livePreviewEnabled
-          ? this.manualFastRefresh()
-          : this.manualFallbackRefresh();
-      case 'mutation':
-        return payload.livePreviewEnabled
-          ? this.mutationFastRefresh()
-          : this.mutationFallbackRefresh();
-      default:
-        // eslint-disable-next-line no-case-declarations
-        const error = new Error('Unknown refresh source');
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (error as any).details = { cause: payload };
-        throw error;
+    if (payload.source === 'mutation' && payload.livePreviewEnabled) {
+      console.debug(
+        'Live preview is setup, mutation is skipped assuming its handled by the live preview',
+      );
+      return false;
     }
+
+    console.debug(
+      'No Angular route revalidation hook was provided, refreshing the browser document',
+    );
+    window.location.reload();
+    return Promise.resolve();
   };
-
-  private manualFastRefresh() {
-    console.debug(
-      'Live preview is setup, refreshing the view without refetching cached data',
-    );
-    // In Angular, we don't have a direct equivalent to router.refresh()
-    // You might need to implement a custom solution here
-    // TODO: check alternative
-    return Promise.resolve();
-  }
-
-  private manualFallbackRefresh() {
-    console.debug(
-      'No loaders in live mode detected, or preview kit setup, revalidating root layout',
-    );
-    return Promise.resolve();
-    // TODO: check alternative
-    // return revalidateRootLayout();
-  }
-
-  private mutationFastRefresh(): false {
-    console.debug(
-      'Live preview is setup, mutation is skipped assuming its handled by the live preview',
-    );
-    return false;
-  }
-
-  private mutationFallbackRefresh() {
-    console.debug(
-      'No loaders in live mode detected, or preview kit setup, revalidating root layout',
-    );
-    return Promise.resolve();
-    // TODO: check alternative
-    // return revalidateRootLayout();
-  }
 }

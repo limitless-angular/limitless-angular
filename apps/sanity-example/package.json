@@ -20,7 +20,6 @@
     "@sanity/asset-utils": "^2.1.0",
     "@sanity/client": "^7.22.1",
     "@sanity/image-url": "^2.1.1",
-    "@sanity/visual-editing": "2.15.4",
     "express": "~4.21.0",
     "leaflet": "^1.9.4",
     "prismjs": "^1.29.0",

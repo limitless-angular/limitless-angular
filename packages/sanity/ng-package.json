@@ -7,10 +7,15 @@
   },
   "allowedNonPeerDependencies": [
     "@sanity/comlink",
+    "@sanity/mutate",
     "@sanity/presentation-comlink",
+    "@sanity/visual-editing",
+    "@sanity/visual-editing-csm",
     "@vercel/stega",
+    "dequal",
     "lodash-es",
     "lru-cache",
-    "mendoza"
+    "mendoza",
+    "xstate"
   ]
 }

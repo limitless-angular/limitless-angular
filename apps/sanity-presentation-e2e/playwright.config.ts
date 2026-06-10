@@ -24,7 +24,10 @@ const studioMode =
   (process.env['SANITY_E2E_REAL_STUDIO'] === '1' ? 'real-project' : 'off');
 const useRealProject = studioMode === 'real-project';
 const isAuthSetup = process.env['SANITY_E2E_AUTH_SETUP'] === '1';
-const cdpEndpoint = optionalEnv('SANITY_E2E_CDP_ENDPOINT');
+const cdpEndpoint =
+  useRealProject || isAuthSetup
+    ? optionalEnv('SANITY_E2E_CDP_ENDPOINT')
+    : undefined;
 const storageStatePath =
   isAuthSetup || !useRealProject
     ? undefined

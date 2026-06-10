@@ -35,7 +35,6 @@
     "@portabletext/types": "^2.0.13 || ^3.0.0 || ^4.0.0",
     "@sanity/client": "^6.28.0 || ^7.0.0",
     "@sanity/image-url": "^1.0.2 || ^2.0.2",
-    "@sanity/visual-editing": "^2.7.0",
     "rxjs": "^7.8.0"
   },
   "peerDependenciesMeta": {
@@ -44,13 +43,18 @@
     }
   },
   "dependencies": {
-    "@sanity/comlink": "^3.0.1",
-    "@sanity/presentation-comlink": "^1.0.6",
-    "@vercel/stega": "0.1.2",
+    "@sanity/comlink": "^4.0.1",
+    "@sanity/mutate": "0.18.0",
+    "@sanity/presentation-comlink": "^2.1.0",
+    "@sanity/visual-editing": "5.4.3",
+    "@sanity/visual-editing-csm": "^3.0.9",
+    "@vercel/stega": "1.1.0",
+    "dequal": "^2.0.3",
     "lodash-es": "^4.17.21",
     "lru-cache": "^11.0.0",
     "mendoza": "3.0.8",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "xstate": "^5.19.2"
   },
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "^2.6.0",
@@ -68,7 +72,6 @@
     "@portabletext/types": "^4.0.2",
     "@sanity/client": "^7.22.1",
     "@sanity/image-url": "^2.1.1",
-    "@sanity/visual-editing": "2.15.4",
     "@testing-library/angular": "^17.3.6",
     "@testing-library/dom": "^10.4.0",
     "@types/lodash-es": "^4.17.12",

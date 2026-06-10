@@ -99,8 +99,6 @@ function writeConsumerProject(
     '@portabletext/types': packageJson.peerDependencies['@portabletext/types'],
     '@sanity/client': packageJson.peerDependencies['@sanity/client'],
     '@sanity/image-url': packageJson.peerDependencies['@sanity/image-url'],
-    '@sanity/visual-editing':
-      packageJson.peerDependencies['@sanity/visual-editing'],
     rxjs: packageJson.peerDependencies.rxjs,
     tslib: packageJson.dependencies.tslib,
     'zone.js': toolchain.zoneVersion,
