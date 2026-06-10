@@ -7,6 +7,11 @@ on:
         description: 'Version to publish (optional - will use conventional commits if not specified)'
         required: false
         default: ''
+      prerelease:
+        description: 'Infer or coerce the release as a next prerelease'
+        required: false
+        default: false
+        type: boolean
       verbose:
         description: 'Enable verbose logging'
         required: false
@@ -74,10 +79,14 @@ jobs:
           NPM_CONFIG_PROVENANCE: true
           RELEASE_VERBOSE: ${{ inputs.verbose }}
           RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_PRERELEASE: ${{ inputs.prerelease }}
         run: |
           ARGS=()
           if [ -n "$RELEASE_VERSION" ]; then
             ARGS+=(--version "$RELEASE_VERSION")
+          fi
+          if [ "$RELEASE_PRERELEASE" = "true" ]; then
+            ARGS+=(--prerelease)
           fi
           if [ "$RELEASE_VERBOSE" = "true" ]; then
             ARGS+=(--verbose)
@@ -89,7 +98,9 @@ jobs:
         if: always()
         env:
           RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_PRERELEASE: ${{ inputs.prerelease }}
         run: |
           echo "## Release Process Summary" > "$GITHUB_STEP_SUMMARY"
           echo "- Mode: publish" >> "$GITHUB_STEP_SUMMARY"
           echo "- Version input: ${RELEASE_VERSION:-conventional commits}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Prerelease: ${RELEASE_PRERELEASE}" >> "$GITHUB_STEP_SUMMARY"

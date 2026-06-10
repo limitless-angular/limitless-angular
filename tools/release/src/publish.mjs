@@ -23,15 +23,20 @@ export function commitRelease(plan, options = {}) {
 
 export function publishTarball(tarballPath, options = {}) {
   const commandRun = options.run ?? defaultRun;
-
-  commandRun('npm', [
+  const args = [
     'publish',
     tarballPath,
     '--access',
     'public',
     '--registry',
     'https://registry.npmjs.org',
-  ]);
+  ];
+
+  if (options.npmDistTag && options.npmDistTag !== 'latest') {
+    args.push('--tag', options.npmDistTag);
+  }
+
+  commandRun('npm', args);
 }
 
 export function pushRelease(options = {}) {
@@ -53,19 +58,21 @@ export function createGitHubRelease(plan, options = {}) {
 
   try {
     writeFileSync(notesPath, plan.changelogSection);
-    commandRun(
-      'gh',
-      [
-        'release',
-        'create',
-        plan.releaseTag,
-        '--title',
-        plan.releaseTag,
-        '--notes-file',
-        notesPath,
-      ],
-      { env },
-    );
+    const args = [
+      'release',
+      'create',
+      plan.releaseTag,
+      '--title',
+      plan.releaseTag,
+      '--notes-file',
+      notesPath,
+    ];
+
+    if (plan.prerelease) {
+      args.push('--prerelease');
+    }
+
+    commandRun('gh', args, { env });
     return true;
   } finally {
     rmSync(tempDir, { force: true, recursive: true });

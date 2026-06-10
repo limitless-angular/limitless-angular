@@ -25,6 +25,7 @@ export function runCli(args = hideBin(process.argv)) {
         }),
       (argv) => {
         const plan = createReleasePlan({
+          prerelease: argv.prerelease,
           versionSpecifier: argv.version,
         });
 
@@ -49,6 +50,7 @@ export function runCli(args = hideBin(process.argv)) {
       (argv) =>
         runReleasePipeline({
           mode: argv.mode,
+          prerelease: argv.prerelease,
           verbose: argv.verbose,
           versionSpecifier: argv.version,
         }),
@@ -60,6 +62,7 @@ export function runCli(args = hideBin(process.argv)) {
       (argv) =>
         runReleasePipeline({
           mode: releaseModes.dryRun,
+          prerelease: argv.prerelease,
           verbose: argv.verbose,
           versionSpecifier: argv.version,
         }),
@@ -71,6 +74,7 @@ export function runCli(args = hideBin(process.argv)) {
       (argv) =>
         runReleasePipeline({
           mode: releaseModes.publish,
+          prerelease: argv.prerelease,
           verbose: argv.verbose,
           versionSpecifier: argv.version,
         }),
@@ -91,11 +95,18 @@ function addPipelineOptions(command) {
 }
 
 function addVersionOption(command) {
-  return command.option('version', {
-    describe:
-      'Explicit semver version or semver increment to release, such as 19.3.0, patch, minor, or major.',
-    type: 'string',
-  });
+  return command
+    .option('version', {
+      describe:
+        'Explicit semver version or semver increment to release, such as 19.3.0, patch, minor, or major.',
+      type: 'string',
+    })
+    .option('prerelease', {
+      default: false,
+      describe:
+        'Infer or coerce the planned version to a next prerelease, such as 19.3.0-next.0.',
+      type: 'boolean',
+    });
 }
 
 if (

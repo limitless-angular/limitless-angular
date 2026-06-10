@@ -68,6 +68,7 @@ export function runReleasePipeline(options = {}) {
     capture: commandCapture,
     now: options.now,
     paths: options.paths,
+    prerelease: options.prerelease,
     versionSpecifier: options.versionSpecifier,
   });
   let snapshot;
@@ -88,7 +89,10 @@ export function runReleasePipeline(options = {}) {
     if (mode === releaseModes.publish) {
       publishSideEffectsStarted = true;
       commitRelease(plan, { run: commandRun });
-      publishTarball(artifact.tarballPath, { run: commandRun });
+      publishTarball(artifact.tarballPath, {
+        npmDistTag: plan.npmDistTag,
+        run: commandRun,
+      });
       pushRelease({ run: commandRun });
       createGitHubRelease(plan, { env: options.env, run: commandRun });
     }
