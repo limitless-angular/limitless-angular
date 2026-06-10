@@ -4,10 +4,9 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { combineLatest, type Observable, startWith, switchMap } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { LivePreviewService } from './live-preview.service';
+import type { LiveQueryConfig } from './types';
 
-type QueryConfig = { query: string; params?: Record<string, unknown> };
-
-type QueriesConfig<T> = { [K in keyof T]?: QueryConfig };
+type QueriesConfig<T> = { [K in keyof T]?: LiveQueryConfig };
 type LiveDataState<T> = { value: T } | typeof NO_VALUE;
 
 const NO_VALUE = Symbol('NO_VALUE');
@@ -15,7 +14,7 @@ const NO_VALUE = Symbol('NO_VALUE');
 // Single query overload
 export function createLiveData<T>(
   initialData: () => T,
-  queries: () => QueryConfig,
+  queries: () => LiveQueryConfig,
 ): Signal<T>;
 
 // Multiple queries overload
@@ -27,7 +26,7 @@ export function createLiveData<
 // Implementation
 export function createLiveData<T>(
   initialData: () => T,
-  queries: () => QueryConfig | QueriesConfig<T>,
+  queries: () => LiveQueryConfig | QueriesConfig<T>,
 ): Signal<T> {
   const livePreviewService = inject(LivePreviewService);
   const config = computed(() => ({
@@ -40,7 +39,12 @@ export function createLiveData<T>(
       switchMap(({ initial, queryConfig }) => {
         if ('query' in queryConfig) {
           return livePreviewService
-            .listenLiveQuery(initial, queryConfig.query, queryConfig.params)
+            .listenLiveQuery(
+              initial,
+              queryConfig.query,
+              queryConfig.params,
+              queryConfig.perspective ?? null,
+            )
             .pipe(startWith(initial));
         }
 
@@ -54,6 +58,8 @@ export function createLiveData<T>(
               config!.query,
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               config!.params,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              config!.perspective ?? null,
             );
             return acc;
           },

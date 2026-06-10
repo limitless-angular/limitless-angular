@@ -4,13 +4,15 @@ import {
   computed,
   input,
 } from '@angular/core';
-import { EMPTY } from 'rxjs';
+import { EMPTY, Observable } from 'rxjs';
 import {
   type ContentSourceMap,
   type InitializedClientConfig,
+  type LiveEvent,
   type QueryParams,
   type SanityClient,
   type SanityDocument,
+  type SyncTag,
 } from '@sanity/client';
 import { createDataAttribute } from '@limitless-angular/sanity/visual-editing';
 
@@ -36,10 +38,13 @@ const documentId = 'presentation-smoke-post';
 const initialTitle = 'Initial presentation smoke title';
 const liveTitle = 'Live presentation smoke title';
 const presentationSmokeQuery = '*[_id == $id][0]{title}';
+const presentationSmokeSyncTag = 's1:presentation-smoke-post' satisfies SyncTag;
 
 type PresentationSmokeWindow = Window & {
   __presentationSmokeBootCount?: number;
   __presentationSmokeFetchCount?: number;
+  __presentationSmokeEmitLiveEvent?: () => void;
+  __presentationSmokeLiveEventId?: number;
   __presentationSmokePerspective?: unknown;
   __presentationSmokeTitle?: string;
 };
@@ -77,6 +82,7 @@ const fakeClient = {
     return {
       result: { title: getPresentationSmokeTitle() },
       resultSourceMap: sourceMap,
+      syncTags: [presentationSmokeSyncTag],
     };
   },
   getDocuments: async (ids: string[]) =>
@@ -92,6 +98,35 @@ const fakeClient = {
         }) as SanityDocument,
     ),
   listen: () => EMPTY,
+  live: {
+    events: () =>
+      new Observable<LiveEvent>((observer) => {
+        observer.next({ type: 'welcome' });
+
+        const smokeWindow = getPresentationSmokeWindow();
+        if (!smokeWindow) {
+          return undefined;
+        }
+
+        const emitLiveEvent = () => {
+          smokeWindow.__presentationSmokeLiveEventId =
+            (smokeWindow.__presentationSmokeLiveEventId ?? 0) + 1;
+          observer.next({
+            type: 'message',
+            id: `presentation-smoke-${smokeWindow.__presentationSmokeLiveEventId}`,
+            tags: [presentationSmokeSyncTag],
+          });
+        };
+
+        smokeWindow.__presentationSmokeEmitLiveEvent = emitLiveEvent;
+
+        return () => {
+          if (smokeWindow.__presentationSmokeEmitLiveEvent === emitLiveEvent) {
+            delete smokeWindow.__presentationSmokeEmitLiveEvent;
+          }
+        };
+      }),
+  },
 } as unknown as SanityClient;
 
 function getSmokeClient(): SanityClient {

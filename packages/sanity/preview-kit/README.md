@@ -5,7 +5,7 @@
 
 Secondary entry point of `@limitless-angular/sanity`. It can be used by importing from `@limitless-angular/sanity/preview-kit`.
 
-Based on [Preview Kit v5.1.0](https://github.com/sanity-io/preview-kit/blob/main/packages/preview-kit/CHANGELOG.md#510-2024-05-30)
+Based on [Preview Kit v6.2.0](https://github.com/sanity-io/preview-kit/tree/v6.2.0/packages/preview-kit)
 
 ## Table of Contents
 
@@ -20,7 +20,7 @@ Based on [Preview Kit v5.1.0](https://github.com/sanity-io/preview-kit/blob/main
 
 ## Overview
 
-The preview-kit provides real-time preview capabilities for Sanity content in Angular applications. It enables live updates of content as it's being edited in the Sanity Studio.
+The preview-kit provides real-time preview capabilities for Sanity content in Angular applications. It uses the Sanity Live Content API to enable live updates of content as it's being edited in the Sanity Studio.
 
 ## Installation
 
@@ -194,7 +194,7 @@ This pattern ensures that:
 
 ### Live Preview Refresh Interval
 
-You can configure the refresh interval using the `withLivePreview` feature in your providers:
+Preview Kit v6 uses the Sanity Live Content API and no longer polls. The `refreshInterval` option and `LIVE_PREVIEW_REFRESH_INTERVAL` token are deprecated no-ops kept for compatibility with existing Angular applications.
 
 ```typescript
 import { provideSanity, withLivePreview } from '@limitless-angular/sanity';
@@ -203,7 +203,7 @@ import { provideSanity, withLivePreview } from '@limitless-angular/sanity';
   providers: [
     provideSanity(
       yourSanityFactory,
-      withLivePreview({ refreshInterval: 5000 }), // Default is 10000ms
+      withLivePreview({ refreshInterval: 5000 }), // Deprecated no-op
     ),
   ],
 })
@@ -218,7 +218,8 @@ A component that provides the live preview context to its children.
 
 **Inputs:**
 
-- `token: string` - The Sanity preview token (required)
+- `token: string` - Optional Sanity preview token. When provided, the client is reconfigured with preview defaults.
+- `logger: Logger` - Optional console-compatible logger.
 - `perspective: Exclude<ClientPerspective, 'raw'>` - The Sanity client perspective to use for live queries. Defaults to `'drafts'`; Presentation Tool perspective changes take precedence when present.
 
 ### createLiveData
@@ -291,12 +292,11 @@ const liveData = createLiveData(
 
 ## Integration with Visual Editing
 
-- The preview-kit provides real-time preview capabilities for Sanity content in Angular applications. It enables live updates of content as it's being edited in the Sanity Studio.
+- The preview-kit provides real-time preview capabilities for Sanity content in Angular applications through the Sanity Live Content API.
 
 ## Notes
 
-- The preview-kit requires a valid Sanity preview token to function
+- Live updates that include drafts require either a preview token or a Sanity client configured with credentials.
 - Live updates only work in browser environments
-- Cross-dataset references are not currently supported
 
 [analog]: https://analogjs.org/
