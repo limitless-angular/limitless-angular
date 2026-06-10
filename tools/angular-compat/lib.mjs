@@ -17,6 +17,24 @@ import semver from 'semver';
 
 const toolRoot = dirname(fileURLToPath(import.meta.url));
 
+const angularFrameworkPackages = new Set([
+  '@angular/animations',
+  '@angular/common',
+  '@angular/compiler',
+  '@angular/compiler-cli',
+  '@angular/core',
+  '@angular/elements',
+  '@angular/forms',
+  '@angular/language-service',
+  '@angular/localize',
+  '@angular/platform-browser',
+  '@angular/platform-browser-dynamic',
+  '@angular/platform-server',
+  '@angular/router',
+  '@angular/service-worker',
+  '@angular/upgrade',
+]);
+
 export const workspaceRoot = resolve(toolRoot, '../..');
 export const configPath = join(toolRoot, 'config.json');
 export const config = readJson(configPath);
@@ -305,8 +323,13 @@ export function resolveNpmJson(spec, field) {
   return JSON.parse(output);
 }
 
-export function resolveLatestVersion(spec) {
-  const version = resolveNpmJson(spec, 'version');
+export function isAngularFrameworkPackage(packageName) {
+  return angularFrameworkPackages.has(packageName);
+}
+
+export function resolveLatestVersion(spec, options = {}) {
+  const npmJson = options.resolveNpmJson ?? resolveNpmJson;
+  const version = npmJson(spec, 'version');
   if (Array.isArray(version)) {
     return version.at(-1);
   }
@@ -314,8 +337,9 @@ export function resolveLatestVersion(spec) {
   return version;
 }
 
-export function resolveLatestSatisfying(packageName, range) {
-  const versions = resolveNpmJson(packageName, 'versions');
+export function resolveLatestSatisfying(packageName, range, options = {}) {
+  const npmJson = options.resolveNpmJson ?? resolveNpmJson;
+  const versions = npmJson(packageName, 'versions');
   const version = semver.maxSatisfying(versions, range);
   if (!version) {
     throw new Error(`Could not resolve ${packageName} satisfying ${range}`);
@@ -333,38 +357,60 @@ export function resolveAngularToolchain(versionSetOrMajor, options = {}) {
           mode: 'latest',
         }
       : normalizeVersionSet(versionSetOrMajor);
-  const angularVersion = resolveAngularVersion(versionSet);
+  const resolverOptions = {
+    resolveNpmJson: options.resolveNpmJson ?? resolveNpmJson,
+  };
+  const angularVersion = resolveAngularVersion(versionSet, resolverOptions);
   const angularMajor = semver.major(angularVersion);
   const compilerCliVersion = resolveAngularPackageVersion(
     '@angular/compiler-cli',
     versionSet,
     angularVersion,
+    resolverOptions,
   );
-  const compilerCliPeers = resolveNpmJson(
+  const compilerCliPeers = resolverOptions.resolveNpmJson(
     `@angular/compiler-cli@${compilerCliVersion}`,
     'peerDependencies',
   );
-  const corePeers = resolveNpmJson(
+  const corePeers = resolverOptions.resolveNpmJson(
     `@angular/core@${angularVersion}`,
     'peerDependencies',
   );
   const angularBuildVersion = options.includeCli
-    ? resolveAngularPackageVersion('@angular/build', versionSet, angularVersion)
+    ? resolveAngularPackageVersion(
+        '@angular/build',
+        versionSet,
+        angularVersion,
+        resolverOptions,
+      )
     : undefined;
   const angularBuildPeers = angularBuildVersion
-    ? resolveNpmJson(
+    ? resolverOptions.resolveNpmJson(
         `@angular/build@${angularBuildVersion}`,
         'peerDependencies',
       )
     : undefined;
   const cliVersion = options.includeCli
-    ? resolveAngularPackageVersion('@angular/cli', versionSet)
+    ? resolveAngularPackageVersion(
+        '@angular/cli',
+        versionSet,
+        undefined,
+        resolverOptions,
+      )
     : undefined;
   const ngPackagrVersion = options.includeNgPackagr
-    ? resolveAngularPackageVersion('ng-packagr', versionSet)
+    ? resolveAngularPackageVersion(
+        'ng-packagr',
+        versionSet,
+        undefined,
+        resolverOptions,
+      )
     : undefined;
   const ngPackagrPeers = ngPackagrVersion
-    ? resolveNpmJson(`ng-packagr@${ngPackagrVersion}`, 'peerDependencies')
+    ? resolverOptions.resolveNpmJson(
+        `ng-packagr@${ngPackagrVersion}`,
+        'peerDependencies',
+      )
     : undefined;
   const typescriptRange = [
     compilerCliPeers.typescript,
@@ -376,9 +422,10 @@ export function resolveAngularToolchain(versionSetOrMajor, options = {}) {
   const typescriptVersion = resolveLatestSatisfying(
     'typescript',
     typescriptRange,
+    resolverOptions,
   );
   const zoneVersion = corePeers['zone.js']
-    ? resolveLatestSatisfying('zone.js', corePeers['zone.js'])
+    ? resolveLatestSatisfying('zone.js', corePeers['zone.js'], resolverOptions)
     : undefined;
 
   return {
@@ -395,39 +442,45 @@ export function resolveAngularToolchain(versionSetOrMajor, options = {}) {
   };
 }
 
-function resolveAngularVersion(versionSet) {
+function resolveAngularVersion(versionSet, options = {}) {
   if (versionSet.mode === 'dist-tag') {
-    return resolveLatestVersion(`@angular/core@${versionSet.npmTag}`);
+    return resolveLatestVersion(`@angular/core@${versionSet.npmTag}`, options);
   }
 
-  return resolveAngularPackageVersion('@angular/core', versionSet);
+  return resolveAngularPackageVersion(
+    '@angular/core',
+    versionSet,
+    undefined,
+    options,
+  );
 }
 
-function resolveAngularPackageVersion(
+export function resolveAngularPackageVersion(
   packageName,
   versionSet,
   exactAngularVersion,
+  options = {},
 ) {
-  if (
-    exactAngularVersion &&
-    packageName.startsWith('@angular/') &&
-    packageName !== '@angular/cli'
-  ) {
+  if (exactAngularVersion && isAngularFrameworkPackage(packageName)) {
     return exactAngularVersion;
   }
 
   if (versionSet.mode === 'dist-tag') {
-    return resolveLatestVersion(`${packageName}@${versionSet.npmTag}`);
+    return resolveLatestVersion(`${packageName}@${versionSet.npmTag}`, options);
   }
 
   if (versionSet.mode === 'floor') {
     return resolveLatestSatisfying(
       packageName,
       `>=${versionSet.angularMajor}.0.0 <${versionSet.angularMajor}.1.0`,
+      options,
     );
   }
 
-  return resolveLatestVersion(`${packageName}@${versionSet.angularMajor}`);
+  return resolveLatestVersion(
+    `${packageName}@${versionSet.angularMajor}`,
+    options,
+  );
 }
 
 export function getVersionSetLabel(versionSet) {

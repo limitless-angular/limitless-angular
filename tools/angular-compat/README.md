@@ -83,6 +83,12 @@ Supported modes:
 - `dist-tag`: npm dist-tag such as `next`. Use this only in
   `canaryVersionSets`, because canaries are advisory.
 
+Canary toolchains resolve Angular framework packages from `@angular/core` and
+resolve CLI-owned packages, such as `@angular/build` and `@angular/cli`, from
+their own npm dist-tags. This keeps the advisory matrix resilient when the
+Angular framework and Angular CLI release trains publish prereleases at
+different times.
+
 `buildAngularMajor` is the stable major used to build the library artifact. It
 must be the newest stable Angular major represented by `consumerVersionSets`.
 The test matrix then installs the same tarball into every configured consumer.
