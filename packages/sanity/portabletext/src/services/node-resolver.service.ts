@@ -80,11 +80,7 @@ export function injectResolveNode() {
         missingHandler,
         components,
       );
-      const inputProps = handler.getInputProps(
-        node as never,
-        index,
-        isInline,
-      );
+      const inputProps = handler.getInputProps(node as never, index, isInline);
       return {
         template: templates.nodeRenderer,
         context: { componentType, inputProps },
