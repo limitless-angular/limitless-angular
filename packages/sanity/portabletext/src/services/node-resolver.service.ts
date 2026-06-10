@@ -9,18 +9,27 @@ import { BlockHandlerService } from './block-handler.service';
 import { ListHandlerService } from './list-handler.service';
 import { ListItemHandlerService } from './list-item-handler.service';
 import { SpanHandlerService } from './span-handler.service';
-import { MissingComponentHandler, PortableTextComponents } from '../types';
+import {
+  MissingComponentHandler,
+  PortableTextAngularComponents,
+} from '../types';
 import { unknownTypeWarning } from '../warnings';
+import { DefaultUnknownType } from '../components/defaults/unknown';
 
 const CustomComponentHandler = {
   canHandle: hasCustomComponentForNode,
   getComponent: (
     node: TypedObject,
     _: unknown,
-    components: Required<PortableTextComponents>,
+    components: PortableTextAngularComponents,
   ) => getCustomComponentForNode(node, components),
-  getInputProps: (node: TypedObject, _: unknown, isInline: boolean) => ({
+  getInputProps: (
+    node: TypedObject,
+    index: number | undefined,
+    isInline: boolean,
+  ) => ({
     value: node,
+    index,
     isInline,
   }),
 };
@@ -45,18 +54,22 @@ export function injectResolveNode() {
    * @param isInline Whether the node is inline
    * @returns An object containing the template and context for rendering the node
    */
-  return (
+  return function resolveNode(
     node: TypedObject,
-    components: Required<PortableTextComponents>,
+    components: PortableTextAngularComponents,
     missingHandler: MissingComponentHandler,
     templates: {
       nodeRenderer: TemplateRef<unknown>;
       text: TemplateRef<unknown>;
-      unknown: TemplateRef<{ node: TypedObject; isInline: boolean }>;
+      unknown: TemplateRef<{
+        node: TypedObject;
+        isInline: boolean;
+        warning: string;
+      }>;
     },
     index?: number,
     isInline = false,
-  ) => {
+  ) {
     for (const handler of handlers) {
       if (!handler.canHandle(node, components)) {
         continue;
@@ -82,12 +95,30 @@ export function injectResolveNode() {
       };
     }
 
-    missingHandler(unknownTypeWarning(node._type), {
+    const warning = unknownTypeWarning(node._type);
+    missingHandler(warning, {
       nodeType: 'block',
       type: node._type,
     });
 
-    return { template: templates.unknown, context: { node, isInline } };
+    if (components.unknownType === DefaultUnknownType) {
+      return {
+        template: templates.unknown,
+        context: { node, isInline, warning },
+      };
+    }
+
+    return {
+      template: templates.nodeRenderer,
+      context: {
+        componentType: components.unknownType,
+        inputProps: {
+          value: node,
+          index,
+          isInline,
+        },
+      },
+    };
   };
 }
 
@@ -100,7 +131,7 @@ export function injectResolveNode() {
  */
 function getCustomComponentForNode(
   node: TypedObject,
-  components: Required<PortableTextComponents>,
+  components: PortableTextAngularComponents,
 ): Type<unknown> {
   return components.types[node._type] as Type<unknown>;
 }
@@ -114,7 +145,7 @@ function getCustomComponentForNode(
  */
 function hasCustomComponentForNode(
   node: TypedObject,
-  components: Required<PortableTextComponents>,
+  components: PortableTextAngularComponents,
 ): boolean {
   return node._type in components.types;
 }

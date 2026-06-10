@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import {
   MissingComponentHandler,
-  PortableTextComponents,
+  PortableTextAngularComponents,
   PortableTextListBlock,
 } from '../types';
 import { unknownListStyleWarning } from '../warnings';
@@ -30,9 +30,12 @@ export class ListHandlerService {
   getComponent(
     node: PortableTextListBlock,
     missingHandler: MissingComponentHandler,
-    components: Required<PortableTextComponents>,
+    components: PortableTextAngularComponents,
   ) {
-    const List = components.list?.[node.listItem] ?? components.unknownList;
+    const renderer = components.list;
+    const handler =
+      typeof renderer === 'function' ? renderer : renderer[node.listItem];
+    const List = handler ?? components.unknownList;
 
     if (List === components.unknownList) {
       const style = node.listItem || 'bullet';
@@ -55,13 +58,19 @@ export class ListHandlerService {
    */
   getInputProps(
     node: PortableTextListBlock,
-    _index: number | undefined,
-    isInline: boolean,
+    index: number | undefined,
+    _isInline: boolean,
   ): Record<string, unknown> {
     return {
-      children: node.children,
+      children: node.children.map((child, childIndex) => ({
+        ...child,
+        _key: child._key ?? `li-${index}-${childIndex}`,
+        index: childIndex,
+        isInline: false,
+      })),
       value: node,
-      isInline,
+      index,
+      isInline: false,
     };
   }
 }

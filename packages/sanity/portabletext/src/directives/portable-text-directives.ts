@@ -24,7 +24,8 @@ import { PortableTextComponent } from '../components/portable-text.component';
 export class DynamicPortableTextContent<Node extends TypedObject = TypedObject>
   implements AfterViewInit
 {
-  children = input.required<(TypedObject & { isInline?: boolean })[]>();
+  children =
+    input.required<(TypedObject & { index?: number; isInline?: boolean })[]>();
   container = viewChild<ViewContainerRef, ViewContainerRef>('children', {
     read: ViewContainerRef,
   });
@@ -94,6 +95,11 @@ export class PortableTextTypeComponent<
   value = input.required<T>();
 
   /**
+   * Index within its parent.
+   */
+  index = input(0);
+
+  /**
    * Whether this node is "inline" - ie as a child of a text block,
    * alongside text spans, or a block in and of itself.
    */
@@ -103,16 +109,20 @@ export class PortableTextTypeComponent<
 // eslint-disable-next-line @angular-eslint/directive-selector
 @Directive({ selector: '[portableTextBlock]' })
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
-export class PortableTextBlockComponent extends PortableTextTypeComponent<PortableTextBlock> {}
+export class PortableTextBlockComponent<
+  T extends TypedObject = PortableTextBlock,
+> extends PortableTextTypeComponent<T> {}
+
+// eslint-disable-next-line @angular-eslint/directive-selector
+@Directive({ selector: '[portableTextList]' })
+// eslint-disable-next-line @angular-eslint/directive-class-suffix
+export class PortableTextListComponent<
+  T extends TypedObject = PortableTextListBlock,
+> extends PortableTextTypeComponent<T> {}
 
 // eslint-disable-next-line @angular-eslint/directive-selector
 @Directive({ selector: '[portableTextListItem]' })
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
-export class PortableTextListComponent extends PortableTextTypeComponent<PortableTextListBlock> {}
-
-// eslint-disable-next-line @angular-eslint/directive-selector
-@Directive({ selector: '[portableTextListItem]' })
-// eslint-disable-next-line @angular-eslint/directive-class-suffix
-export class PortableTextListItemComponent extends PortableTextTypeComponent<PortableTextListItemBlock> {
-  index = input.required<number>();
-}
+export class PortableTextListItemComponent<
+  T extends TypedObject = PortableTextListItemBlock,
+> extends PortableTextTypeComponent<T> {}

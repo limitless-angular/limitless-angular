@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { render } from '@testing-library/angular';
+import { LIST_NEST_MODE_DIRECT } from '@portabletext/toolkit';
 import { expect, test, describe } from 'vitest';
 import * as fixtures from './fixtures';
 import { MissingComponentHandler, PortableTextComponents } from '../types';
@@ -16,7 +17,13 @@ import { QuoteComponent } from './test-components/QuoteComponent';
 import { LinkComponent } from './test-components/LinkComponent';
 import { CodeComponent } from './test-components/CodeComponent';
 import { PortableTextComponent } from '../components/portable-text.component';
-import { PortableTextMarkComponent } from '../directives/portable-text-directives';
+import {
+  PortableTextBlockComponent,
+  PortableTextListComponent,
+  PortableTextListItemComponent,
+  PortableTextMarkComponent,
+  PortableTextTypeComponent,
+} from '../directives/portable-text-directives';
 
 describe('PortableTextComponent', () => {
   test('builds empty tree on empty block', async () => {
@@ -85,6 +92,102 @@ describe('PortableTextComponent', () => {
     assertHTML(result.container, output);
   });
 
+  test('can render lists with direct nesting mode', async () => {
+    const input = [
+      {
+        _type: 'block',
+        _key: 'one',
+        markDefs: [],
+        level: 1,
+        children: [{ _type: 'span', marks: [], text: 'One' }],
+        listItem: 'bullet',
+      },
+      {
+        _type: 'block',
+        _key: 'two',
+        markDefs: [],
+        level: 1,
+        children: [{ _type: 'span', marks: [], text: 'Two' }],
+        listItem: 'bullet',
+      },
+      {
+        _type: 'block',
+        _key: 'nested',
+        markDefs: [],
+        level: 2,
+        children: [{ _type: 'span', marks: [], text: 'Nested' }],
+        listItem: 'number',
+      },
+    ];
+
+    const result = await renderPortableText(
+      input,
+      {},
+      false,
+      LIST_NEST_MODE_DIRECT,
+    );
+
+    assertHTML(
+      result.container,
+      '<ul><li>One</li><li>Two</li><ol><li>Nested</li></ol></ul>',
+    );
+  });
+
+  test('passes isInline false to list and list item components', async () => {
+    @Component({
+      // eslint-disable-next-line @angular-eslint/component-selector
+      selector: 'ul',
+      template: '<ng-container #children />',
+      host: { '[attr.data-inline]': 'isInline()' },
+    })
+    class InlineStateListComponent extends PortableTextListComponent {}
+
+    @Component({
+      // eslint-disable-next-line @angular-eslint/component-selector
+      selector: 'li',
+      template: '<ng-container #children />',
+      host: { '[attr.data-inline]': 'isInline()' },
+    })
+    class InlineStateListItemComponent extends PortableTextListItemComponent {}
+
+    const input = [
+      {
+        _type: 'block',
+        _key: 'one',
+        markDefs: [],
+        level: 1,
+        children: [{ _type: 'span', marks: [], text: 'One' }],
+        listItem: 'bullet',
+      },
+      {
+        _type: 'block',
+        _key: 'two',
+        markDefs: [],
+        level: 1,
+        children: [{ _type: 'span', marks: [], text: 'Two' }],
+        listItem: 'bullet',
+      },
+      {
+        _type: 'block',
+        _key: 'nested',
+        markDefs: [],
+        level: 2,
+        children: [{ _type: 'span', marks: [], text: 'Nested' }],
+        listItem: 'number',
+      },
+    ];
+
+    const result = await renderPortableText(input, {
+      list: InlineStateListComponent,
+      listItem: InlineStateListItemComponent,
+    });
+
+    assertHTML(
+      result.container,
+      '<ul data-inline="false"><li data-inline="false">One</li><li data-inline="false">Two<ul data-inline="false"><li data-inline="false">Nested</li></ul></li></ul>',
+    );
+  });
+
   test('builds all basic marks as expected', async () => {
     const { input, output } = fixtures.allBasicMarks;
     const result = await renderPortableText(input);
@@ -122,6 +225,14 @@ describe('PortableTextComponent', () => {
     const { input, output } = fixtures.emptyArray;
     const result = await renderPortableText(input);
     assertHTML(result.container, output);
+  });
+
+  test('handles null or undefined values', async () => {
+    const { container, rerender } = await renderPortableText(null);
+    assertHTML(container, '');
+
+    await rerender({ inputs: { value: undefined } });
+    assertHTML(container, '');
   });
 
   test('handles lists without level', async () => {
@@ -202,6 +313,26 @@ describe('PortableTextComponent', () => {
     );
   });
 
+  test('can render all list styles with a single list component', async () => {
+    @Component({
+      // eslint-disable-next-line @angular-eslint/component-selector
+      selector: 'ul',
+      template: '<ng-container #children />',
+      host: { '[class]': '"single-list"' },
+    })
+    class SingleListComponent extends PortableTextListComponent {}
+
+    const { input } = fixtures.basicNumberedList;
+    const result = await renderPortableText(input, {
+      list: SingleListComponent,
+    });
+
+    assertHTML(
+      result.container,
+      '<p>Let&#x27;s test some of these lists!</p><ul class="single-list"><li>Number 1</li><li>Number 2</li><li>Number 3</li></ul>',
+    );
+  });
+
   test('can render custom list item styles with provided list style component', async () => {
     const { input } = fixtures.customListItemType;
     const result = await renderPortableText(input, {
@@ -237,6 +368,23 @@ describe('PortableTextComponent', () => {
     });
 
     assertHTML(result.container, output);
+  });
+
+  test('can render all block styles with a single block component', async () => {
+    @Component({
+      // eslint-disable-next-line @angular-eslint/component-selector
+      selector: 'p',
+      template: '<ng-container #children />',
+      host: { '[class]': '"single-block"' },
+    })
+    class SingleBlockComponent extends PortableTextBlockComponent {}
+
+    const { input } = fixtures.plainHeaderBlock;
+    const result = await renderPortableText(input, {
+      block: SingleBlockComponent,
+    });
+
+    assertHTML(result.container, '<p class="single-block">Dat heading</p>');
   });
 
   test('can specify custom component for custom block types with children', async () => {
@@ -369,5 +517,39 @@ describe('PortableTextComponent', () => {
       result.container,
       '<p><span class="unknown">Unknown (unknown-deco): simple</span><span class="unknown">Unknown (unknown-mark): advanced</span></p>',
     );
+  });
+
+  test('can override unknown type component', async () => {
+    @Component({
+      // eslint-disable-next-line @angular-eslint/component-selector
+      selector: 'div',
+      template: `Unknown type: {{ value()._type }}`,
+      host: { '[class]': '"unknown-type"' },
+    })
+    class CustomUnknownTypeComponent extends PortableTextTypeComponent {}
+
+    const input = {
+      _type: 'mystery',
+      _key: 'mystery',
+      text: 'No renderer',
+    };
+
+    const result = await renderPortableText(input, {
+      unknownType: CustomUnknownTypeComponent,
+    });
+
+    assertHTML(
+      result.container,
+      '<div class="unknown-type">Unknown type: mystery</div>',
+    );
+  });
+
+  test('does not mutate the input value', async () => {
+    const input = structuredClone(fixtures.nestedLists.input);
+    const original = structuredClone(input);
+
+    await renderPortableText(input);
+
+    expect(input).toEqual(original);
   });
 });

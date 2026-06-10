@@ -20,7 +20,7 @@ import { RenderNode } from '../directives/render-node.directive';
       <ng-container
         [renderNode]="child"
         [isInline]="child.isInline ?? isInline ?? true"
-        [index]="index"
+        [index]="child.index ?? index"
       />
     }
   </ng-template>`,
@@ -30,7 +30,7 @@ import { RenderNode } from '../directives/render-node.directive';
 export class ChildrenComponent {
   template = viewChild.required<
     TemplateRef<{
-      children: (TypedObject & { isInline?: boolean })[];
+      children: (TypedObject & { index?: number; isInline?: boolean })[];
       isInline?: boolean;
     }>
   >(TemplateRef);

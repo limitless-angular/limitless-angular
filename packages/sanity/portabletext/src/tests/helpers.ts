@@ -2,6 +2,7 @@ import { expect } from 'vitest';
 import { aliasedInput, render } from '@testing-library/angular';
 import { PortableTextComponent } from '../components/portable-text.component';
 import { TypedObject } from '@portabletext/types';
+import type { ToolkitListNestMode } from '@portabletext/toolkit';
 import { PortableTextComponents, MissingComponentHandler } from '../types';
 
 const cleanAngularHTML = (html: string) => {
@@ -46,14 +47,21 @@ export const assertHTML = (container: Element, expectedHTML: string) => {
 };
 
 export const renderPortableText = (
-  input: TypedObject | TypedObject[],
-  components: Partial<PortableTextComponents> = {},
+  input: TypedObject | TypedObject[] | null | undefined,
+  components: PortableTextComponents = {},
   onMissingComponent: MissingComponentHandler | false = false,
-) =>
-  render(PortableTextComponent, {
+  listNestingMode?: ToolkitListNestMode,
+) => {
+  const inputs = {
+    value: input,
+    ...aliasedInput('components', components),
+    onMissingComponent,
+    ...(listNestingMode ? { listNestingMode } : {}),
+  };
+
+  return render(PortableTextComponent, {
     inputs: {
-      value: input,
-      ...aliasedInput('components', components),
-      onMissingComponent,
+      ...inputs,
     },
   });
+};

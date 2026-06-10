@@ -4,7 +4,7 @@ import { memoize } from 'lodash-es';
 
 import {
   MissingComponentHandler,
-  PortableTextComponents,
+  PortableTextAngularComponents,
   Serializable,
 } from '../types';
 import { serializeBlock } from '../utils';
@@ -34,10 +34,12 @@ export class BlockHandlerService {
   getComponent(
     node: PortableTextBlock,
     missingHandler: MissingComponentHandler,
-    components: Required<PortableTextComponents>,
+    components: PortableTextAngularComponents,
   ) {
     const style = node.style ?? 'normal';
-    const Block = components.block?.[style] ?? components.unknownBlockStyle;
+    const renderer = components.block;
+    const handler = typeof renderer === 'function' ? renderer : renderer[style];
+    const Block = handler ?? components.unknownBlockStyle;
 
     if (Block === components.unknownBlockStyle) {
       missingHandler(unknownBlockStyleWarning(style), {
@@ -64,8 +66,12 @@ export class BlockHandlerService {
   ): Record<string, unknown> {
     return {
       value: node,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      children: this.#getChildren({ node, index: index!, isInline }),
+      children: this.#getChildren({
+        node,
+        index: index ?? 0,
+        isInline,
+      }),
+      index,
       isInline,
     };
   }

@@ -8,7 +8,7 @@ const missingSpanChildren = {
     },
   ],
   output:
-    '<div aria-hidden="true" style="display: none;">Unknown block type: block</div>',
+    '<div style="display: none;">[@limitless-angular/sanity/portabletext] Unknown block type &quot;block&quot;, specify a component for it in the `components.types` prop</div>',
 };
 
 const invalidMarkReferences = {
@@ -41,7 +41,7 @@ const invalidBlockType = {
     },
   ],
   output:
-    '<div aria-hidden="true" style="display: none;">Unknown block type: not-a-valid-block-type</div>',
+    '<div style="display: none;">[@limitless-angular/sanity/portabletext] Unknown block type &quot;not-a-valid-block-type&quot;, specify a component for it in the `components.types` prop</div>',
 };
 
 export default {
