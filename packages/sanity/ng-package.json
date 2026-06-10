@@ -14,8 +14,6 @@
     "@vercel/stega",
     "dequal",
     "lodash-es",
-    "lru-cache",
-    "mendoza",
     "xstate"
   ]
 }

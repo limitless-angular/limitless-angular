@@ -14,9 +14,14 @@ import {
   type SanityConfig,
 } from '@limitless-angular/sanity/shared';
 
+/** @deprecated Preview Kit v6 uses the Sanity Live Content API and no longer polls. */
 const DEFAULT_LIVE_PREVIEW_REFRESH_INTERVAL = 10000;
 
 export interface LivePreviewOptions {
+  /**
+   * @deprecated Preview Kit v6 uses the Sanity Live Content API and no longer polls.
+   * This option is kept as a no-op compatibility affordance.
+   */
   refreshInterval?: number;
 }
 

@@ -7,25 +7,25 @@ import {
   type LoaderControllerMsg,
   type LoaderNodeMsg,
 } from '@sanity/presentation-comlink';
-import type { ClientPerspective } from '@sanity/client';
+import isEqual from 'lodash-es/isEqual';
 import { BehaviorSubject, combineLatest, type Observable } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
+
+import type { LivePreviewPerspective } from './types';
 
 @Injectable()
 export class PerspectiveService {
   private destroyRef = inject(DestroyRef);
   private isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
-  private configuredPerspective$ = new BehaviorSubject<
-    Exclude<ClientPerspective, 'raw'>
-  >('drafts');
-  private presentationPerspective$ = new BehaviorSubject<Exclude<
-    ClientPerspective,
-    'raw'
-  > | null>(null);
-  private effectivePerspective$ = new BehaviorSubject<
-    Exclude<ClientPerspective, 'raw'>
-  >('drafts');
+  private configuredPerspective$ = new BehaviorSubject<LivePreviewPerspective>(
+    'drafts',
+  );
+  private presentationPerspective$ =
+    new BehaviorSubject<LivePreviewPerspective | null>(null);
+  private effectivePerspective$ = new BehaviorSubject<LivePreviewPerspective>(
+    'drafts',
+  );
 
   constructor() {
     this.setupPerspectiveUpdates();
@@ -45,7 +45,10 @@ export class PerspectiveService {
     );
 
     comlink.on('loader/perspective', (data) => {
-      if (data.perspective !== 'raw') {
+      if (
+        data.perspective !== 'raw' &&
+        !isEqual(this.presentationPerspective$.value, data.perspective)
+      ) {
         this.presentationPerspective$.next(data.perspective);
       }
     });
@@ -54,18 +57,18 @@ export class PerspectiveService {
     this.destroyRef.onDestroy(() => stop());
   }
 
-  get current(): Exclude<ClientPerspective, 'raw'> {
+  get current(): LivePreviewPerspective {
     return this.effectivePerspective$.value;
   }
 
-  get perspective$(): Observable<Exclude<ClientPerspective, 'raw'>> {
+  get perspective$(): Observable<LivePreviewPerspective> {
     return this.effectivePerspective$
       .asObservable()
-      .pipe(distinctUntilChanged());
+      .pipe(distinctUntilChanged(isEqual));
   }
 
-  setPerspective(perspective: Exclude<ClientPerspective, 'raw'>): void {
-    if (this.configuredPerspective$.value !== perspective) {
+  setPerspective(perspective: LivePreviewPerspective): void {
+    if (!isEqual(this.configuredPerspective$.value, perspective)) {
       this.configuredPerspective$.next(perspective);
     }
   }
@@ -80,7 +83,7 @@ export class PerspectiveService {
           ({ configuredPerspective, presentationPerspective }) =>
             presentationPerspective ?? configuredPerspective,
         ),
-        distinctUntilChanged(),
+        distinctUntilChanged(isEqual),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((perspective) => {

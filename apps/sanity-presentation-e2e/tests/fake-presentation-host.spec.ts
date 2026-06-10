@@ -48,6 +48,7 @@ type ProtocolMessage = {
 
 type PresentationSmokeFrameState = {
   __presentationSmokeBootCount?: number;
+  __presentationSmokeEmitLiveEvent?: () => void;
   __presentationSmokeFetchCount?: number;
   __presentationSmokePerspective?: unknown;
   __presentationSmokeTitle?: string;
@@ -229,9 +230,9 @@ async function getFrameState(
 
 async function setFrameTitle(frame: Frame, title: string): Promise<void> {
   await frame.evaluate((nextTitle) => {
-    (
-      window as unknown as PresentationSmokeFrameState
-    ).__presentationSmokeTitle = nextTitle;
+    const smokeWindow = window as unknown as PresentationSmokeFrameState;
+    smokeWindow.__presentationSmokeTitle = nextTitle;
+    smokeWindow.__presentationSmokeEmitLiveEvent?.();
   }, title);
 }
 
