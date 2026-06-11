@@ -30,6 +30,8 @@ jobs:
     if: github.repository == 'limitless-angular/limitless-angular'
     name: Validate Release Dry Run
     runs-on: ubuntu-22.04
+    env:
+      RELEASE_PLAN_PATH: ${{ runner.temp }}/release-plan.json
     permissions:
       contents: read
     steps:
@@ -66,31 +68,65 @@ jobs:
         run: pnpm turbo run lint --filter=@limitless-angular/sanity
 
       - name: Validate release dry run
+        id: release
         env:
           RELEASE_VERBOSE: ${{ inputs.verbose }}
           RELEASE_VERSION: ${{ inputs.version }}
           RELEASE_PRERELEASE: ${{ inputs.prerelease }}
         run: |
-          ARGS=()
+          PLAN_ARGS=()
+          PIPELINE_ARGS=()
           if [ -n "$RELEASE_VERSION" ]; then
-            ARGS+=(--version "$RELEASE_VERSION")
+            PLAN_ARGS+=(--version "$RELEASE_VERSION")
+            PIPELINE_ARGS+=(--version "$RELEASE_VERSION")
           fi
           if [ "$RELEASE_PRERELEASE" = "true" ]; then
-            ARGS+=(--prerelease)
+            PLAN_ARGS+=(--prerelease)
+            PIPELINE_ARGS+=(--prerelease)
           fi
           if [ "$RELEASE_VERBOSE" = "true" ]; then
-            ARGS+=(--verbose)
+            PIPELINE_ARGS+=(--verbose)
           fi
 
-          pnpm turbo run release:dry-run --filter=@limitless-angular/release-tools -- "${ARGS[@]}"
+          pnpm --filter=@limitless-angular/release-tools run --silent release:plan "${PLAN_ARGS[@]}" --json > "$RELEASE_PLAN_PATH"
+          cat "$RELEASE_PLAN_PATH"
+
+          pnpm turbo run release:dry-run --filter=@limitless-angular/release-tools -- "${PIPELINE_ARGS[@]}"
 
       - name: Generate release dry-run summary
         if: always()
         env:
+          RELEASE_MODE: dry-run
+          RELEASE_OUTCOME: ${{ steps.release.outcome }}
           RELEASE_VERSION: ${{ inputs.version }}
           RELEASE_PRERELEASE: ${{ inputs.prerelease }}
         run: |
-          echo "## Release Dry Run Summary" > "$GITHUB_STEP_SUMMARY"
-          echo "- Mode: dry-run" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Version input: ${RELEASE_VERSION:-conventional commits}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Prerelease: ${RELEASE_PRERELEASE}" >> "$GITHUB_STEP_SUMMARY"
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          const planPath = process.env.RELEASE_PLAN_PATH;
+          const lines = [
+            '## Release Dry Run Summary',
+            '',
+            `- Mode: ${process.env.RELEASE_MODE}`,
+            `- Outcome: ${process.env.RELEASE_OUTCOME}`,
+            `- Version input: ${process.env.RELEASE_VERSION || 'conventional commits'}`,
+            `- Prerelease input: ${process.env.RELEASE_PRERELEASE}`,
+          ];
+
+          if (planPath && fs.existsSync(planPath)) {
+            const plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
+
+            lines.push(
+              `- Package: ${plan.packageName}`,
+              `- Planned version: ${plan.nextVersion}`,
+              `- Release tag: ${plan.releaseTag}`,
+              `- npm dist-tag: ${plan.npmDistTag}`,
+              `- Commit count: ${plan.commitCount}`,
+            );
+          } else {
+            lines.push('- Planned version: unavailable; release planning did not complete.');
+          }
+
+          fs.writeFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join('\n')}\n`);
+          NODE
