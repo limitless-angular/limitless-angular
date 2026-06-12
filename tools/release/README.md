@@ -65,4 +65,9 @@ does not perform git, npm, or GitHub release side effects.
 Publish mode performs external side effects only after tests, linting, artifact
 validation, and compatibility consumer checks pass. The GitHub workflow also
 targets the `npm-release` environment so repository environment protection rules
-can require approval before npm credentials are exposed.
+can require approval before publishing.
+
+The npm package must trust the GitHub Actions publisher for
+`limitless-angular/limitless-angular`, workflow `release-and-publish.yml`, and
+environment `npm-release`; the publish job uses npm trusted publishing instead
+of a long-lived npm token.

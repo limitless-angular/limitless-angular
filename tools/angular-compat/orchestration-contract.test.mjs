@@ -190,7 +190,8 @@ test('release workflows delegate to the release tools package', () => {
   assertIncludes(publishWorkflow, [
     turboReleaseCommand('release:publish', { forwardsArgs: true }),
     'environment: npm-release',
-    'NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}',
+    'id-token: write',
+    'npm install -g npm@^11.10.0',
     'NPM_CONFIG_PROVENANCE: true',
   ]);
   assertIncludes(dryRunWorkflow, [
@@ -201,6 +202,9 @@ test('release workflows delegate to the release tools package', () => {
 
   assert.doesNotMatch(publishWorkflow, /compat:pack/);
   assert.doesNotMatch(publishWorkflow, /npm publish/);
+  assert.doesNotMatch(publishWorkflow, /registry-url/);
+  assert.doesNotMatch(publishWorkflow, /NODE_AUTH_TOKEN/);
+  assert.doesNotMatch(publishWorkflow, /NPM_ACCESS_TOKEN/);
   assert.doesNotMatch(dryRunWorkflow, /NODE_AUTH_TOKEN/);
   assert.doesNotMatch(dryRunWorkflow, /NPM_ACCESS_TOKEN/);
 });
