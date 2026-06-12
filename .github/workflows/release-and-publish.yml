@@ -30,8 +30,6 @@ jobs:
     if: github.repository == 'limitless-angular/limitless-angular'
     name: Release and Publish to npm
     runs-on: ubuntu-22.04
-    env:
-      RELEASE_PLAN_PATH: ${{ runner.temp }}/release-plan.json
     permissions:
       contents: write
       id-token: write
@@ -64,6 +62,9 @@ jobs:
           echo "Node version: $(node -v)"
           echo "pnpm version: $(pnpm -v)"
           echo "Workspace directory: $(pwd)"
+
+      - name: Configure release paths
+        run: echo "RELEASE_PLAN_PATH=$RUNNER_TEMP/release-plan.json" >> "$GITHUB_ENV"
 
       - name: Run tests
         run: pnpm turbo run test

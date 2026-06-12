@@ -191,6 +191,7 @@ test('release workflows delegate to the release tools package', () => {
     turboReleaseCommand('release:publish', { forwardsArgs: true }),
     'environment: npm-release',
     'id-token: write',
+    'echo "RELEASE_PLAN_PATH=$RUNNER_TEMP/release-plan.json" >> "$GITHUB_ENV"',
     'npm install -g npm@^11.10.0',
     'NPM_CONFIG_PROVENANCE: true',
   ]);
@@ -198,13 +199,16 @@ test('release workflows delegate to the release tools package', () => {
     turboReleaseCommand('release:dry-run', { forwardsArgs: true }),
     'permissions:',
     'contents: read',
+    'echo "RELEASE_PLAN_PATH=$RUNNER_TEMP/release-plan.json" >> "$GITHUB_ENV"',
   ]);
 
+  assert.doesNotMatch(publishWorkflow, /runner\.temp/);
   assert.doesNotMatch(publishWorkflow, /compat:pack/);
   assert.doesNotMatch(publishWorkflow, /npm publish/);
   assert.doesNotMatch(publishWorkflow, /registry-url/);
   assert.doesNotMatch(publishWorkflow, /NODE_AUTH_TOKEN/);
   assert.doesNotMatch(publishWorkflow, /NPM_ACCESS_TOKEN/);
+  assert.doesNotMatch(dryRunWorkflow, /runner\.temp/);
   assert.doesNotMatch(dryRunWorkflow, /NODE_AUTH_TOKEN/);
   assert.doesNotMatch(dryRunWorkflow, /NPM_ACCESS_TOKEN/);
 });
