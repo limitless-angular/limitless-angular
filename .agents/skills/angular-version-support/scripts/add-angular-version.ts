@@ -256,7 +256,7 @@ function getWorkspaceAngularRange(dependency, range, major) {
   }
 
   if (dependency.startsWith('@angular/')) {
-    return withExistingRangePrefix(range, `${major}.0.0`, '~');
+    return `~${major}.0.0`;
   }
 
   if (dependency === 'angular-eslint') {

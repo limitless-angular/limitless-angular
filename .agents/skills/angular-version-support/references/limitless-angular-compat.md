@@ -66,6 +66,19 @@ Do not stop after the helper if any TypeScript, adapter, or lockfile updates
 are still required for the workspace to install and run tests on the requested
 Angular major.
 
+For Angular 20 upgrades in this repo, expect these follow-ups from prior
+verification:
+
+- `typescript-eslint` must support TypeScript 5.8+ when TypeScript moves with
+  Angular 20.
+- Code using `provideExperimentalZonelessChangeDetection` should migrate to
+  `provideZonelessChangeDetection`.
+- Do not add `@angular/animations` to `packages/sanity` only because Angular
+  platform-browser test imports expose a peer resolution failure. This package
+  should not gain new Angular framework dev dependencies unless source or tests
+  directly use them. Investigate test setup, adapters, and lockfile resolution
+  first, then report the exact failure if the fix is unclear.
+
 ## Official Angular Migrations
 
 Prefer official Angular migrations before manual code edits. Angular supports
@@ -79,24 +92,29 @@ CLI migrations where this repo has Angular projects:
 rg --files -g angular.json apps packages
 ```
 
-For each Angular app root with a local CLI available, run the relevant update
-or migration command from that app directory:
+Run app migrations from the workspace root with `pnpm --filter` so Volta and
+pnpm use the repo Node version. Verify the filtered command sees the repo Node:
 
 ```bash
-pnpm exec ng update @angular/cli@^<major> @angular/core@^<major>
+pnpm --filter <workspace-package-name> exec node -v
 ```
 
 If the helper already updated package manifests and you only need code
-migrations, run migration-only commands one package at a time:
+migrations, run migration-only commands one workspace package at a time. Include
+`--allow-dirty` because the helper and dependency updates make the worktree
+dirty before migrations run:
 
 ```bash
-pnpm exec ng update @angular/core --migrate-only --from <from> --to <target>
-pnpm exec ng update @angular/cli --migrate-only --from <from> --to <target>
+pnpm --filter <workspace-package-name> exec ng update @angular/core --migrate-only --from <from> --to <target> --allow-dirty
+pnpm --filter <workspace-package-name> exec ng update @angular/cli --migrate-only --from <from> --to <target> --allow-dirty
 ```
 
-Review and keep the generated changes when they are relevant. Do not replace
-official migrations with manual text edits unless no applicable migration is
-available or the migration fails and the failure is understood.
+This repo's app-local `angular.json` files may cause some Angular core
+migrations to resolve `../../tsconfig.base.json` incorrectly. If `ng update`
+fails with a tsconfig path error, record the failure, inspect the migration's
+targeted patterns, and manually audit/apply the relevant code changes. Do not
+replace official migrations with manual text edits unless no applicable
+migration is available or the migration fails and the failure is understood.
 
 After the deterministic edit, search for version-specific branches and stale
 contract text:
