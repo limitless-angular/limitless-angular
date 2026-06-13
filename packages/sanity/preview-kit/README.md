@@ -194,7 +194,7 @@ This pattern ensures that:
 
 ### Live Preview Refresh Interval
 
-Preview Kit v6 uses the Sanity Live Content API and no longer polls. The `refreshInterval` option and `LIVE_PREVIEW_REFRESH_INTERVAL` token are deprecated no-ops kept for compatibility with existing Angular applications.
+Preview Kit v6 uses the Sanity Live Content API and no longer polls. The `refreshInterval` option is accepted as a deprecated no-op for compatibility with existing Angular applications. The `LIVE_PREVIEW_REFRESH_INTERVAL` token has been removed and should no longer be configured directly.
 
 ```typescript
 import { provideSanity, withLivePreview } from '@limitless-angular/sanity';

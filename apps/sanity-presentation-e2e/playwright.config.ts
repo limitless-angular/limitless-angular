@@ -56,15 +56,17 @@ const previewEnv = useRealProject
       VITE_SANITY_DATASET: 'presentation-smoke-dataset',
       VITE_SANITY_STUDIO_URL: studioURL,
       SANITY_API_READ_TOKEN: 'presentation-smoke-read-token',
-      SANITY_PRESENTATION_E2E_BYPASS_DRAFT: '1',
       BYPASS_TOKEN: 'presentation-smoke-bypass-token',
     };
 
 const webServer = [
   {
     cwd: workspaceRoot,
-    command: `pnpm --dir apps/analog-sanity-blog-example exec vite dev --host 0.0.0.0 --port ${previewPort}`,
-    env: definedEnv(previewEnv),
+    command: 'pnpm --dir apps/sanity-presentation-e2e-preview run serve:e2e',
+    env: definedEnv({
+      ...previewEnv,
+      PORT: String(previewPort),
+    }),
     url: `${previewURL}/api/presentation-smoke-health`,
     reuseExistingServer: !process.env['CI'],
     timeout: 120_000,

@@ -5,25 +5,12 @@ import {
   type Provider,
 } from '@angular/core';
 
-import { LIVE_PREVIEW_REFRESH_INTERVAL } from '@limitless-angular/sanity/preview-kit';
-
 import {
   SANITY_CLIENT_FACTORY,
   SANITY_CONFIG,
   type SanityClientFactory,
   type SanityConfig,
 } from '@limitless-angular/sanity/shared';
-
-/** @deprecated Preview Kit v6 uses the Sanity Live Content API and no longer polls. */
-const DEFAULT_LIVE_PREVIEW_REFRESH_INTERVAL = 10000;
-
-export interface LivePreviewOptions {
-  /**
-   * @deprecated Preview Kit v6 uses the Sanity Live Content API and no longer polls.
-   * This option is kept as a no-op compatibility affordance.
-   */
-  refreshInterval?: number;
-}
 
 export function provideSanity(
   factoryOrConfig: SanityClientFactory | SanityConfig,
@@ -63,17 +50,18 @@ function sanityFeature<FeatureKind extends SanityFeatureKind>(
 export type SanityLivePreviewFeature =
   SanityFeature<SanityFeatureKind.SanityLivePreviewFeature>;
 
+export interface LivePreviewOptions {
+  /**
+   * @deprecated Preview Kit v6 uses the Sanity Live Content API and no longer polls.
+   * This option is accepted as a no-op for backwards compatibility.
+   */
+  refreshInterval?: number;
+}
+
 export function withLivePreview(
-  options: LivePreviewOptions = {},
+  _options: LivePreviewOptions = {},
 ): SanityLivePreviewFeature {
-  const providers = [
-    {
-      provide: LIVE_PREVIEW_REFRESH_INTERVAL,
-      useValue:
-        options.refreshInterval ?? DEFAULT_LIVE_PREVIEW_REFRESH_INTERVAL,
-    },
-  ];
-  return sanityFeature(SanityFeatureKind.SanityLivePreviewFeature, providers);
+  return sanityFeature(SanityFeatureKind.SanityLivePreviewFeature, []);
 }
 
 export type SanityFeatures = SanityLivePreviewFeature;

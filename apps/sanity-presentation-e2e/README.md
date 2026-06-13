@@ -8,7 +8,7 @@ This harness verifies that the Angular preview libraries still work when the app
 pnpm turbo run e2e --filter=sanity-presentation-e2e
 ```
 
-This starts the Analog example app with dummy Sanity env values, then uses a fake Presentation host to:
+This starts the dedicated Angular preview app with dummy Sanity env values, then uses a fake Presentation host to:
 
 - open `/presentation-smoke` inside an iframe
 - complete the legacy `sanity/channels` handshake
@@ -28,7 +28,7 @@ This starts the real Sanity Studio fixture, but keeps the Sanity backend and smo
 - Studio uses the dummy `presentation-smoke-project`
 - the test mocks browser requests to that dummy Sanity API
 - the smoke route uses a controlled fake Sanity client
-- the Analog app uses a test-only draft-mode bypass
+- the preview app uses a test-only draft-mode bypass
 - the rendered preview exposes the expected editable `data-sanity` marker
 
 Use this for CI or Angular/Sanity dependency updates when you want the real Studio shell without relying on a real Sanity project.
@@ -42,7 +42,7 @@ pnpm turbo run e2e --filter=sanity-presentation-e2e
 pnpm turbo run e2e-studio --filter=sanity-presentation-e2e
 ```
 
-The related path gate includes `apps/analog-sanity-blog-example`, `apps/sanity-presentation-e2e`, `apps/sanity-presentation-e2e-studio`, and `packages/sanity`. Changes to root workspace config or `.github/workflows/ci.yml` also run the checks because they can change this gate.
+The related path gate includes `apps/sanity-presentation-e2e`, `apps/sanity-presentation-e2e-preview`, `apps/sanity-presentation-e2e-studio`, and `packages/sanity`. Changes to root workspace config or `.github/workflows/ci.yml` also run the checks because they can change this gate.
 
 The real-project Studio smoke runs for manual workflow dispatches with `run_real_studio` enabled, or for affected pushes to `main`. Configure these GitHub Actions secrets to enable it:
 
