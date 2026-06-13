@@ -1,0 +1,4 @@
+interface:
+  display_name: 'Create PR'
+  short_description: 'Open PRs with repo conventions'
+  default_prompt: 'Use $create-pr to open a pull request for this branch.'
