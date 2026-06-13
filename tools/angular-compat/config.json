@@ -47,9 +47,7 @@
     "@angular/core",
     "@angular/router"
   ],
-  "allowBuilds": [
-    "nice-napi"
-  ],
+  "allowBuilds": ["nice-napi"],
   "entrypoints": [
     "@limitless-angular/sanity",
     "@limitless-angular/sanity/shared",

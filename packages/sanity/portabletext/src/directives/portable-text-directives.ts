@@ -20,7 +20,7 @@ import { PortableTextComponent } from '../components/portable-text.component';
 
 // eslint-disable-next-line @angular-eslint/directive-selector
 @Directive({ selector: '[portableTextContent]' })
-// eslint-disable-next-line @angular-eslint/directive-class-suffix, @typescript-eslint/no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export class DynamicPortableTextContent<Node extends TypedObject = TypedObject>
   implements AfterViewInit
 {
@@ -56,7 +56,6 @@ export class DynamicPortableTextContent<Node extends TypedObject = TypedObject>
 /**
  * @template M Shape describing the data associated with this mark, if it is an annotation
  */
-// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class PortableTextMarkComponent<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   M extends TypedObject = any,
@@ -87,7 +86,6 @@ export class PortableTextMarkComponent<
 /**
  * Data associated with this portable text node, eg the raw JSON value of a block/type
  */
-// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class PortableTextTypeComponent<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   T extends TypedObject = any,
@@ -108,21 +106,18 @@ export class PortableTextTypeComponent<
 
 // eslint-disable-next-line @angular-eslint/directive-selector
 @Directive({ selector: '[portableTextBlock]' })
-// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class PortableTextBlockComponent<
   T extends TypedObject = PortableTextBlock,
 > extends PortableTextTypeComponent<T> {}
 
 // eslint-disable-next-line @angular-eslint/directive-selector
 @Directive({ selector: '[portableTextList]' })
-// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class PortableTextListComponent<
   T extends TypedObject = PortableTextListBlock,
 > extends PortableTextTypeComponent<T> {}
 
 // eslint-disable-next-line @angular-eslint/directive-selector
 @Directive({ selector: '[portableTextListItem]' })
-// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class PortableTextListItemComponent<
   T extends TypedObject = PortableTextListItemBlock,
 > extends PortableTextTypeComponent<T> {}
