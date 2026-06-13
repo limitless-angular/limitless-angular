@@ -50,7 +50,17 @@ function sanityFeature<FeatureKind extends SanityFeatureKind>(
 export type SanityLivePreviewFeature =
   SanityFeature<SanityFeatureKind.SanityLivePreviewFeature>;
 
-export function withLivePreview(): SanityLivePreviewFeature {
+export interface LivePreviewOptions {
+  /**
+   * @deprecated Preview Kit v6 uses the Sanity Live Content API and no longer polls.
+   * This option is accepted as a no-op for backwards compatibility.
+   */
+  refreshInterval?: number;
+}
+
+export function withLivePreview(
+  _options: LivePreviewOptions = {},
+): SanityLivePreviewFeature {
   return sanityFeature(SanityFeatureKind.SanityLivePreviewFeature, []);
 }
 
