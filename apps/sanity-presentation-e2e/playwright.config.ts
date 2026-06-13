@@ -63,8 +63,11 @@ const previewEnv = useRealProject
 const webServer = [
   {
     cwd: workspaceRoot,
-    command: `pnpm --dir apps/analog-sanity-blog-example exec vite dev --host 0.0.0.0 --port ${previewPort}`,
-    env: definedEnv(previewEnv),
+    command: 'pnpm --dir apps/sanity-presentation-e2e-preview run serve:e2e',
+    env: definedEnv({
+      ...previewEnv,
+      PORT: String(previewPort),
+    }),
     url: `${previewURL}/api/presentation-smoke-health`,
     reuseExistingServer: !process.env['CI'],
     timeout: 120_000,

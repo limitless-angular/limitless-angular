@@ -61,6 +61,7 @@ async function installFakePresentationHost(page: Page): Promise<void> {
     { timeout: 45_000 },
   );
 
+  await page.goto(`${previewURL}/api/presentation-smoke-health`);
   await page.setContent(`
     <!doctype html>
     <html>
@@ -121,30 +122,66 @@ async function installFakePresentationHost(page: Page): Promise<void> {
             });
           };
 
+          function snapshotMessage(data) {
+            try {
+              return JSON.parse(JSON.stringify(data));
+            } catch {
+              return {
+                domain: data && 'domain' in data ? String(data.domain) : undefined,
+                from: data && 'from' in data ? String(data.from) : undefined,
+                to: data && 'to' in data ? String(data.to) : undefined,
+                type: data && 'type' in data ? String(data.type) : undefined
+              };
+            }
+          }
+
+          function normalizeMessage(data) {
+            const message = snapshotMessage(data);
+
+            if (message.domain === 'sanity/comlink') {
+              message.domain = 'sanity/channels';
+            }
+
+            if (message.channelId && !message.connectionId) {
+              message.connectionId = message.channelId;
+            }
+
+            if (message.type === 'comlink/handshake/syn-ack') {
+              message.type = 'handshake/syn-ack';
+            }
+
+            if (message.type === 'comlink/response') {
+              message.type = 'channel/response';
+            }
+
+            return message;
+          }
+
           window.addEventListener('message', (event) => {
             const data = event.data || {};
-            if (data && data.domain === 'sanity/channels') {
-              window.__presentationMessages.push(data);
-              if (data.type === 'handshake/syn-ack') {
+            const message = normalizeMessage(data);
+            if (message && message.domain === 'sanity/channels') {
+              window.__presentationMessages.push(message);
+              if (message.type === 'handshake/syn-ack') {
                 send({
                   domain: 'sanity/channels',
                   type: 'handshake/ack',
                   from: 'presentation',
-                  to: data.from,
-                  connectionId: data.connectionId,
-                  data: {id: data.connectionId}
+                  to: message.from,
+                  connectionId: message.connectionId,
+                  data: {id: message.connectionId}
                 });
               }
-              if (data.id && data.type !== 'channel/response') {
+              if (message.id && message.type !== 'channel/response') {
                 send({
                   domain: 'sanity/channels',
                   type: 'channel/response',
                   from: 'presentation',
-                  to: data.from,
-                  connectionId: data.connectionId,
-                  id: 'response-' + data.id,
-                  responseTo: data.id,
-                  data: {responseTo: data.id}
+                  to: message.from,
+                  connectionId: message.connectionId,
+                  id: 'response-' + message.id,
+                  responseTo: message.id,
+                  data: {responseTo: message.id}
                 });
               }
             }
