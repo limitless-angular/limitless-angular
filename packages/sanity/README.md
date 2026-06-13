@@ -29,10 +29,12 @@ npm install --save @limitless-angular/sanity
 
 ### Version Compatibility
 
-| Angular version | Package version |
-| --------------- | --------------- |
-| 18.x            | 18.x            |
-| ≥18.0.0         | 19.x            |
+| Angular | `@limitless-angular/sanity` |
+| ------- | --------------------------- |
+| 19.x    | 19.x                        |
+| 18.x    | 19.x, 18.x                  |
+
+The current 19.x package line supports Angular 18 and Angular 19.
 
 ## Quick Start
 
