@@ -50,7 +50,7 @@ export function createGitHubRelease(plan, options = {}) {
   const env = { ...process.env, ...options.env };
 
   if (!env.GITHUB_TOKEN) {
-    return false;
+    throw new Error('Missing GITHUB_TOKEN; cannot create the GitHub release.');
   }
 
   const tempDir = mkdtempSync(join(tmpdir(), 'limitless-release-'));

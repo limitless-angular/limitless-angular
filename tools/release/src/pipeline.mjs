@@ -7,6 +7,10 @@ import {
   publishTarball,
   pushRelease,
 } from './publish.mjs';
+import {
+  assertFinalPublishPreconditions,
+  assertPublishPreconditions,
+} from './preflight.mjs';
 import { applyReleasePlan, restoreReleaseFiles } from './workspace.mjs';
 
 export const releaseModes = {
@@ -78,6 +82,14 @@ export function runReleasePipeline(options = {}) {
     printReleasePlan(plan);
   }
 
+  if (mode === releaseModes.publish) {
+    assertPublishPreconditions(plan, {
+      capture: commandCapture,
+      env: options.env,
+      run: commandRun,
+    });
+  }
+
   try {
     snapshot = applyReleasePlan(plan);
 
@@ -89,6 +101,11 @@ export function runReleasePipeline(options = {}) {
     if (mode === releaseModes.publish) {
       publishSideEffectsStarted = true;
       commitRelease(plan, { run: commandRun });
+      assertFinalPublishPreconditions(plan, {
+        capture: commandCapture,
+        env: options.env,
+        run: commandRun,
+      });
       publishTarball(artifact.tarballPath, {
         npmDistTag: plan.npmDistTag,
         run: commandRun,
