@@ -292,7 +292,7 @@ jobs:
           fi
 
           changed_files="$(git diff --name-only "$base_ref" HEAD)"
-          matched_paths="$(printf '%s\n' "$changed_files" | grep -E '^(\.github/workflows/ci\.yml|angular\.json|turbo\.json|package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|tsconfig\.base\.json|eslint\.config\.js|apps/(analog-sanity-blog-example|analog-sanity-blog-studio|sanity-presentation-e2e|sanity-presentation-e2e-studio)/|packages/(analog-sanity-blog|sanity)/)' || true)"
+          matched_paths="$(printf '%s\n' "$changed_files" | grep -E '^(\.github/workflows/ci\.yml|angular\.json|turbo\.json|package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|tsconfig\.base\.json|eslint\.config\.js|apps/(sanity-presentation-e2e|sanity-presentation-e2e-preview|sanity-presentation-e2e-studio)/|packages/sanity/)' || true)"
 
           echo "Changed files since $base_ref:"
           printf '%s\n' "$changed_files"

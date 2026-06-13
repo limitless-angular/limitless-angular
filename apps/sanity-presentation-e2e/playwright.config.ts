@@ -56,7 +56,6 @@ const previewEnv = useRealProject
       VITE_SANITY_DATASET: 'presentation-smoke-dataset',
       VITE_SANITY_STUDIO_URL: studioURL,
       SANITY_API_READ_TOKEN: 'presentation-smoke-read-token',
-      SANITY_PRESENTATION_E2E_BYPASS_DRAFT: '1',
       BYPASS_TOKEN: 'presentation-smoke-bypass-token',
     };
 
