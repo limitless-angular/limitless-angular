@@ -1,0 +1,4 @@
+interface:
+  display_name: "Angular Version Support"
+  short_description: "Update this repo's Angular support matrix"
+  default_prompt: "Use $angular-version-support to add support for Angular 20."
