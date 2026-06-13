@@ -71,7 +71,7 @@ function getInsertMenuOptions(
             <button
               class="item"
               type="button"
-              (click)="select.emit(schemaType)"
+              (click)="optionSelected.emit(schemaType)"
             >
               @if (previewImageUrl(schemaType); as previewImage) {
                 <img class="preview-image" [src]="previewImage" alt="" />
@@ -207,7 +207,7 @@ function getInsertMenuOptions(
 export class VisualEditingInsertMenuComponent {
   node = input.required<SchemaUnionNode<SchemaNode>>();
 
-  select = output<SchemaUnionOption<SchemaNode>>();
+  optionSelected = output<SchemaUnionOption<SchemaNode>>();
 
   protected query = signal('');
   protected view = signal<'grid' | 'list'>('list');

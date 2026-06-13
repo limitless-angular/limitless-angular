@@ -51,7 +51,6 @@ function getNoopImageLoader() {
     },
   ],
 })
-// eslint-disable-next-line @angular-eslint/directive-class-suffix
 export class SanityImage extends NgOptimizedImage implements OnInit, OnChanges {
   private _loaderParams: LoaderParams = {};
 

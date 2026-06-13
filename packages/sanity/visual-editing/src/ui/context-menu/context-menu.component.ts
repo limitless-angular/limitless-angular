@@ -141,7 +141,7 @@ type ContextMenuState = NonNullable<OverlayState['contextMenu']>;
             <div class="submenu">
               <sanity-visual-editing-insert-menu
                 [node]="item.parent"
-                (select)="handleInsertMenuSelect($event, item)"
+                (optionSelected)="handleInsertMenuSelect($event, item)"
               />
             </div>
           </div>

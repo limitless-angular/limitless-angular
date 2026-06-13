@@ -1,5 +1,5 @@
 /* eslint-disable @angular-eslint/component-selector */
-/* eslint-disable @angular-eslint/component-class-suffix */
+
 import { Component, computed } from '@angular/core';
 import {
   PortableTextBlockComponent,

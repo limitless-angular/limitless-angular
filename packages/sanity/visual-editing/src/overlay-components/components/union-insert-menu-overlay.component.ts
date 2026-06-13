@@ -70,7 +70,7 @@ function isSchemaUnionNode(
               <div class="popover" [attr.data-position]="position">
                 <sanity-visual-editing-insert-menu
                   [node]="parent"
-                  (select)="handleSelect($event, position)"
+                  (optionSelected)="handleSelect($event, position)"
                 />
               </div>
             }
