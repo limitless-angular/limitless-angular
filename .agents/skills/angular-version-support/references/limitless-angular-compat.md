@@ -66,6 +66,38 @@ Do not stop after the helper if any TypeScript, adapter, or lockfile updates
 are still required for the workspace to install and run tests on the requested
 Angular major.
 
+## Official Angular Migrations
+
+Prefer official Angular migrations before manual code edits. Angular supports
+update automation through `ng update`, and the CLI can run code migrations as
+part of an update.
+
+Use the Angular Update Guide for the current-to-target major pair, then run the
+CLI migrations where this repo has Angular projects:
+
+```bash
+rg --files -g angular.json apps packages
+```
+
+For each Angular app root with a local CLI available, run the relevant update
+or migration command from that app directory:
+
+```bash
+pnpm exec ng update @angular/cli@^<major> @angular/core@^<major>
+```
+
+If the helper already updated package manifests and you only need code
+migrations, run migration-only commands one package at a time:
+
+```bash
+pnpm exec ng update @angular/core --migrate-only --from <from> --to <target>
+pnpm exec ng update @angular/cli --migrate-only --from <from> --to <target>
+```
+
+Review and keep the generated changes when they are relevant. Do not replace
+official migrations with manual text edits unless no applicable migration is
+available or the migration fails and the failure is understood.
+
 After the deterministic edit, search for version-specific branches and stale
 contract text:
 

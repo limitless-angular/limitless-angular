@@ -27,9 +27,11 @@ Before changing files, read
    `--library-only` only when the user explicitly asks not to update demo/e2e
    app manifests.
 3. Update the lockfile and any Angular-adjacent packages the helper calls out.
-4. Audit the project-specific compatibility files listed in the reference.
-5. Run the focused validation and workspace test commands from the reference.
-6. If general Angular coding changes are required, use `$angular-developer` after
+4. Run official Angular migrations where possible before making manual code
+   fixes.
+5. Audit the project-specific compatibility files listed in the reference.
+6. Run the focused validation and workspace test commands from the reference.
+7. If general Angular coding changes are required, use `$angular-developer` after
    the compatibility matrix has been updated.
 
 ## Rules
