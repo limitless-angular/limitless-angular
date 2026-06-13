@@ -1,4 +1,10 @@
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -10,6 +16,16 @@ const angularPeerDependencies = [
   '@angular/core',
   '@angular/router',
 ];
+const dependencyFields = ['dependencies', 'devDependencies'];
+const ignoredWorkspaceDirectories = new Set([
+  '.angular',
+  '.compat',
+  '.git',
+  '.turbo',
+  'coverage',
+  'dist',
+  'node_modules',
+]);
 const versionSetModeOrder = new Map([
   ['floor', 0],
   ['latest', 1],
@@ -34,12 +50,22 @@ function main() {
     supportedMajors.add(major);
 
     const changes = [];
-    updateJsonFile(
-      workspaceRoot,
-      sanityPackageRelativePath,
-      (packageJson) => updateSanityPeerDependencies(packageJson, supportedMajors),
-      { changes, dryRun: args.dryRun },
-    );
+    const packageJsonPaths = args.libraryOnly
+      ? [sanityPackageRelativePath]
+      : findPackageJsonFiles(workspaceRoot);
+    for (const packageJsonPath of packageJsonPaths) {
+      updateJsonFile(
+        workspaceRoot,
+        packageJsonPath,
+        (packageJson) => updateWorkspacePackageJson(
+          packageJson,
+          packageJsonPath,
+          major,
+          supportedMajors,
+        ),
+        { changes, dryRun: args.dryRun },
+      );
+    }
     updateJsonFile(
       workspaceRoot,
       compatConfigRelativePath,
@@ -47,7 +73,12 @@ function main() {
       { changes, dryRun: args.dryRun },
     );
 
-    printResult({ changes, dryRun: args.dryRun, major });
+    printResult({
+      changes,
+      dryRun: args.dryRun,
+      libraryOnly: args.libraryOnly,
+      major,
+    });
   } catch (error) {
     console.error(error instanceof Error ? error.message : String(error));
     process.exitCode = 1;
@@ -58,6 +89,7 @@ function parseArgs(argv) {
   const args = {
     dryRun: false,
     help: false,
+    libraryOnly: false,
     major: undefined,
     workspace: undefined,
   };
@@ -72,6 +104,11 @@ function parseArgs(argv) {
 
     if (value === '--help' || value === '-h') {
       args.help = true;
+      continue;
+    }
+
+    if (value === '--library-only') {
+      args.libraryOnly = true;
       continue;
     }
 
@@ -184,6 +221,92 @@ function updateSanityPeerDependencies(packageJson, supportedMajors) {
   }
 
   return packageJson;
+}
+
+function updateWorkspacePackageJson(
+  packageJson,
+  relativePath,
+  major,
+  supportedMajors,
+) {
+  if (relativePath === sanityPackageRelativePath) {
+    updateSanityPeerDependencies(packageJson, supportedMajors);
+  }
+
+  for (const field of dependencyFields) {
+    const dependencies = packageJson[field];
+    if (!dependencies || typeof dependencies !== 'object') {
+      continue;
+    }
+
+    for (const [dependency, range] of Object.entries(dependencies)) {
+      const nextRange = getWorkspaceAngularRange(dependency, range, major);
+      if (nextRange) {
+        dependencies[dependency] = nextRange;
+      }
+    }
+  }
+
+  return packageJson;
+}
+
+function getWorkspaceAngularRange(dependency, range, major) {
+  if (dependency.startsWith('@angular-devkit/')) {
+    return withExistingRangePrefix(range, `0.${major}00.0`, '~');
+  }
+
+  if (dependency.startsWith('@angular/')) {
+    return `~${major}.0.0`;
+  }
+
+  if (dependency === 'angular-eslint') {
+    return withExistingRangePrefix(range, `${major}.0.0`, '^');
+  }
+
+  if (dependency === 'ng-packagr') {
+    return withExistingRangePrefix(range, `${major}.0.0`, '~');
+  }
+
+  return undefined;
+}
+
+function withExistingRangePrefix(range, version, defaultPrefix) {
+  const prefix = String(range).trim().match(/^([~^])?\d/)?.[1];
+  if (prefix) {
+    return `${prefix}${version}`;
+  }
+
+  if (/^\d/.test(String(range).trim())) {
+    return version;
+  }
+
+  return `${defaultPrefix}${version}`;
+}
+
+function findPackageJsonFiles(workspaceRoot) {
+  const paths = [];
+  collectPackageJsonFiles(workspaceRoot, workspaceRoot, paths);
+  return paths.sort();
+}
+
+function collectPackageJsonFiles(workspaceRoot, directory, paths) {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      if (!ignoredWorkspaceDirectories.has(entry.name)) {
+        collectPackageJsonFiles(workspaceRoot, join(directory, entry.name), paths);
+      }
+      continue;
+    }
+
+    if (entry.name !== 'package.json') {
+      continue;
+    }
+
+    const path = join(directory, entry.name);
+    if (statSync(path).isFile()) {
+      paths.push(relative(workspaceRoot, path));
+    }
+  }
 }
 
 function readSupportedAngularMajors(workspaceRoot) {
@@ -304,7 +427,7 @@ function compareVersionSets(left, right) {
   return String(left.id).localeCompare(String(right.id));
 }
 
-function printResult({ changes, dryRun, major }) {
+function printResult({ changes, dryRun, libraryOnly, major }) {
   if (changes.length === 0) {
     console.log(`Angular ${major} support is already configured.`);
     return;
@@ -317,6 +440,12 @@ function printResult({ changes, dryRun, major }) {
   for (const change of changes) {
     console.log(`- ${change}`);
   }
+
+  if (!libraryOnly) {
+    console.log(
+      'Next: update TypeScript and Angular-adjacent adapter ranges as needed, run pnpm install, then run the validation commands from the skill reference.',
+    );
+  }
 }
 
 function printUsage() {
@@ -325,7 +454,7 @@ function printUsage() {
     fileURLToPath(import.meta.url),
   );
   console.log(
-    `Usage: node ${scriptPath} --major <major> [--workspace <path>] [--dry-run]`,
+    `Usage: node ${scriptPath} --major <major> [--workspace <path>] [--dry-run] [--library-only]`,
   );
 }
 

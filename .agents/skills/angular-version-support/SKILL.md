@@ -15,25 +15,36 @@ Before changing files, read
 
 1. Identify the requested Angular major from the user prompt.
    - If no target major is present, ask for the Angular major before mutating files.
-   - Treat prompts like "Angular 20", "v20", and "major 20" as target major `20`.
-2. Use the deterministic helper when the task is to add a stable Angular major:
+   - Recognize forms like "Angular <major>", "v<major>", and
+     "major <major>".
+2. Use the deterministic helper when the task is to add a stable Angular major
+   or move the workspace package manifests to that major:
 
    ```bash
    node .agents/skills/angular-version-support/scripts/add-angular-version.ts --major <major>
    ```
 
-   Use `--dry-run` before applying when the user asks for a preview.
-3. Audit the project-specific compatibility files listed in the reference.
-4. Run the focused validation commands from the reference.
-5. If general Angular coding changes are required, use `$angular-developer` after
+   Use `--dry-run` before applying when the user asks for a preview. Use
+   `--library-only` only when the user explicitly asks not to update demo/e2e
+   app manifests.
+3. Update the lockfile and any Angular-adjacent packages the helper calls out.
+4. Run official Angular migrations where possible before making manual code
+   fixes.
+5. Audit the project-specific compatibility files listed in the reference.
+6. Run the focused validation and workspace test commands from the reference.
+7. If general Angular coding changes are required, use `$angular-developer` after
    the compatibility matrix has been updated.
+8. Report target-version-specific migration failures or fixes in your final
+   output. Add them to this skill only when they describe a durable repo rule.
 
 ## Rules
 
 - Do not use Python for this skill's workflow or bundled scripts.
 - Keep bundled scripts executable with plain Node 22; do not require `tsx`,
   `ts-node`, build steps, or a custom runner.
-- Do not mass-upgrade demo app Angular dependency pins unless the user
-  explicitly asks for a workspace upgrade.
+- Update Angular package pins across workspace apps and packages by default so
+  the repo can install, build, and test against the requested Angular major.
 - Keep stable compatibility rows deterministic: one `floor` row and one
   `latest` row for every supported Angular major.
+- Keep the skill version-neutral. Do not bake in one-off findings from a single
+  target major unless they generalize across future Angular upgrades.
