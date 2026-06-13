@@ -37,7 +37,8 @@ const defaultToken = 'presentation-smoke-token';
 
 export function getPresentationSmokeConfig(): PresentationSmokeConfig {
   if (typeof window !== 'undefined') {
-    const config = (window as PresentationSmokeWindow).__presentationSmokeConfig;
+    const config = (window as PresentationSmokeWindow)
+      .__presentationSmokeConfig;
 
     if (config) {
       return config;
