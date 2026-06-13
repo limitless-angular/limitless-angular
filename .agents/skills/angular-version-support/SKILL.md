@@ -15,7 +15,8 @@ Before changing files, read
 
 1. Identify the requested Angular major from the user prompt.
    - If no target major is present, ask for the Angular major before mutating files.
-   - Treat prompts like "Angular 20", "v20", and "major 20" as target major `20`.
+   - Recognize forms like "Angular <major>", "v<major>", and
+     "major <major>".
 2. Use the deterministic helper when the task is to add a stable Angular major
    or move the workspace package manifests to that major:
 
@@ -33,6 +34,8 @@ Before changing files, read
 6. Run the focused validation and workspace test commands from the reference.
 7. If general Angular coding changes are required, use `$angular-developer` after
    the compatibility matrix has been updated.
+8. Report target-version-specific migration failures or fixes in your final
+   output. Add them to this skill only when they describe a durable repo rule.
 
 ## Rules
 
@@ -43,3 +46,5 @@ Before changing files, read
   the repo can install, build, and test against the requested Angular major.
 - Keep stable compatibility rows deterministic: one `floor` row and one
   `latest` row for every supported Angular major.
+- Keep the skill version-neutral. Do not bake in one-off findings from a single
+  target major unless they generalize across future Angular upgrades.

@@ -66,18 +66,17 @@ Do not stop after the helper if any TypeScript, adapter, or lockfile updates
 are still required for the workspace to install and run tests on the requested
 Angular major.
 
-For Angular 20 upgrades in this repo, expect these follow-ups from prior
-verification:
+For every target major, treat validation failures as evidence to inspect the
+matching Angular release notes, official migrations, and dependency peer ranges.
+Update code and toolchain packages only when the target major requires it.
+Report target-specific findings in the final output or PR notes so the next
+skill revision can decide whether they are durable enough to encode here.
 
-- `typescript-eslint` must support TypeScript 5.8+ when TypeScript moves with
-  Angular 20.
-- Code using `provideExperimentalZonelessChangeDetection` should migrate to
-  `provideZonelessChangeDetection`.
-- Do not add `@angular/animations` to `packages/sanity` only because Angular
-  platform-browser test imports expose a peer resolution failure. This package
-  should not gain new Angular framework dev dependencies unless source or tests
-  directly use them. Investigate test setup, adapters, and lockfile resolution
-  first, then report the exact failure if the fix is unclear.
+Do not add new Angular framework dependencies to `packages/sanity` only to
+satisfy transitive peer resolution. Add a framework package only when source or
+tests directly import it, or when the repo intentionally broadens its Angular
+test surface. Otherwise investigate test setup, adapters, and lockfile
+resolution first, then report the exact failure if the fix is unclear.
 
 ## Official Angular Migrations
 
