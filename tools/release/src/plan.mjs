@@ -37,8 +37,10 @@ export function createReleasePlan(options = {}) {
     );
   }
 
-  if (nextVersion === currentVersion) {
-    throw new Error(`Refusing to release unchanged version ${currentVersion}.`);
+  if (!semver.gt(nextVersion, currentVersion)) {
+    throw new Error(
+      `Refusing to release ${nextVersion}; it must be greater than the current version ${currentVersion}.`,
+    );
   }
 
   const resolvedReleaseTagPrefix = options.releaseTagPrefix ?? releaseTagPrefix;

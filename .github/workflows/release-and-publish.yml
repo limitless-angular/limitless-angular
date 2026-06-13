@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   release-and-publish:
-    if: github.repository == 'limitless-angular/limitless-angular'
+    if: github.repository == 'limitless-angular/limitless-angular' && github.ref == 'refs/heads/main'
     name: Release and Publish to npm
     runs-on: ubuntu-22.04
     permissions:

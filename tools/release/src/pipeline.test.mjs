@@ -67,6 +67,7 @@ test('publish mode validates before starting release side effects', () => {
         tarballPath: '/tmp/release.tgz',
       },
       capture: createCapture(),
+      env: { GITHUB_REF: 'refs/heads/main', GITHUB_TOKEN: 'token' },
       mode: releaseModes.publish,
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: fixture.paths,
@@ -81,16 +82,25 @@ test('publish mode validates before starting release side effects', () => {
       [command, ...args].join(' '),
     );
     const compatibilityCommandCount = compatibilityValidationSteps.length;
+    const compatibilityStart = commandIds.findIndex(
+      (command) =>
+        command ===
+        'pnpm turbo run compat:pack --filter=@limitless-angular/angular-compat',
+    );
+    assert.notEqual(compatibilityStart, -1);
 
     assert.deepEqual(
       commands
-        .slice(0, compatibilityCommandCount)
+        .slice(
+          compatibilityStart,
+          compatibilityStart + compatibilityCommandCount,
+        )
         .map(({ command, args }) => [command, args]),
       compatibilityValidationSteps.map(({ command, args }) => [command, args]),
     );
     assert.ok(
       commandIds.findIndex((command) => command.startsWith('git add ')) >
-        compatibilityCommandCount - 1,
+        compatibilityStart + compatibilityCommandCount - 1,
     );
     assert.ok(
       commandIds.findIndex((command) => command.startsWith('npm publish ')) >
@@ -125,7 +135,7 @@ test('publish mode tags npm and GitHub prereleases', () => {
         gitLog:
           'abc1234\x01feat(sanity): add release validation\x01\x01Alfonso\x02',
       }),
-      env: { GITHUB_TOKEN: 'token' },
+      env: { GITHUB_REF: 'refs/heads/main', GITHUB_TOKEN: 'token' },
       mode: releaseModes.publish,
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: fixture.paths,
@@ -176,6 +186,7 @@ test('artifact version mismatch fails before publish side effects', () => {
             tarballPath: '/tmp/release.tgz',
           },
           capture: createCapture(),
+          env: { GITHUB_REF: 'refs/heads/main', GITHUB_TOKEN: 'token' },
           mode: releaseModes.publish,
           now: new Date('2026-06-08T00:00:00.000Z'),
           paths: fixture.paths,
@@ -187,7 +198,11 @@ test('artifact version mismatch fails before publish side effects', () => {
 
     assert.equal(readPackageVersion(fixture.paths.packageJsonPath), '1.0.0');
     assert.equal(
-      commands.some(({ command }) => command === 'git' || command === 'npm'),
+      commands.some(
+        ({ command, args }) =>
+          (command === 'git' && args[0] === 'add') ||
+          (command === 'npm' && args[0] === 'publish'),
+      ),
       false,
     );
   } finally {
@@ -214,14 +229,47 @@ function createReleaseFixture() {
   };
 }
 
-function createCapture({ gitLog = '' } = {}) {
+function createCapture({ gitLog = '', npmVersions = ['1.0.0'] } = {}) {
   return (command, args) => {
-    if (command === 'git' && args[0] === 'rev-parse') {
+    if (command === 'git' && args[0] === 'status') {
       return '';
+    }
+
+    if (command === 'git' && args[0] === 'branch') {
+      return 'main';
+    }
+
+    if (
+      command === 'git' &&
+      args[0] === 'rev-parse' &&
+      args[1] === '--verify' &&
+      args[2]?.startsWith('refs/tags/')
+    ) {
+      throw new Error(`Missing tag ${args[2]}`);
+    }
+
+    if (command === 'git' && args[0] === 'rev-parse') {
+      if (args[1] === 'HEAD' || args[1] === 'origin/main') {
+        return 'main-sha';
+      }
+
+      return '';
+    }
+
+    if (command === 'git' && args[0] === 'merge-base') {
+      return 'main-sha';
     }
 
     if (command === 'git' && args[0] === 'log') {
       return gitLog;
+    }
+
+    if (command === 'git' && args[0] === 'ls-remote') {
+      throw new Error(`Missing remote tag ${args.at(-1)}`);
+    }
+
+    if (command === 'npm' && args[0] === 'view') {
+      return JSON.stringify(npmVersions);
     }
 
     throw new Error(`Unexpected command: ${command} ${args.join(' ')}`);

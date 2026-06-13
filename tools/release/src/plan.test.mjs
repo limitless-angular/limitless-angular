@@ -26,6 +26,35 @@ test('release specifier accepts semver increments and explicit versions', () => 
   );
 });
 
+test('release plan rejects explicit versions that do not move forward', () => {
+  const workspace = createReleaseFixture({ version: '1.2.3' });
+
+  try {
+    assert.throws(
+      () =>
+        createReleasePlan({
+          capture: createCapture({ gitLog: '' }),
+          now: new Date('2026-06-08T00:00:00.000Z'),
+          paths: workspace.paths,
+          versionSpecifier: '1.2.2',
+        }),
+      /must be greater than the current version 1\.2\.3/,
+    );
+    assert.throws(
+      () =>
+        createReleasePlan({
+          capture: createCapture({ gitLog: '' }),
+          now: new Date('2026-06-08T00:00:00.000Z'),
+          paths: workspace.paths,
+          versionSpecifier: '1.2.3',
+        }),
+      /must be greater than the current version 1\.2\.3/,
+    );
+  } finally {
+    workspace.cleanup();
+  }
+});
+
 test('release plan infers the next version from conventional commits', () => {
   const workspace = createReleaseFixture();
 
