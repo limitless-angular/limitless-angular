@@ -1,23 +1,13 @@
 import angular from 'angular-eslint';
+import tseslint from 'typescript-eslint';
 import baseConfig from '../../eslint.config.js';
 
-export default [
+export default tseslint.config(
   ...baseConfig,
-  ...angular.configs.tsRecommended.map((config) => ({
-    ...config,
-    files: ['**/*.ts'],
-    processor: angular.processInlineTemplates,
-  })),
-  ...angular.configs.templateRecommended.map((config) => ({
-    ...config,
-    files: ['**/*.html'],
-  })),
-  ...angular.configs.templateAccessibility.map((config) => ({
-    ...config,
-    files: ['**/*.html'],
-  })),
   {
     files: ['**/*.ts'],
+    extends: [...angular.configs.tsRecommended],
+    processor: angular.processInlineTemplates,
     rules: {
       '@angular-eslint/directive-selector': [
         'error',
@@ -33,4 +23,12 @@ export default [
       ],
     },
   },
-];
+  {
+    files: ['**/*.html'],
+    extends: [
+      ...angular.configs.templateRecommended,
+      ...angular.configs.templateAccessibility,
+    ],
+    rules: {},
+  },
+);
