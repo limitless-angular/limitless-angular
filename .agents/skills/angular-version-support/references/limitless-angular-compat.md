@@ -2,8 +2,10 @@
 
 This workspace publishes `@limitless-angular/sanity` and verifies Angular
 support through the private `@limitless-angular/angular-compat` package.
-Adding support for a stable Angular major means updating the public peer range
-and the generated-consumer compatibility matrix.
+Adding support for a stable Angular major means updating the public peer range,
+the generated-consumer compatibility matrix, and every workspace app/package
+manifest that pins Angular packages so the repo can install, build, and test on
+that major.
 
 ## Required Files
 
@@ -17,6 +19,12 @@ and the generated-consumer compatibility matrix.
   - Add `angular-<major>-latest` with `mode: "latest"`.
   - Set `buildAngularMajor` to the newest stable major represented by
     `consumerVersionSets`.
+- Workspace `package.json` files with direct Angular toolchain dependencies
+  - Update direct `@angular/*` dependency and devDependency ranges.
+  - Update direct `@angular-devkit/*` devDependency ranges.
+  - Update direct `angular-eslint` and `ng-packagr` devDependency ranges.
+  - Update demo/e2e app manifests by default; they must run with the requested
+    Angular major unless the user explicitly asks for library-only support.
 
 Use the helper for this deterministic edit:
 
@@ -24,8 +32,9 @@ Use the helper for this deterministic edit:
 node .agents/skills/angular-version-support/scripts/add-angular-version.ts --major <major>
 ```
 
-The helper also backfills missing `floor`/`latest` rows for stable Angular
-majors that are already declared by the peer range or compatibility config.
+The helper also updates workspace Angular package pins and backfills missing
+`floor`/`latest` rows for stable Angular majors that are already declared by
+the peer range or compatibility config.
 
 For a preview:
 
@@ -33,7 +42,29 @@ For a preview:
 node .agents/skills/angular-version-support/scripts/add-angular-version.ts --major <major> --dry-run
 ```
 
+For explicit library-only support without demo/e2e app manifest upgrades:
+
+```bash
+node .agents/skills/angular-version-support/scripts/add-angular-version.ts --major <major> --library-only
+```
+
 ## Required Audit
+
+After the helper runs, update packages that require registry-specific
+compatibility decisions:
+
+- `typescript`: resolve the version range required by
+  `@angular/compiler-cli@<major>` and update all workspace manifests that pin
+  TypeScript.
+- Angular-adjacent adapters such as `@analogjs/vite-plugin-angular`,
+  `@analogjs/vitest-angular`, and `@testing-library/angular`: inspect current
+  peer compatibility and update when the requested Angular major requires it.
+- `pnpm-lock.yaml`: run `pnpm install` after package manifest edits so the
+  lockfile matches the workspace upgrade.
+
+Do not stop after the helper if any TypeScript, adapter, or lockfile updates
+are still required for the workspace to install and run tests on the requested
+Angular major.
 
 After the deterministic edit, search for version-specific branches and stale
 contract text:
@@ -59,21 +90,18 @@ Treat these as compatibility contract surfaces:
 Do not change these files only because a new major was added. Change them when
 tests reveal a contract drift or when the user asks to update the orchestration.
 
-## Demo App Pins
-
-The demo and e2e Angular apps currently pin their own Angular toolchains. Do
-not upgrade those app dependencies as part of "add Angular support" unless the
-user asks for a workspace or example-app upgrade. The compatibility harness
-builds and tests generated consumers separately from the demo apps.
-
 ## Validation
 
-Run focused validation after updating the support matrix:
+Run focused validation after updating the support matrix and workspace package
+manifests:
 
 ```bash
+pnpm install
 node --test tools/angular-compat/*.test.mjs
 pnpm run compat:assert
 pnpm run compat:matrix
+pnpm run build
+pnpm run test
 ```
 
 For real support changes, also run:
