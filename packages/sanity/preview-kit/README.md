@@ -190,26 +190,6 @@ This pattern ensures that:
 5. The preview component handles real-time updates through `createLiveData`
 6. Type safety is maintained through the `LoadResult` interface
 
-## Configuration
-
-### Live Preview Refresh Interval
-
-Preview Kit v6 uses the Sanity Live Content API and no longer polls. The `refreshInterval` option and `LIVE_PREVIEW_REFRESH_INTERVAL` token are deprecated no-ops kept for compatibility with existing Angular applications.
-
-```typescript
-import { provideSanity, withLivePreview } from '@limitless-angular/sanity';
-
-@NgModule({
-  providers: [
-    provideSanity(
-      yourSanityFactory,
-      withLivePreview({ refreshInterval: 5000 }), // Deprecated no-op
-    ),
-  ],
-})
-export class AppModule {}
-```
-
 ## API Reference
 
 ### LiveQueryProviderComponent

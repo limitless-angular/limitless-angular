@@ -18,7 +18,6 @@ import { createDataAttribute } from '@limitless-angular/sanity/visual-editing';
 
 import {
   createLiveData,
-  LIVE_PREVIEW_REFRESH_INTERVAL,
   LiveQueryProviderComponent,
 } from '@limitless-angular/sanity/preview-kit';
 import {
@@ -196,7 +195,6 @@ export class PresentationSmokeContentComponent {
   providers: [
     { provide: SANITY_CLIENT_FACTORY, useValue: getSmokeClient },
     { provide: SANITY_CONFIG, useValue: clientConfig },
-    { provide: LIVE_PREVIEW_REFRESH_INTERVAL, useValue: 50 },
   ],
   template: `
     <live-query-provider token="presentation-smoke-token">

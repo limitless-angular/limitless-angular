@@ -16,7 +16,6 @@ import { EMPTY, Observable } from 'rxjs';
 
 import {
   createLiveData,
-  LIVE_PREVIEW_REFRESH_INTERVAL,
   LiveQueryProviderComponent,
 } from '@limitless-angular/sanity/preview-kit';
 import {
@@ -238,11 +237,15 @@ export class PresentationSmokeContentComponent {
     PresentationSmokeContentComponent,
     VisualEditingComponent,
   ],
-  templateUrl: './presentation-smoke.component.html',
+  template: `
+    <live-query-provider [token]="config.token">
+      <app-presentation-smoke-content [config]="config" />
+    </live-query-provider>
+    <visual-editing />
+  `,
   providers: [
     { provide: SANITY_CLIENT_FACTORY, useValue: getSmokeClient },
     { provide: SANITY_CONFIG, useFactory: getPresentationSmokeClientConfig },
-    { provide: LIVE_PREVIEW_REFRESH_INTERVAL, useValue: 50 },
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
