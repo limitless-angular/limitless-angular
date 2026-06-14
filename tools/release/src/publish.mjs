@@ -11,6 +11,14 @@ import {
   npmRegistry,
   npmVersionExists,
 } from './state.mjs';
+import { retry } from './retry.mjs';
+
+const npmPublishVerificationRetry = {
+  attempts: 6,
+  delayMs: 5_000,
+  factor: 2,
+  maxDelayMs: 30_000,
+};
 
 export function ensureReleaseTag(plan, options = {}) {
   const commandCapture = options.capture ?? defaultCapture;
@@ -57,9 +65,14 @@ export function ensureReleaseTag(plan, options = {}) {
 export function publishTarball(plan, tarballPath, options = {}) {
   const commandCapture = options.capture ?? defaultCapture;
   const commandRun = options.run ?? defaultRun;
+  const retryOptions =
+    options.npmPublishVerificationRetry ?? npmPublishVerificationRetry;
 
   if (npmVersionExists(plan, { capture: commandCapture })) {
-    assertNpmDistTag(plan, { capture: commandCapture });
+    waitForNpmPublishedState(plan, {
+      capture: commandCapture,
+      retryOptions,
+    });
     console.log(
       `Skipping npm publish because ${plan.packageName}@${plan.nextVersion} already exists.`,
     );
@@ -81,14 +94,23 @@ export function publishTarball(plan, tarballPath, options = {}) {
 
   commandRun('npm', args);
 
-  if (!npmVersionExists(plan, { capture: commandCapture })) {
-    throw new Error(
-      `Published ${plan.packageName}@${plan.nextVersion}, but npm did not return that version.`,
-    );
-  }
-
-  assertNpmDistTag(plan, { capture: commandCapture });
+  waitForNpmPublishedState(plan, {
+    capture: commandCapture,
+    retryOptions,
+  });
   return true;
+}
+
+function waitForNpmPublishedState(plan, { capture, retryOptions }) {
+  retry(() => {
+    if (!npmVersionExists(plan, { capture })) {
+      throw new Error(
+        `Published ${plan.packageName}@${plan.nextVersion}, but npm did not return that version.`,
+      );
+    }
+
+    assertNpmDistTag(plan, { capture });
+  }, retryOptions);
 }
 
 export function createGitHubRelease(plan, options = {}) {
