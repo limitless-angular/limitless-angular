@@ -279,9 +279,15 @@ import {
   type PortableTextComponents,
   toPlainText,
 } from '@limitless-angular/sanity/portabletext';
+import { LiveQueryProviderComponent } from '@limitless-angular/sanity/preview-kit';
 import {
   VisualEditingComponent,
   VisualEditingInsertMenuComponent,
+  VisualEditingPointerEventsComponent,
+  VisualEditingUnionInsertMenuOverlayComponent,
+  type ElementNode,
+  type OverlayElementParent,
+  type SanityNode,
   type SchemaNode,
   type SchemaUnionNode,
 } from '@limitless-angular/sanity/visual-editing';
@@ -307,8 +313,11 @@ const sanityConfig = {
   imports: [
     PortableTextComponent,
     SanityImage,
+    LiveQueryProviderComponent,
     VisualEditingComponent,
     VisualEditingInsertMenuComponent,
+    VisualEditingPointerEventsComponent,
+    VisualEditingUnionInsertMenuOverlayComponent,
   ],
   template: \`
     <p data-testid="compat-marker">{{ plainText }}</p>
@@ -328,8 +337,15 @@ const sanityConfig = {
       priority
     />
     <ng-template>
+      <live-query-provider />
       <visual-editing />
       <sanity-visual-editing-insert-menu [node]="insertMenuNode" />
+      <sanity-visual-editing-pointer-events />
+      <sanity-visual-editing-union-insert-menu-overlay
+        [element]="overlayElement"
+        [node]="overlayNode"
+        [parent]="overlayParent"
+      />
     </ng-template>
   \`,
 })
@@ -338,6 +354,9 @@ class AppComponent {
   protected readonly components: Partial<PortableTextComponents> = {};
   protected readonly image = 'image-abc123-120x80-png';
   protected readonly insertMenuNode = {} as SchemaUnionNode<SchemaNode>;
+  protected readonly overlayElement = {} as ElementNode;
+  protected readonly overlayNode = {} as SanityNode;
+  protected readonly overlayParent = this.insertMenuNode as OverlayElementParent;
   protected readonly plainText = toPlainText(blocks);
 }
 
