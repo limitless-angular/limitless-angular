@@ -372,10 +372,6 @@ export function resolveAngularToolchain(versionSetOrMajor, options = {}) {
     `@angular/compiler-cli@${compilerCliVersion}`,
     'peerDependencies',
   );
-  const corePeers = resolverOptions.resolveNpmJson(
-    `@angular/core@${angularVersion}`,
-    'peerDependencies',
-  );
   const angularBuildVersion = options.includeCli
     ? resolveAngularPackageVersion(
         '@angular/build',
@@ -424,9 +420,6 @@ export function resolveAngularToolchain(versionSetOrMajor, options = {}) {
     typescriptRange,
     resolverOptions,
   );
-  const zoneVersion = corePeers['zone.js']
-    ? resolveLatestSatisfying('zone.js', corePeers['zone.js'], resolverOptions)
-    : undefined;
 
   return {
     id: versionSet.id,
@@ -438,7 +431,6 @@ export function resolveAngularToolchain(versionSetOrMajor, options = {}) {
     cliVersion,
     ngPackagrVersion,
     typescriptVersion,
-    zoneVersion,
   };
 }
 

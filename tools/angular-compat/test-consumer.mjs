@@ -101,7 +101,6 @@ function writeConsumerProject(
     '@sanity/image-url': packageJson.peerDependencies['@sanity/image-url'],
     rxjs: packageJson.peerDependencies.rxjs,
     tslib: packageJson.dependencies.tslib,
-    'zone.js': toolchain.zoneVersion,
   };
 
   writePnpmWorkspaceConfig(workspace, ['.']);
@@ -150,7 +149,7 @@ function writeConsumerProject(
               outputPath: `dist/${packageName}`,
               index: 'src/index.html',
               browser: 'src/main.ts',
-              polyfills: ['zone.js'],
+              polyfills: [],
               tsConfig: 'tsconfig.app.json',
               inlineStyleLanguage: 'css',
               assets: [],
@@ -193,6 +192,7 @@ function writeConsumerProject(
       enableI18nLegacyMessageIdFormat: false,
       strictInjectionParameters: true,
       strictInputAccessModifiers: true,
+      typeCheckHostBindings: true,
       strictTemplates: true,
     },
   });
@@ -227,7 +227,7 @@ function writeConsumerProject(
   writeFileSync(join(workspace, 'src/styles.css'), '');
   writeFileSync(join(workspace, 'src/entrypoints.ts'), entrypointsSource());
   writeFileSync(join(workspace, 'src/api-types.ts'), apiTypesSource());
-  writeFileSync(join(workspace, 'src/main.ts'), consumerMainSource());
+  writeFileSync(join(workspace, 'src/main.ts'), consumerMainSource(toolchain));
   writeFileSync(
     join(workspace, 'runtime-server.mjs'),
     runtimeServerSource(packageName, runtimePort),
@@ -254,8 +254,22 @@ function entrypointsSource() {
     .join('\n');
 }
 
-function consumerMainSource() {
-  return `import { Component } from '@angular/core';
+function consumerMainSource(toolchain) {
+  const zonelessProvider =
+    toolchain.angularMajor >= 20
+      ? 'provideZonelessChangeDetection'
+      : 'provideExperimentalZonelessChangeDetection';
+  const coreImports = ['Component', zonelessProvider];
+  const browserGlobalErrorProvider =
+    toolchain.angularMajor >= 20
+      ? '\n    provideBrowserGlobalErrorListeners(),'
+      : '';
+
+  if (toolchain.angularMajor >= 20) {
+    coreImports.push('provideBrowserGlobalErrorListeners');
+  }
+
+  return `import { ${coreImports.join(', ')} } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 
 import { provideSanity } from '@limitless-angular/sanity';
@@ -313,6 +327,7 @@ class AppComponent {
 
 bootstrapApplication(AppComponent, {
   providers: [
+    ${zonelessProvider}(),${browserGlobalErrorProvider}
     provideSanity(sanityConfig),
     provideSanityLoader(sanityConfig),
   ],

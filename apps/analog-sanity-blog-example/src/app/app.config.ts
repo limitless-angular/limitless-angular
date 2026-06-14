@@ -1,5 +1,6 @@
 import {
   type ApplicationConfig,
+  provideBrowserGlobalErrorListeners,
   provideEnvironmentInitializer,
   provideZonelessChangeDetection,
 } from '@angular/core';
@@ -19,6 +20,7 @@ import { updateMetaTagsOnRouteChange } from './utils/meta-tags';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZonelessChangeDetection(),
+    provideBrowserGlobalErrorListeners(),
     provideFileRouter(
       withComponentInputBinding(),
       withNavigationErrorHandler(console.error),

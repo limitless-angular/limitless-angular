@@ -46,16 +46,12 @@ test('canary toolchain allows framework and CLI next tags to move independently'
     '@angular/compiler-cli@22.1.0-next.0 peerDependencies': {
       typescript: '>=6.0 <6.2',
     },
-    '@angular/core@22.1.0-next.0 peerDependencies': {
-      'zone.js': '^0.16.0',
-    },
     '@angular/build@next version': '22.0.0',
     '@angular/build@22.0.0 peerDependencies': {
       typescript: '>=6.0 <6.1',
     },
     '@angular/cli@next version': '22.0.0',
     'typescript versions': ['6.0.0', '6.0.1', '6.1.0'],
-    'zone.js versions': ['0.15.0', '0.16.0'],
   });
 
   const toolchain = resolveAngularToolchain(
@@ -68,7 +64,6 @@ test('canary toolchain allows framework and CLI next tags to move independently'
   assert.equal(toolchain.angularBuildVersion, '22.0.0');
   assert.equal(toolchain.cliVersion, '22.0.0');
   assert.equal(toolchain.typescriptVersion, '6.0.1');
-  assert.equal(toolchain.zoneVersion, '0.16.0');
   assert.equal(
     calls.some(({ spec }) => spec === '@angular/build@22.1.0-next.0'),
     false,

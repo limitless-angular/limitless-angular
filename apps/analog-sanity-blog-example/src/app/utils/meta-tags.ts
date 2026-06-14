@@ -43,7 +43,6 @@ export function updateMetaTagsOnRouteChange(): void {
   router.events
     .pipe(filter((event) => event instanceof NavigationEnd))
     .subscribe(async () => {
-      // For some reason setTitle and updateTag doesn't work with zone.js activated
       const snapshot = router.routerState.snapshot;
       const metaTagMap = await getMetaTagMap(snapshot.root, snapshot);
       for (const metaTagSelector in metaTagMap) {
