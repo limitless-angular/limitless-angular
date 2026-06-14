@@ -279,6 +279,12 @@ import {
   type PortableTextComponents,
   toPlainText,
 } from '@limitless-angular/sanity/portabletext';
+import {
+  VisualEditingComponent,
+  VisualEditingInsertMenuComponent,
+  type SchemaNode,
+  type SchemaUnionNode,
+} from '@limitless-angular/sanity/visual-editing';
 
 const blocks = [
   {
@@ -298,7 +304,12 @@ const sanityConfig = {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [PortableTextComponent, SanityImage],
+  imports: [
+    PortableTextComponent,
+    SanityImage,
+    VisualEditingComponent,
+    VisualEditingInsertMenuComponent,
+  ],
   template: \`
     <p data-testid="compat-marker">{{ plainText }}</p>
     <article
@@ -316,12 +327,17 @@ const sanityConfig = {
       [sanityImage]="image"
       priority
     />
+    <ng-template>
+      <visual-editing />
+      <sanity-visual-editing-insert-menu [node]="insertMenuNode" />
+    </ng-template>
   \`,
 })
 class AppComponent {
   protected readonly blocks = blocks;
   protected readonly components: Partial<PortableTextComponents> = {};
   protected readonly image = 'image-abc123-120x80-png';
+  protected readonly insertMenuNode = {} as SchemaUnionNode<SchemaNode>;
   protected readonly plainText = toPlainText(blocks);
 }
 
