@@ -11,6 +11,7 @@
     "compat:canary-status": "node cli.mjs canary-status",
     "compat:matrix": "node cli.mjs matrix",
     "compat:pack": "node cli.mjs pack",
+    "compat:prepare-publish": "node cli.mjs prepare-publish",
     "compat:pipeline": "node cli.mjs run",
     "compat:release-parity": "node cli.mjs release-parity",
     "compat:test": "node cli.mjs test",

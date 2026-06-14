@@ -13,6 +13,7 @@ import {
   ensureCleanDir,
   findTarballs,
   plannedPackageVersionEnv,
+  preparePublishablePackage,
   readJson,
   resolveAngularToolchain,
   run,
@@ -66,13 +67,9 @@ export function packCompatibilityArtifact() {
     run('pnpm', ['run', 'build'], { cwd: packageRoot });
 
     const distPackageRoot = join(workspace, 'dist/packages/sanity');
-    const distPackageJsonPath = join(distPackageRoot, 'package.json');
-    const distPackageJson = readJson(distPackageJsonPath);
-    if (plannedPackageVersion) {
-      distPackageJson.version = plannedPackageVersion;
-    }
-    delete distPackageJson.private;
-    writeJson(distPackageJsonPath, distPackageJson);
+    preparePublishablePackage(distPackageRoot, {
+      version: plannedPackageVersion,
+    });
 
     run('pnpm', ['pack', '--pack-destination', artifactDir], {
       cwd: distPackageRoot,

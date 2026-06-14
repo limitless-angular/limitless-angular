@@ -57,6 +57,7 @@ const packageScriptContract = {
   'compat:canary-status': 'node cli.mjs canary-status',
   'compat:matrix': 'node cli.mjs matrix',
   'compat:pack': 'node cli.mjs pack',
+  'compat:prepare-publish': 'node cli.mjs prepare-publish',
   'compat:pipeline': 'node cli.mjs run',
   'compat:release-parity': 'node cli.mjs release-parity',
   'compat:test': 'node cli.mjs test',
@@ -187,6 +188,20 @@ test('CI workflow follows the compat orchestration contract', () => {
 
   assert.doesNotMatch(workflow, /pnpm run compat:/);
   assert.doesNotMatch(workflow, /turbo run compat:matrix/);
+});
+
+test('autofix workflow prepares built packages before preview publishing', () => {
+  const workflow = readWorkspaceText('.github/workflows/autofix.yml');
+
+  assertIncludes(workflow, [
+    "pnpm --filter=@limitless-angular/angular-compat run --silent compat:prepare-publish -- --package-root './dist/packages/sanity'",
+    "pnpx pkg-pr-new publish --compact './dist/packages/sanity'",
+  ]);
+  assert.match(
+    workflow,
+    /compat:prepare-publish[\s\S]+pkg-pr-new publish/,
+    'autofix must strip source-only private metadata before pkg-pr-new reads dist/package.json',
+  );
 });
 
 test('release workflows delegate to the release tools package', () => {

@@ -10,6 +10,7 @@ import { printCanaryReport } from './canary-report.mjs';
 import { writeCanaryStatus } from './canary-status.mjs';
 import { printSanityCompatEligibility } from './eligibility.mjs';
 import { packCompatibilityArtifact } from './pack.mjs';
+import { preparePublish } from './prepare-publish.mjs';
 import { printConsumerMatrix } from './print-consumer-majors.mjs';
 import { runCompatibilityPipeline } from './run.mjs';
 import { testConsumers } from './test-consumer.mjs';
@@ -159,6 +160,25 @@ export function runCli(args = hideBin(process.argv)) {
       'Build and pack the compatibility-tested library artifact.',
       (command) => command,
       () => packCompatibilityArtifact(),
+    )
+    .command(
+      'prepare-publish',
+      'Prepare a built package manifest for preview or release publishing.',
+      (command) =>
+        command
+          .option('package-root', {
+            describe: 'Built package directory containing package.json.',
+            type: 'string',
+          })
+          .option('package-version', {
+            describe: 'Optional semver version to write before publishing.',
+            type: 'string',
+          }),
+      (argv) =>
+        preparePublish({
+          packageRoot: argv.packageRoot,
+          version: argv.packageVersion,
+        }),
     )
     .command(
       'release-parity',

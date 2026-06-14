@@ -41,6 +41,7 @@ export const config = readJson(configPath);
 export const packageRoot = resolve(workspaceRoot, config.packageRoot);
 export const packageJsonPath = join(packageRoot, 'package.json');
 export const artifactDir = resolve(workspaceRoot, config.artifactDir);
+export const distPackageRoot = resolve(workspaceRoot, 'dist/packages/sanity');
 export const plannedPackageVersionEnv = 'LIMITLESS_RELEASE_VERSION';
 
 export function readJson(path) {
@@ -158,6 +159,26 @@ export function writePnpmWorkspaceConfig(targetRoot, packages) {
 
 export function readPackageJson() {
   return readJson(packageJsonPath);
+}
+
+export function preparePublishablePackage(packageRoot, options = {}) {
+  const packageJsonPath = join(packageRoot, 'package.json');
+  const packageJson = readJson(packageJsonPath);
+
+  if (options.version) {
+    if (!semver.valid(options.version)) {
+      throw new Error(
+        `Publishable package version must be valid semver, found ${options.version}.`,
+      );
+    }
+
+    packageJson.version = options.version;
+  }
+
+  delete packageJson.private;
+  writeJson(packageJsonPath, packageJson);
+
+  return packageJson;
 }
 
 export function getSupportedAngularMajors(peerRange) {
