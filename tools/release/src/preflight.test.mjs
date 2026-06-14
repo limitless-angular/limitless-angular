@@ -14,12 +14,22 @@ const plan = {
   releaseTag: 'sanity@1.1.0',
 };
 
+const trustedPublishingEnv = {
+  ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'github-oidc-token',
+  ACTIONS_ID_TOKEN_REQUEST_URL: 'https://actions.example/id-token',
+  GITHUB_REF: 'refs/heads/main',
+  GITHUB_TOKEN: 'token',
+};
+
 test('publish preflight rejects non-main GitHub refs', () => {
   assert.throws(
     () =>
       assertPublishPreconditions(plan, {
         capture: createCapture(),
-        env: { GITHUB_REF: 'refs/heads/release-test', GITHUB_TOKEN: 'token' },
+        env: {
+          ...trustedPublishingEnv,
+          GITHUB_REF: 'refs/heads/release-test',
+        },
         run: recordRun(),
       }),
     /expected refs\/heads\/main/,
@@ -31,10 +41,25 @@ test('publish preflight rejects missing GitHub release tokens', () => {
     () =>
       assertPublishPreconditions(plan, {
         capture: createCapture(),
-        env: { GITHUB_REF: 'refs/heads/main', GITHUB_TOKEN: '' },
+        env: { ...trustedPublishingEnv, GITHUB_TOKEN: '' },
         run: recordRun(),
       }),
     /without GITHUB_TOKEN/,
+  );
+});
+
+test('publish preflight rejects missing GitHub Actions OIDC request variables', () => {
+  assert.throws(
+    () =>
+      assertPublishPreconditions(plan, {
+        capture: createCapture(),
+        env: {
+          ...trustedPublishingEnv,
+          ACTIONS_ID_TOKEN_REQUEST_TOKEN: '',
+        },
+        run: recordRun(),
+      }),
+    /without GitHub Actions OIDC request environment variables/,
   );
 });
 
@@ -43,7 +68,7 @@ test('publish preflight rejects dirty worktrees', () => {
     () =>
       assertPublishPreconditions(plan, {
         capture: createCapture({ status: ' M packages/sanity/package.json\n' }),
-        env: { GITHUB_REF: 'refs/heads/main', GITHUB_TOKEN: 'token' },
+        env: trustedPublishingEnv,
         run: recordRun(),
       }),
     /uncommitted workspace changes/,
@@ -61,7 +86,7 @@ test('publish preflight rejects repository URLs that cannot satisfy npm trust', 
         },
         {
           capture: createCapture(),
-          env: { GITHUB_REF: 'refs/heads/main', GITHUB_TOKEN: 'token' },
+          env: trustedPublishingEnv,
           run: recordRun(),
         },
       ),
@@ -74,7 +99,7 @@ test('publish preflight rejects already-published npm versions', () => {
     () =>
       assertPublishPreconditions(plan, {
         capture: createCapture({ npmVersions: ['1.0.0', '1.1.0'] }),
-        env: { GITHUB_REF: 'refs/heads/main', GITHUB_TOKEN: 'token' },
+        env: trustedPublishingEnv,
         run: recordRun(),
       }),
     /already exists on npm/,
@@ -89,7 +114,7 @@ test('final publish preflight rejects a moved release branch', () => {
           mergeBase: 'old-main-sha',
           remoteHead: 'new-main-sha',
         }),
-        env: { GITHUB_REF: 'refs/heads/main', GITHUB_TOKEN: 'token' },
+        env: trustedPublishingEnv,
         run: recordRun(),
       }),
     /origin\/main moved after validation/,

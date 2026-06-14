@@ -3,7 +3,13 @@
   "extends": ["//"],
   "tasks": {
     "release": {
-      "cache": false
+      "cache": false,
+      "passThroughEnv": [
+        "ACTIONS_ID_TOKEN_REQUEST_*",
+        "GITHUB_*",
+        "NPM_CONFIG_PROVENANCE",
+        "RELEASE_BRANCH"
+      ]
     },
     "release:dry-run": {
       "cache": false
@@ -12,7 +18,13 @@
       "cache": false
     },
     "release:publish": {
-      "cache": false
+      "cache": false,
+      "passThroughEnv": [
+        "ACTIONS_ID_TOKEN_REQUEST_*",
+        "GITHUB_*",
+        "NPM_CONFIG_PROVENANCE",
+        "RELEASE_BRANCH"
+      ]
     }
   }
 }

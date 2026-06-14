@@ -11,6 +11,7 @@ export function assertPublishPreconditions(plan, options = {}) {
   const releaseBranch = getReleaseBranch(env, options);
 
   assertGitHubReleaseToken(env);
+  assertGitHubOidcRequest(env);
   assertReleaseRef({ capture: commandCapture, env, releaseBranch });
   assertTrustedPublishingRepository(plan);
   assertCleanWorktree(commandCapture);
@@ -41,6 +42,17 @@ function assertGitHubReleaseToken(env) {
   if (!env.GITHUB_TOKEN) {
     throw new Error(
       'Refusing to publish without GITHUB_TOKEN; publish mode must be able to create the GitHub release.',
+    );
+  }
+}
+
+function assertGitHubOidcRequest(env) {
+  if (
+    !env.ACTIONS_ID_TOKEN_REQUEST_URL ||
+    !env.ACTIONS_ID_TOKEN_REQUEST_TOKEN
+  ) {
+    throw new Error(
+      'Refusing to publish without GitHub Actions OIDC request environment variables; verify id-token: write and the release:publish Turbo passThroughEnv configuration.',
     );
   }
 }

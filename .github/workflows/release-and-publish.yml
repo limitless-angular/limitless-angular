@@ -60,8 +60,14 @@ jobs:
       - name: Verify environment
         run: |
           echo "Node version: $(node -v)"
+          echo "npm version: $(npm -v)"
           echo "pnpm version: $(pnpm -v)"
           echo "Workspace directory: $(pwd)"
+          if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ] || [ -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ]; then
+            echo "::error::GitHub Actions OIDC request environment is missing; verify permissions.id-token: write."
+            exit 1
+          fi
+          echo "GitHub Actions OIDC request environment: available"
 
       - name: Configure release paths
         run: echo "RELEASE_PLAN_PATH=$RUNNER_TEMP/release-plan.json" >> "$GITHUB_ENV"

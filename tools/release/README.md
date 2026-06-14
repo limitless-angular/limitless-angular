@@ -78,4 +78,8 @@ The npm package must trust the GitHub Actions publisher for
 environment `npm-release`; the publish job uses npm trusted publishing instead
 of a long-lived npm token. The package `repository.url` must exactly match
 `https://github.com/limitless-angular/limitless-angular` so npm can match the
-OIDC publisher to the package metadata.
+OIDC publisher to the package metadata. Because the publish-capable release
+tasks run through Turborepo strict environment mode, their task configuration
+must pass through `ACTIONS_ID_TOKEN_REQUEST_*`, `GITHUB_*`, and
+`NPM_CONFIG_PROVENANCE` so npm can exchange the GitHub OIDC request for trusted
+publish authorization.
