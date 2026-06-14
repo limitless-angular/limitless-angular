@@ -245,14 +245,24 @@ test('release-only Turbo task settings are scoped to the release package', () =>
     'root turbo.json should keep shared tasks only',
   );
 
-  for (const task of [
-    'release',
-    'release:dry-run',
-    'release:plan',
-    'release:publish',
-  ]) {
+  for (const task of ['release:dry-run', 'release:plan']) {
     assert.deepEqual(releaseTurbo.tasks[task], { cache: false });
   }
+  const trustedPublishTaskConfig = {
+    cache: false,
+    passThroughEnv: [
+      'ACTIONS_ID_TOKEN_REQUEST_*',
+      'GITHUB_*',
+      'NPM_CONFIG_PROVENANCE',
+      'RELEASE_BRANCH',
+    ],
+  };
+
+  assert.deepEqual(releaseTurbo.tasks.release, trustedPublishTaskConfig);
+  assert.deepEqual(
+    releaseTurbo.tasks['release:publish'],
+    trustedPublishTaskConfig,
+  );
 });
 
 function readWorkspaceJson(path) {

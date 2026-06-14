@@ -10,6 +10,13 @@ import {
   runReleasePipeline,
 } from './pipeline.mjs';
 
+const trustedPublishingEnv = {
+  ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'github-oidc-token',
+  ACTIONS_ID_TOKEN_REQUEST_URL: 'https://actions.example/id-token',
+  GITHUB_REF: 'refs/heads/main',
+  GITHUB_TOKEN: 'token',
+};
+
 test('dry-run validates the planned artifact version and restores release files', () => {
   const fixture = createReleaseFixture();
   const commands = [];
@@ -67,7 +74,7 @@ test('publish mode validates before starting release side effects', () => {
         tarballPath: '/tmp/release.tgz',
       },
       capture: createCapture(),
-      env: { GITHUB_REF: 'refs/heads/main', GITHUB_TOKEN: 'token' },
+      env: trustedPublishingEnv,
       mode: releaseModes.publish,
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: fixture.paths,
@@ -135,7 +142,7 @@ test('publish mode tags npm and GitHub prereleases', () => {
         gitLog:
           'abc1234\x01feat(sanity): add release validation\x01\x01Alfonso\x02',
       }),
-      env: { GITHUB_REF: 'refs/heads/main', GITHUB_TOKEN: 'token' },
+      env: trustedPublishingEnv,
       mode: releaseModes.publish,
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: fixture.paths,
@@ -186,7 +193,7 @@ test('artifact version mismatch fails before publish side effects', () => {
             tarballPath: '/tmp/release.tgz',
           },
           capture: createCapture(),
-          env: { GITHUB_REF: 'refs/heads/main', GITHUB_TOKEN: 'token' },
+          env: trustedPublishingEnv,
           mode: releaseModes.publish,
           now: new Date('2026-06-08T00:00:00.000Z'),
           paths: fixture.paths,
