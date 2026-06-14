@@ -94,7 +94,7 @@ test('publish preflight rejects repository URLs that cannot satisfy npm trust', 
   );
 });
 
-test('publish preflight rejects already-published npm versions', () => {
+test('publish preflight rejects already-published npm versions without GitHub tags', () => {
   assert.throws(
     () =>
       assertPublishPreconditions(plan, {
@@ -103,6 +103,31 @@ test('publish preflight rejects already-published npm versions', () => {
         run: recordRun(),
       }),
     /already exists on npm/,
+  );
+});
+
+test('publish preflight allows already-published npm versions with matching GitHub tags', () => {
+  assert.doesNotThrow(() =>
+    assertPublishPreconditions(plan, {
+      capture: createCapture({
+        npmVersions: ['1.0.0', '1.1.0'],
+        remoteTagTarget: 'main-sha',
+      }),
+      env: trustedPublishingEnv,
+      run: recordRun(),
+    }),
+  );
+});
+
+test('publish preflight rejects release tags that point elsewhere', () => {
+  assert.throws(
+    () =>
+      assertPublishPreconditions(plan, {
+        capture: createCapture({ remoteTagTarget: 'other-sha' }),
+        env: trustedPublishingEnv,
+        run: recordRun(),
+      }),
+    /remote tag sanity@1\.1\.0 points to other-sha/,
   );
 });
 
@@ -126,6 +151,7 @@ function createCapture({
   mergeBase = 'main-sha',
   npmVersions = ['1.0.0'],
   remoteHead = 'main-sha',
+  remoteTagTarget = null,
   status = '',
 } = {}) {
   return (command, args) => {
@@ -152,9 +178,9 @@ function createCapture({
     if (
       command === 'git' &&
       args[0] === 'rev-parse' &&
-      args[1] === '--verify'
+      args[1] === `${plan.releaseTag}^{}`
     ) {
-      throw new Error(`Missing local tag ${args[2]}`);
+      throw new Error(`Missing local tag ${args[1]}`);
     }
 
     if (command === 'git' && args[0] === 'merge-base') {
@@ -162,6 +188,10 @@ function createCapture({
     }
 
     if (command === 'git' && args[0] === 'ls-remote') {
+      if (remoteTagTarget) {
+        return `${remoteTagTarget}\t${args.at(-1)}`;
+      }
+
       throw new Error(`Missing remote tag ${args.at(-1)}`);
     }
 

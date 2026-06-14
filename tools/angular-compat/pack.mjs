@@ -1,5 +1,7 @@
 import { join } from 'node:path';
 
+import semver from 'semver';
+
 import {
   artifactDir,
   assertTarballIntegrity,
@@ -10,6 +12,8 @@ import {
   createWorkspace,
   ensureCleanDir,
   findTarballs,
+  plannedPackageVersionEnv,
+  preparePublishablePackage,
   readJson,
   resolveAngularToolchain,
   run,
@@ -23,6 +27,7 @@ export function packCompatibilityArtifact() {
     includeNgPackagr: true,
   });
   const workspace = createWorkspace('limitless-angular-compat-build-');
+  const plannedPackageVersion = getPlannedPackageVersion();
 
   try {
     ensureCleanDir(artifactDir);
@@ -34,6 +39,10 @@ export function packCompatibilityArtifact() {
     ]);
     const packageJsonPath = join(packageRoot, 'package.json');
     const packageJson = readJson(packageJsonPath);
+
+    if (plannedPackageVersion) {
+      packageJson.version = plannedPackageVersion;
+    }
 
     packageJson.private = true;
     packageJson.devDependencies = {
@@ -58,10 +67,9 @@ export function packCompatibilityArtifact() {
     run('pnpm', ['run', 'build'], { cwd: packageRoot });
 
     const distPackageRoot = join(workspace, 'dist/packages/sanity');
-    const distPackageJsonPath = join(distPackageRoot, 'package.json');
-    const distPackageJson = readJson(distPackageJsonPath);
-    delete distPackageJson.private;
-    writeJson(distPackageJsonPath, distPackageJson);
+    preparePublishablePackage(distPackageRoot, {
+      version: plannedPackageVersion,
+    });
 
     run('pnpm', ['pack', '--pack-destination', artifactDir], {
       cwd: distPackageRoot,
@@ -79,4 +87,20 @@ export function packCompatibilityArtifact() {
   } finally {
     cleanupWorkspace(workspace);
   }
+}
+
+function getPlannedPackageVersion() {
+  const plannedPackageVersion = process.env[plannedPackageVersionEnv];
+
+  if (!plannedPackageVersion) {
+    return null;
+  }
+
+  if (!semver.valid(plannedPackageVersion)) {
+    throw new Error(
+      `${plannedPackageVersionEnv} must be a valid semver version, found ${plannedPackageVersion}.`,
+    );
+  }
+
+  return plannedPackageVersion;
 }

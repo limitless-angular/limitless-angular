@@ -1,8 +1,13 @@
 import { capture as defaultCapture, run as defaultRun } from './commands.mjs';
 import { repoUrl } from './config.mjs';
+import {
+  getHeadSha,
+  getLocalReleaseTagTarget,
+  getRemoteReleaseTagTarget,
+  npmVersionExists,
+} from './state.mjs';
 
 const defaultReleaseBranch = 'main';
-const npmRegistry = 'https://registry.npmjs.org';
 
 export function assertPublishPreconditions(plan, options = {}) {
   const commandCapture = options.capture ?? defaultCapture;
@@ -17,9 +22,8 @@ export function assertPublishPreconditions(plan, options = {}) {
   assertCleanWorktree(commandCapture);
   syncReleaseBranch(commandRun, releaseBranch);
   assertHeadMatchesRemote(commandCapture, releaseBranch);
-  assertLocalReleaseTagAvailable(plan, commandCapture);
-  assertRemoteReleaseTagAvailable(plan, commandCapture);
-  assertNpmVersionAvailable(plan, commandCapture);
+  assertReleaseTagDoesNotPointElsewhere(plan, commandCapture);
+  assertNpmVersionDoesNotExistWithoutRemoteTag(plan, commandCapture);
 }
 
 export function assertFinalPublishPreconditions(plan, options = {}) {
@@ -30,8 +34,8 @@ export function assertFinalPublishPreconditions(plan, options = {}) {
 
   syncReleaseBranch(commandRun, releaseBranch);
   assertRemoteBranchStillInHistory(commandCapture, releaseBranch);
-  assertRemoteReleaseTagAvailable(plan, commandCapture);
-  assertNpmVersionAvailable(plan, commandCapture);
+  assertReleaseTagDoesNotPointElsewhere(plan, commandCapture);
+  assertNpmVersionDoesNotExistWithoutRemoteTag(plan, commandCapture);
 }
 
 function getReleaseBranch(env, options) {
@@ -134,71 +138,34 @@ function assertRemoteBranchStillInHistory(capture, releaseBranch) {
   }
 }
 
-function assertLocalReleaseTagAvailable(plan, capture) {
-  if (
-    commandSucceeds(capture, 'git', [
-      'rev-parse',
-      '--verify',
-      `refs/tags/${plan.releaseTag}`,
-    ])
-  ) {
+function assertReleaseTagDoesNotPointElsewhere(plan, capture) {
+  const head = getHeadSha({ capture });
+  const localTagTarget = getLocalReleaseTagTarget(plan, { capture });
+  const remoteTagTarget = getRemoteReleaseTagTarget(plan, { capture });
+
+  if (localTagTarget && localTagTarget !== head) {
     throw new Error(
-      `Refusing to publish because local tag ${plan.releaseTag} already exists.`,
+      `Refusing to publish because local tag ${plan.releaseTag} points to ${localTagTarget}, not HEAD ${head}.`,
+    );
+  }
+
+  if (remoteTagTarget && remoteTagTarget !== head) {
+    throw new Error(
+      `Refusing to publish because remote tag ${plan.releaseTag} points to ${remoteTagTarget}, not HEAD ${head}.`,
     );
   }
 }
 
-function assertRemoteReleaseTagAvailable(plan, capture) {
-  if (
-    commandSucceeds(capture, 'git', [
-      'ls-remote',
-      '--exit-code',
-      '--tags',
-      'origin',
-      `refs/tags/${plan.releaseTag}`,
-    ])
-  ) {
+function assertNpmVersionDoesNotExistWithoutRemoteTag(plan, capture) {
+  const remoteTagTarget = getRemoteReleaseTagTarget(plan, { capture });
+
+  if (npmVersionExists(plan, { capture }) && !remoteTagTarget) {
     throw new Error(
-      `Refusing to publish because remote tag ${plan.releaseTag} already exists.`,
+      `Refusing to publish because ${plan.packageName}@${plan.nextVersion} already exists on npm but ${plan.releaseTag} is not on GitHub.`,
     );
   }
-}
-
-function assertNpmVersionAvailable(plan, capture) {
-  const output = capture('npm', [
-    'view',
-    plan.packageName,
-    'versions',
-    '--json',
-    '--registry',
-    npmRegistry,
-  ]);
-  const versions = normalizeNpmVersions(JSON.parse(output));
-
-  if (versions.includes(plan.nextVersion)) {
-    throw new Error(
-      `Refusing to publish because ${plan.packageName}@${plan.nextVersion} already exists on npm.`,
-    );
-  }
-}
-
-function normalizeNpmVersions(value) {
-  if (Array.isArray(value)) {
-    return value;
-  }
-
-  return value ? [value] : [];
 }
 
 function formatValue(value) {
   return value ? JSON.stringify(value) : 'is missing';
-}
-
-function commandSucceeds(capture, command, args) {
-  try {
-    capture(command, args);
-    return true;
-  } catch {
-    return false;
-  }
 }

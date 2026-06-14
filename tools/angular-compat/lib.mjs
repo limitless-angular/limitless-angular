@@ -41,6 +41,8 @@ export const config = readJson(configPath);
 export const packageRoot = resolve(workspaceRoot, config.packageRoot);
 export const packageJsonPath = join(packageRoot, 'package.json');
 export const artifactDir = resolve(workspaceRoot, config.artifactDir);
+export const distPackageRoot = resolve(workspaceRoot, 'dist/packages/sanity');
+export const plannedPackageVersionEnv = 'LIMITLESS_RELEASE_VERSION';
 
 export function readJson(path) {
   return JSON.parse(readFileSync(path, 'utf8'));
@@ -157,6 +159,26 @@ export function writePnpmWorkspaceConfig(targetRoot, packages) {
 
 export function readPackageJson() {
   return readJson(packageJsonPath);
+}
+
+export function preparePublishablePackage(packageRoot, options = {}) {
+  const packageJsonPath = join(packageRoot, 'package.json');
+  const packageJson = readJson(packageJsonPath);
+
+  if (options.version) {
+    if (!semver.valid(options.version)) {
+      throw new Error(
+        `Publishable package version must be valid semver, found ${options.version}.`,
+      );
+    }
+
+    packageJson.version = options.version;
+  }
+
+  delete packageJson.private;
+  writeJson(packageJsonPath, packageJson);
+
+  return packageJson;
 }
 
 export function getSupportedAngularMajors(peerRange) {
@@ -510,6 +532,8 @@ export function resolveTarball(explicitTarball) {
 
 export function assertTarballIntegrity(tarballPath = resolveTarball()) {
   const sourcePackageJson = readPackageJson();
+  const expectedVersion =
+    process.env[plannedPackageVersionEnv] ?? sourcePackageJson.version;
   const files = new Set(
     capture('tar', ['-tzf', tarballPath]).split('\n').filter(Boolean),
   );
@@ -527,9 +551,9 @@ export function assertTarballIntegrity(tarballPath = resolveTarball()) {
     );
   }
 
-  if (packageJson.version !== sourcePackageJson.version) {
+  if (packageJson.version !== expectedVersion) {
     throw new Error(
-      `Packed artifact version ${packageJson.version} does not match source package version ${sourcePackageJson.version}`,
+      `Packed artifact version ${packageJson.version} does not match expected package version ${expectedVersion}`,
     );
   }
 

@@ -16,54 +16,50 @@ const trustedPublishingEnv = {
   GITHUB_REF: 'refs/heads/main',
   GITHUB_TOKEN: 'token',
 };
+const sourceVersion = '0.0.0-development';
 
-test('dry-run validates the planned artifact version and restores release files', () => {
+test('dry-run validates the planned artifact version without mutating release files', () => {
   const fixture = createReleaseFixture();
-  const commands = [];
-  let packageVersionDuringArtifactCheck;
+  const harness = createReleaseHarness({ nextVersion: '1.1.0' });
 
   try {
     const result = runReleasePipeline({
       artifact: {
         readTarballPackageJson() {
-          packageVersionDuringArtifactCheck = readPackageVersion(
-            fixture.paths.packageJsonPath,
-          );
           return {
             name: '@limitless-angular/sanity',
-            version: packageVersionDuringArtifactCheck,
+            version: '1.1.0',
           };
         },
         tarballPath: '/tmp/release.tgz',
       },
-      capture: createCapture(),
+      capture: harness.capture,
       mode: releaseModes.dryRun,
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: fixture.paths,
-      run: recordCommand(commands),
+      run: harness.run,
       versionSpecifier: 'minor',
     });
 
     assert.equal(result.published, false);
     assert.equal(result.plan.nextVersion, '1.1.0');
-    assert.equal(packageVersionDuringArtifactCheck, '1.1.0');
-    assert.equal(readPackageVersion(fixture.paths.packageJsonPath), '1.0.0');
     assert.equal(
-      readFileSync(fixture.paths.changelogPath, 'utf8'),
-      '## 1.0.0\n',
+      readPackageVersion(fixture.paths.packageJsonPath),
+      sourceVersion,
     );
     assert.deepEqual(
-      commands.map(({ command, args }) => [command, args]),
+      harness.commands.map(({ command, args }) => [command, args]),
       compatibilityValidationSteps.map(({ command, args }) => [command, args]),
     );
+    assertVersionedCompatibilityEnv(harness.commands, '1.1.0');
   } finally {
     fixture.cleanup();
   }
 });
 
-test('publish mode validates before starting release side effects', () => {
+test('publish mode pushes the release tag before publishing to npm', () => {
   const fixture = createReleaseFixture();
-  const commands = [];
+  const harness = createReleaseHarness({ nextVersion: '1.0.1' });
 
   try {
     const result = runReleasePipeline({
@@ -73,51 +69,38 @@ test('publish mode validates before starting release side effects', () => {
         },
         tarballPath: '/tmp/release.tgz',
       },
-      capture: createCapture(),
+      capture: harness.capture,
       env: trustedPublishingEnv,
       mode: releaseModes.publish,
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: fixture.paths,
-      run: recordCommand(commands),
+      run: harness.run,
       versionSpecifier: 'patch',
     });
 
     assert.equal(result.published, true);
-    assert.equal(readPackageVersion(fixture.paths.packageJsonPath), '1.0.1');
+    assert.equal(
+      readPackageVersion(fixture.paths.packageJsonPath),
+      sourceVersion,
+    );
 
-    const commandIds = commands.map(({ command, args }) =>
-      [command, ...args].join(' '),
+    const commandIds = toCommandIds(harness.commands);
+    assert.equal(
+      commandIds.some((command) => command.startsWith('git add ')),
+      false,
     );
-    const compatibilityCommandCount = compatibilityValidationSteps.length;
-    const compatibilityStart = commandIds.findIndex(
-      (command) =>
-        command ===
-        'pnpm turbo run compat:pack --filter=@limitless-angular/angular-compat',
+    assert.equal(
+      commandIds.some((command) => command.startsWith('git commit ')),
+      false,
     );
-    assert.notEqual(compatibilityStart, -1);
-
-    assert.deepEqual(
-      commands
-        .slice(
-          compatibilityStart,
-          compatibilityStart + compatibilityCommandCount,
-        )
-        .map(({ command, args }) => [command, args]),
-      compatibilityValidationSteps.map(({ command, args }) => [command, args]),
-    );
-    assert.ok(
-      commandIds.findIndex((command) => command.startsWith('git add ')) >
-        compatibilityStart + compatibilityCommandCount - 1,
-    );
-    assert.ok(
-      commandIds.findIndex((command) => command.startsWith('npm publish ')) >
-        commandIds.findIndex((command) => command.startsWith('git commit ')),
-    );
-    assert.ok(
-      commandIds.findIndex((command) =>
-        command.startsWith('git push origin HEAD --follow-tags'),
-      ) > commandIds.findIndex((command) => command.startsWith('npm publish ')),
-    );
+    assertOrder(commandIds, [
+      'pnpm turbo run compat:test --filter=@limitless-angular/angular-compat',
+      'git tag -a sanity@1.0.1 -m sanity@1.0.1 HEAD',
+      'git push origin refs/tags/sanity@1.0.1',
+      'npm publish /tmp/release.tgz --access public --registry https://registry.npmjs.org',
+      'gh release create sanity@1.0.1 --title sanity@1.0.1 --notes-file',
+    ]);
+    assertVersionedCompatibilityEnv(harness.commands, '1.0.1');
   } finally {
     fixture.cleanup();
   }
@@ -125,7 +108,11 @@ test('publish mode validates before starting release side effects', () => {
 
 test('publish mode tags npm and GitHub prereleases', () => {
   const fixture = createReleaseFixture();
-  const commands = [];
+  const harness = createReleaseHarness({
+    gitLog:
+      'abc1234\x01feat(sanity): add release validation\x01\x01Alfonso\x02',
+    nextVersion: '1.1.0-next.0',
+  });
 
   try {
     const result = runReleasePipeline({
@@ -138,23 +125,20 @@ test('publish mode tags npm and GitHub prereleases', () => {
         },
         tarballPath: '/tmp/release.tgz',
       },
-      capture: createCapture({
-        gitLog:
-          'abc1234\x01feat(sanity): add release validation\x01\x01Alfonso\x02',
-      }),
+      capture: harness.capture,
       env: trustedPublishingEnv,
       mode: releaseModes.publish,
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: fixture.paths,
       prerelease: true,
-      run: recordCommand(commands),
+      run: harness.run,
     });
 
     assert.equal(result.published, true);
     assert.equal(result.plan.nextVersion, '1.1.0-next.0');
     assert.equal(result.plan.npmDistTag, 'next');
 
-    const npmPublish = commands.find(
+    const npmPublish = harness.commands.find(
       ({ command, args }) => command === 'npm' && args[0] === 'publish',
     );
     assert.deepEqual(npmPublish?.args, [
@@ -168,7 +152,7 @@ test('publish mode tags npm and GitHub prereleases', () => {
       'next',
     ]);
 
-    const githubRelease = commands.find(
+    const githubRelease = harness.commands.find(
       ({ command, args }) =>
         command === 'gh' && args[0] === 'release' && args[1] === 'create',
     );
@@ -178,9 +162,67 @@ test('publish mode tags npm and GitHub prereleases', () => {
   }
 });
 
+test('publish mode resumes when tag, npm version, and GitHub release already exist', () => {
+  const fixture = createReleaseFixture();
+  const harness = createReleaseHarness({
+    githubRelease: {
+      isDraft: false,
+      isPrerelease: false,
+      tagName: 'sanity@1.0.1',
+      url: 'https://github.com/example/release',
+    },
+    headReleaseTags: ['sanity@1.0.1'],
+    nextVersion: '1.0.1',
+    npmDistTags: { latest: '1.0.1' },
+    npmVersions: ['1.0.0', '1.0.1'],
+    releaseTags: ['sanity@1.0.1', 'sanity@1.0.0'],
+    remoteTagTarget: 'main-sha',
+    localTagTarget: 'main-sha',
+  });
+
+  try {
+    const result = runReleasePipeline({
+      artifact: {
+        readTarballPackageJson() {
+          return { name: '@limitless-angular/sanity', version: '1.0.1' };
+        },
+        tarballPath: '/tmp/release.tgz',
+      },
+      capture: harness.capture,
+      env: trustedPublishingEnv,
+      mode: releaseModes.publish,
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: fixture.paths,
+      run: harness.run,
+      versionSpecifier: 'patch',
+    });
+
+    assert.equal(result.published, true);
+    assert.equal(result.plan.existingReleaseTag, true);
+
+    const commandIds = toCommandIds(harness.commands);
+    assert.equal(
+      commandIds.some((command) =>
+        command.startsWith('git push origin refs/tags/'),
+      ),
+      false,
+    );
+    assert.equal(
+      commandIds.some((command) => command.startsWith('npm publish ')),
+      false,
+    );
+    assert.equal(
+      commandIds.some((command) => command.startsWith('gh release create ')),
+      false,
+    );
+  } finally {
+    fixture.cleanup();
+  }
+});
+
 test('artifact version mismatch fails before publish side effects', () => {
   const fixture = createReleaseFixture();
-  const commands = [];
+  const harness = createReleaseHarness({ nextVersion: '1.0.1' });
 
   try {
     assert.throws(
@@ -192,23 +234,28 @@ test('artifact version mismatch fails before publish side effects', () => {
             },
             tarballPath: '/tmp/release.tgz',
           },
-          capture: createCapture(),
+          capture: harness.capture,
           env: trustedPublishingEnv,
           mode: releaseModes.publish,
           now: new Date('2026-06-08T00:00:00.000Z'),
           paths: fixture.paths,
-          run: recordCommand(commands),
+          run: harness.run,
           versionSpecifier: 'patch',
         }),
       /does not match planned release version 1\.0\.1/,
     );
 
-    assert.equal(readPackageVersion(fixture.paths.packageJsonPath), '1.0.0');
     assert.equal(
-      commands.some(
+      readPackageVersion(fixture.paths.packageJsonPath),
+      sourceVersion,
+    );
+    assert.equal(
+      harness.commands.some(
         ({ command, args }) =>
-          (command === 'git' && args[0] === 'add') ||
-          (command === 'npm' && args[0] === 'publish'),
+          (command === 'git' && args[0] === 'tag') ||
+          (command === 'git' && args[0] === 'push') ||
+          (command === 'npm' && args[0] === 'publish') ||
+          (command === 'gh' && args[0] === 'release' && args[1] === 'create'),
       ),
       false,
     );
@@ -220,7 +267,6 @@ test('artifact version mismatch fails before publish side effects', () => {
 function createReleaseFixture() {
   const directory = mkdtempSync(join(tmpdir(), 'limitless-release-pipeline-'));
   const packageJsonPath = join(directory, 'package.json');
-  const changelogPath = join(directory, 'CHANGELOG.md');
 
   writeFileSync(
     packageJsonPath,
@@ -231,73 +277,196 @@ function createReleaseFixture() {
           type: 'git',
           url: 'https://github.com/limitless-angular/limitless-angular',
         },
-        version: '1.0.0',
+        version: sourceVersion,
       },
       null,
       2,
     )}\n`,
   );
-  writeFileSync(changelogPath, '## 1.0.0\n');
 
   return {
     cleanup() {
       rmSync(directory, { force: true, recursive: true });
     },
-    paths: { changelogPath, packageJsonPath },
+    paths: { packageJsonPath },
   };
 }
 
-function createCapture({ gitLog = '', npmVersions = ['1.0.0'] } = {}) {
-  return (command, args) => {
-    if (command === 'git' && args[0] === 'status') {
-      return '';
-    }
+function createReleaseHarness({
+  gitLog = '',
+  githubRelease = null,
+  headReleaseTags = [],
+  localTagTarget = null,
+  nextVersion,
+  npmDistTags = { latest: '1.0.0' },
+  npmVersions = ['1.0.0'],
+  releaseTags = ['sanity@1.0.0'],
+  remoteTagTarget = null,
+} = {}) {
+  const commands = [];
+  const state = {
+    githubRelease,
+    localTagTarget,
+    npmDistTags: { ...npmDistTags },
+    npmVersions: [...npmVersions],
+    releaseTag: nextVersion ? `sanity@${nextVersion}` : null,
+    remoteTagTarget,
+  };
 
-    if (command === 'git' && args[0] === 'branch') {
-      return 'main';
-    }
+  return {
+    commands,
+    capture(command, args) {
+      if (command === 'git' && args[0] === 'status') {
+        return '';
+      }
 
-    if (
-      command === 'git' &&
-      args[0] === 'rev-parse' &&
-      args[1] === '--verify' &&
-      args[2]?.startsWith('refs/tags/')
-    ) {
-      throw new Error(`Missing tag ${args[2]}`);
-    }
+      if (command === 'git' && args[0] === 'branch') {
+        return 'main';
+      }
 
-    if (command === 'git' && args[0] === 'rev-parse') {
-      if (args[1] === 'HEAD' || args[1] === 'origin/main') {
+      if (command === 'git' && args[0] === 'tag' && args[1] === '--merged') {
+        return releaseTags.join('\n');
+      }
+
+      if (command === 'git' && args[0] === 'tag' && args[1] === '--points-at') {
+        return headReleaseTags.join('\n');
+      }
+
+      if (command === 'git' && args[0] === 'rev-parse') {
+        return captureGitRevParse(args, state);
+      }
+
+      if (command === 'git' && args[0] === 'merge-base') {
         return 'main-sha';
       }
 
-      return '';
-    }
+      if (command === 'git' && args[0] === 'log') {
+        return gitLog;
+      }
 
-    if (command === 'git' && args[0] === 'merge-base') {
-      return 'main-sha';
-    }
+      if (command === 'git' && args[0] === 'ls-remote') {
+        return captureGitLsRemote(args, state);
+      }
 
-    if (command === 'git' && args[0] === 'log') {
-      return gitLog;
-    }
+      if (command === 'npm' && args[0] === 'view' && args[2] === 'versions') {
+        return JSON.stringify(state.npmVersions);
+      }
 
-    if (command === 'git' && args[0] === 'ls-remote') {
-      throw new Error(`Missing remote tag ${args.at(-1)}`);
-    }
+      if (command === 'npm' && args[0] === 'view' && args[2] === 'dist-tags') {
+        return JSON.stringify(state.npmDistTags);
+      }
 
-    if (command === 'npm' && args[0] === 'view') {
-      return JSON.stringify(npmVersions);
-    }
+      if (command === 'gh' && args[0] === 'release' && args[1] === 'view') {
+        if (!state.githubRelease) {
+          throw new Error(`Missing GitHub release ${args[2]}`);
+        }
 
-    throw new Error(`Unexpected command: ${command} ${args.join(' ')}`);
+        return JSON.stringify(state.githubRelease);
+      }
+
+      throw new Error(`Unexpected command: ${command} ${args.join(' ')}`);
+    },
+    run(command, args, options = {}) {
+      commands.push({ args, command, options });
+
+      if (command === 'git' && args[0] === 'tag') {
+        state.localTagTarget = 'main-sha';
+      }
+
+      if (command === 'git' && args[0] === 'push') {
+        state.remoteTagTarget = state.localTagTarget ?? 'main-sha';
+      }
+
+      if (command === 'npm' && args[0] === 'publish') {
+        if (!state.npmVersions.includes(nextVersion)) {
+          state.npmVersions.push(nextVersion);
+        }
+
+        state.npmDistTags[getNpmPublishDistTag(args)] = nextVersion;
+      }
+
+      if (command === 'gh' && args[0] === 'release' && args[1] === 'create') {
+        state.githubRelease = {
+          isDraft: false,
+          isPrerelease: args.includes('--prerelease'),
+          tagName: args[2],
+          url: 'https://github.com/example/release',
+        };
+      }
+    },
   };
 }
 
-function recordCommand(commands) {
-  return (command, args, options = {}) => {
-    commands.push({ args, command, options });
-  };
+function captureGitRevParse(args, state) {
+  if (args[1] === 'HEAD' || args[1] === 'origin/main') {
+    return 'main-sha';
+  }
+
+  if (args[1] === `${state.releaseTag}^{}` && state.localTagTarget) {
+    return state.localTagTarget;
+  }
+
+  throw new Error(`Unexpected git rev-parse ${args.join(' ')}`);
+}
+
+function captureGitLsRemote(args, state) {
+  const ref = args.at(-1);
+
+  if (
+    (ref === `refs/tags/${state.releaseTag}^{}` ||
+      ref === `refs/tags/${state.releaseTag}`) &&
+    state.remoteTagTarget
+  ) {
+    return `${state.remoteTagTarget}\t${ref}`;
+  }
+
+  throw new Error(`Missing remote tag ${ref}`);
+}
+
+function getNpmPublishDistTag(args) {
+  const tagIndex = args.indexOf('--tag');
+
+  return tagIndex === -1 ? 'latest' : args[tagIndex + 1];
+}
+
+function assertVersionedCompatibilityEnv(commands, expectedVersion) {
+  const versionedCompatibilityCommands = new Set([
+    'pnpm turbo run compat:pack --filter=@limitless-angular/angular-compat',
+    'pnpm turbo run compat:artifact --filter=@limitless-angular/angular-compat',
+    'pnpm turbo run compat:test --filter=@limitless-angular/angular-compat',
+  ]);
+
+  for (const command of commands) {
+    const commandId = [command.command, ...command.args].join(' ');
+
+    if (versionedCompatibilityCommands.has(commandId)) {
+      assert.equal(
+        command.options.env?.LIMITLESS_RELEASE_VERSION,
+        expectedVersion,
+      );
+    }
+  }
+}
+
+function assertOrder(commandIds, expectedOrder) {
+  let previousIndex = -1;
+
+  for (const expectedCommand of expectedOrder) {
+    const index = commandIds.findIndex((command) =>
+      command.startsWith(expectedCommand),
+    );
+
+    assert.notEqual(index, -1, `Missing command: ${expectedCommand}`);
+    assert.ok(
+      index > previousIndex,
+      `Expected ${expectedCommand} to run after ${commandIds[previousIndex]}`,
+    );
+    previousIndex = index;
+  }
+}
+
+function toCommandIds(commands) {
+  return commands.map(({ command, args }) => [command, ...args].join(' '));
 }
 
 function readPackageVersion(packageJsonPath) {

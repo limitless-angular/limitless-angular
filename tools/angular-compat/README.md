@@ -99,9 +99,13 @@ The test matrix then installs the same tarball into every configured consumer.
 toolchain, builds the Angular package, and writes one tarball under
 `.compat/artifacts`.
 
+`compat:prepare-publish` removes source-only metadata, such as `private: true`,
+from a built package manifest before preview or release publishing. It can also
+write an explicit semver version into that manifest.
+
 `compat:artifact` validates the tarball:
 
-- package name and version match the source package
+- package name and expected version match
 - package is not private
 - no scripts or dev dependencies are published
 - no `workspace:`, `file:`, `link:`, or `portal:` dependency references leak

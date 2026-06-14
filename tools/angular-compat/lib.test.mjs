@@ -1,8 +1,12 @@
 import assert from 'node:assert/strict';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { test } from 'node:test';
 
 import {
   isAngularFrameworkPackage,
+  preparePublishablePackage,
   resolveAngularPackageVersion,
   resolveAngularToolchain,
 } from './lib.mjs';
@@ -68,6 +72,64 @@ test('canary toolchain allows framework and CLI next tags to move independently'
     calls.some(({ spec }) => spec === '@angular/build@22.1.0-next.0'),
     false,
   );
+});
+
+test('publishable package preparation removes source-only private metadata', () => {
+  const workspace = mkdtempSync(join(tmpdir(), 'limitless-publishable-'));
+
+  try {
+    writeFileSync(
+      join(workspace, 'package.json'),
+      `${JSON.stringify(
+        {
+          name: '@limitless-angular/sanity',
+          private: true,
+          version: '0.0.0-development',
+        },
+        null,
+        2,
+      )}\n`,
+    );
+
+    const packageJson = preparePublishablePackage(workspace, {
+      version: '20.0.0-next.1',
+    });
+    const writtenPackageJson = JSON.parse(
+      readFileSync(join(workspace, 'package.json'), 'utf8'),
+    );
+
+    assert.equal(packageJson.private, undefined);
+    assert.equal(packageJson.version, '20.0.0-next.1');
+    assert.deepEqual(writtenPackageJson, packageJson);
+  } finally {
+    rmSync(workspace, { force: true, recursive: true });
+  }
+});
+
+test('publishable package preparation rejects invalid release versions', () => {
+  const workspace = mkdtempSync(join(tmpdir(), 'limitless-publishable-'));
+
+  try {
+    writeFileSync(
+      join(workspace, 'package.json'),
+      `${JSON.stringify(
+        {
+          name: '@limitless-angular/sanity',
+          private: true,
+          version: '0.0.0-development',
+        },
+        null,
+        2,
+      )}\n`,
+    );
+
+    assert.throws(
+      () => preparePublishablePackage(workspace, { version: 'next' }),
+      /valid semver/,
+    );
+  } finally {
+    rmSync(workspace, { force: true, recursive: true });
+  }
 });
 
 function createNpmJsonResolver(entries = {}) {

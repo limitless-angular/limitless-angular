@@ -49,6 +49,8 @@ jobs:
         run: |
           echo "Building sanity"
           pnpm turbo run build --filter=@limitless-angular/sanity
+          echo "Preparing sanity package for preview publishing"
+          pnpm --filter=@limitless-angular/angular-compat run --silent compat:prepare-publish -- --package-root './dist/packages/sanity'
           echo "Running pkg-pr-new publish"
           pnpx pkg-pr-new publish --compact './dist/packages/sanity'
 

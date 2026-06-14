@@ -1,6 +1,7 @@
 {
   "name": "@limitless-angular/sanity",
-  "version": "20.0.0-next.0",
+  "version": "0.0.0-development",
+  "private": true,
   "description": "A powerful Angular library for Sanity.io integration, featuring Portable Text rendering and optimized image loading.",
   "scripts": {
     "build": "ng-packagr -c tsconfig.lib.prod.json",

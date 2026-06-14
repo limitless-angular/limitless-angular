@@ -27,13 +27,13 @@ test('release specifier accepts semver increments and explicit versions', () => 
 });
 
 test('release plan rejects explicit versions that do not move forward', () => {
-  const workspace = createReleaseFixture({ version: '1.2.3' });
+  const workspace = createReleaseFixture();
 
   try {
     assert.throws(
       () =>
         createReleasePlan({
-          capture: createCapture({ gitLog: '' }),
+          capture: createCapture({ gitLog: '', releaseTags: ['sanity@1.2.3'] }),
           now: new Date('2026-06-08T00:00:00.000Z'),
           paths: workspace.paths,
           versionSpecifier: '1.2.2',
@@ -43,7 +43,7 @@ test('release plan rejects explicit versions that do not move forward', () => {
     assert.throws(
       () =>
         createReleasePlan({
-          capture: createCapture({ gitLog: '' }),
+          capture: createCapture({ gitLog: '', releaseTags: ['sanity@1.2.3'] }),
           now: new Date('2026-06-08T00:00:00.000Z'),
           paths: workspace.paths,
           versionSpecifier: '1.2.3',
@@ -71,14 +71,15 @@ test('release plan infers the next version from conventional commits', () => {
     assert.equal(plan.currentVersion, '1.0.0');
     assert.equal(plan.nextVersion, '1.1.0');
     assert.equal(plan.npmDistTag, 'latest');
+    assert.equal(plan.sourceVersion, '0.0.0-development');
     assert.equal(
       plan.packageRepositoryUrl,
       'https://github.com/limitless-angular/limitless-angular',
     );
     assert.equal(plan.prerelease, false);
     assert.equal(plan.releaseTag, 'sanity@1.1.0');
-    assert.match(plan.changelogSection, /## 1\.1\.0 \(2026-06-08\)/);
-    assert.match(plan.changelogSection, /add release validation/);
+    assert.match(plan.releaseNotes, /## 1\.1\.0 \(2026-06-08\)/);
+    assert.match(plan.releaseNotes, /add release validation/);
   } finally {
     workspace.cleanup();
   }
@@ -103,20 +104,21 @@ test('prerelease plan infers next prerelease from conventional commits', () => {
     assert.equal(plan.npmDistTag, 'next');
     assert.equal(plan.prerelease, true);
     assert.equal(plan.releaseTag, 'sanity@1.1.0-next.0');
-    assert.match(plan.changelogSection, /## 1\.1\.0-next\.0 \(2026-06-08\)/);
+    assert.match(plan.releaseNotes, /## 1\.1\.0-next\.0 \(2026-06-08\)/);
   } finally {
     workspace.cleanup();
   }
 });
 
 test('prerelease plan increments the current prerelease train', () => {
-  const workspace = createReleaseFixture({ version: '1.1.0-next.0' });
+  const workspace = createReleaseFixture();
 
   try {
     const plan = createReleasePlan({
       capture: createCapture({
         gitLog:
           'abc1234\x01fix(sanity): tighten release validation\x01\x01Alfonso\x02',
+        releaseTags: ['sanity@1.1.0-next.0', 'sanity@1.0.0'],
       }),
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: workspace.paths,
@@ -132,10 +134,35 @@ test('prerelease plan increments the current prerelease train', () => {
   }
 });
 
-function createReleaseFixture({ version = '1.0.0' } = {}) {
+test('release plan resumes an existing release tag on HEAD', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    const plan = createReleasePlan({
+      capture: createCapture({
+        gitLog:
+          'abc1234\x01feat(sanity): add release validation\x01\x01Alfonso\x02',
+        headReleaseTags: ['sanity@1.1.0-next.0'],
+        releaseTags: ['sanity@1.1.0-next.0', 'sanity@1.0.0'],
+      }),
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: workspace.paths,
+      prerelease: true,
+    });
+
+    assert.equal(plan.currentVersion, '1.0.0');
+    assert.equal(plan.nextVersion, '1.1.0-next.0');
+    assert.equal(plan.existingReleaseTag, true);
+    assert.equal(plan.latestTag, 'sanity@1.0.0');
+    assert.equal(plan.releaseTag, 'sanity@1.1.0-next.0');
+  } finally {
+    workspace.cleanup();
+  }
+});
+
+function createReleaseFixture() {
   const directory = mkdtempSync(join(tmpdir(), 'limitless-release-plan-'));
   const packageJsonPath = join(directory, 'package.json');
-  const changelogPath = join(directory, 'CHANGELOG.md');
 
   writeFileSync(
     packageJsonPath,
@@ -146,26 +173,33 @@ function createReleaseFixture({ version = '1.0.0' } = {}) {
           type: 'git',
           url: 'https://github.com/limitless-angular/limitless-angular',
         },
-        version,
+        version: '0.0.0-development',
       },
       null,
       2,
     )}\n`,
   );
-  writeFileSync(changelogPath, '## 1.0.0\n');
 
   return {
     cleanup() {
       rmSync(directory, { force: true, recursive: true });
     },
-    paths: { changelogPath, packageJsonPath },
+    paths: { packageJsonPath },
   };
 }
 
-function createCapture({ gitLog }) {
+function createCapture({
+  gitLog,
+  headReleaseTags = [],
+  releaseTags = ['sanity@1.0.0'],
+}) {
   return (command, args) => {
-    if (command === 'git' && args[0] === 'rev-parse') {
-      return '';
+    if (command === 'git' && args[0] === 'tag' && args[1] === '--merged') {
+      return releaseTags.join('\n');
+    }
+
+    if (command === 'git' && args[0] === 'tag' && args[1] === '--points-at') {
+      return headReleaseTags.join('\n');
     }
 
     if (command === 'git' && args[0] === 'log') {
