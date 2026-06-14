@@ -18,6 +18,7 @@ export function createReleasePlan(options = {}) {
   const commandCapture = options.capture ?? defaultCapture;
   const packageJson = readJson(paths.packageJsonPath);
   const currentVersion = packageJson.version;
+  const packageRepositoryUrl = getRepositoryUrl(packageJson.repository);
   const latestTag = getLatestTag(currentVersion, {
     capture: commandCapture,
     releaseTagPrefix: options.releaseTagPrefix ?? releaseTagPrefix,
@@ -59,6 +60,7 @@ export function createReleasePlan(options = {}) {
     nextVersion,
     npmDistTag: isPrerelease ? prereleaseNpmDistTag : stableNpmDistTag,
     packageName: packageJson.name,
+    packageRepositoryUrl,
     paths,
     prerelease: isPrerelease,
     releaseTag,
@@ -104,6 +106,14 @@ function resolveReleasePaths(paths = {}) {
     changelogPath: paths.changelogPath ?? changelogPath,
     packageJsonPath: paths.packageJsonPath ?? packageJsonPath,
   };
+}
+
+function getRepositoryUrl(repository) {
+  if (typeof repository === 'string') {
+    return repository;
+  }
+
+  return repository?.url;
 }
 
 function resolveVersionSpecifier(currentVersion, specifier, options = {}) {

@@ -1,4 +1,5 @@
 import { capture as defaultCapture, run as defaultRun } from './commands.mjs';
+import { repoUrl } from './config.mjs';
 
 const defaultReleaseBranch = 'main';
 const npmRegistry = 'https://registry.npmjs.org';
@@ -11,6 +12,7 @@ export function assertPublishPreconditions(plan, options = {}) {
 
   assertGitHubReleaseToken(env);
   assertReleaseRef({ capture: commandCapture, env, releaseBranch });
+  assertTrustedPublishingRepository(plan);
   assertCleanWorktree(commandCapture);
   syncReleaseBranch(commandRun, releaseBranch);
   assertHeadMatchesRemote(commandCapture, releaseBranch);
@@ -60,6 +62,14 @@ function assertReleaseRef({ capture, env, releaseBranch }) {
   if (currentBranch !== releaseBranch) {
     throw new Error(
       `Refusing to publish from branch ${currentBranch || 'detached HEAD'}; expected ${releaseBranch}.`,
+    );
+  }
+}
+
+function assertTrustedPublishingRepository(plan) {
+  if (plan.packageRepositoryUrl !== repoUrl) {
+    throw new Error(
+      `Refusing to publish because package repository.url ${formatValue(plan.packageRepositoryUrl)} must exactly match ${repoUrl} for npm trusted publishing.`,
     );
   }
 }
@@ -166,6 +176,10 @@ function normalizeNpmVersions(value) {
   }
 
   return value ? [value] : [];
+}
+
+function formatValue(value) {
+  return value ? JSON.stringify(value) : 'is missing';
 }
 
 function commandSucceeds(capture, command, args) {
