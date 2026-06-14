@@ -41,6 +41,7 @@ export const config = readJson(configPath);
 export const packageRoot = resolve(workspaceRoot, config.packageRoot);
 export const packageJsonPath = join(packageRoot, 'package.json');
 export const artifactDir = resolve(workspaceRoot, config.artifactDir);
+export const plannedPackageVersionEnv = 'LIMITLESS_RELEASE_VERSION';
 
 export function readJson(path) {
   return JSON.parse(readFileSync(path, 'utf8'));
@@ -510,6 +511,8 @@ export function resolveTarball(explicitTarball) {
 
 export function assertTarballIntegrity(tarballPath = resolveTarball()) {
   const sourcePackageJson = readPackageJson();
+  const expectedVersion =
+    process.env[plannedPackageVersionEnv] ?? sourcePackageJson.version;
   const files = new Set(
     capture('tar', ['-tzf', tarballPath]).split('\n').filter(Boolean),
   );
@@ -527,9 +530,9 @@ export function assertTarballIntegrity(tarballPath = resolveTarball()) {
     );
   }
 
-  if (packageJson.version !== sourcePackageJson.version) {
+  if (packageJson.version !== expectedVersion) {
     throw new Error(
-      `Packed artifact version ${packageJson.version} does not match source package version ${sourcePackageJson.version}`,
+      `Packed artifact version ${packageJson.version} does not match expected package version ${expectedVersion}`,
     );
   }
 

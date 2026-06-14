@@ -1,17 +1,16 @@
 import { assertPlannedArtifactVersion } from './artifact.mjs';
 import { capture as defaultCapture, run as defaultRun } from './commands.mjs';
+import { plannedPackageVersionEnv } from './config.mjs';
 import { createReleasePlan, printReleasePlan } from './plan.mjs';
 import {
-  commitRelease,
   createGitHubRelease,
+  ensureReleaseTag,
   publishTarball,
-  pushRelease,
 } from './publish.mjs';
 import {
   assertFinalPublishPreconditions,
   assertPublishPreconditions,
 } from './preflight.mjs';
-import { applyReleasePlan, restoreReleaseFiles } from './workspace.mjs';
 
 export const releaseModes = {
   dryRun: 'dry-run',
@@ -75,9 +74,6 @@ export function runReleasePipeline(options = {}) {
     prerelease: options.prerelease,
     versionSpecifier: options.versionSpecifier,
   });
-  let snapshot;
-  let publishSideEffectsStarted = false;
-
   if (options.verbose || mode === releaseModes.dryRun) {
     printReleasePlan(plan);
   }
@@ -90,66 +86,66 @@ export function runReleasePipeline(options = {}) {
     });
   }
 
-  try {
-    snapshot = applyReleasePlan(plan);
+  const artifact = validateReleaseArtifact(plan, {
+    artifact: options.artifact,
+    run: commandRun,
+  });
 
-    const artifact = validateReleaseArtifact(plan, {
-      artifact: options.artifact,
+  if (mode === releaseModes.publish) {
+    assertFinalPublishPreconditions(plan, {
+      capture: commandCapture,
+      env: options.env,
       run: commandRun,
     });
-
-    if (mode === releaseModes.publish) {
-      publishSideEffectsStarted = true;
-      commitRelease(plan, { run: commandRun });
-      assertFinalPublishPreconditions(plan, {
-        capture: commandCapture,
-        env: options.env,
-        run: commandRun,
-      });
-      publishTarball(artifact.tarballPath, {
-        npmDistTag: plan.npmDistTag,
-        run: commandRun,
-      });
-      pushRelease({ run: commandRun });
-      createGitHubRelease(plan, { env: options.env, run: commandRun });
-    }
-
-    console.log(`RELEASED_VERSION=${plan.nextVersion}`);
-    console.log(
-      mode === releaseModes.publish
-        ? `Published ${plan.packageName} ${plan.nextVersion}.`
-        : `Dry run validated ${plan.packageName} ${plan.nextVersion} without publishing.`,
-    );
-
-    return {
-      artifact,
-      mode,
-      plan,
-      published: mode === releaseModes.publish,
-    };
-  } finally {
-    if (
-      snapshot &&
-      (mode === releaseModes.dryRun || !publishSideEffectsStarted)
-    ) {
-      restoreReleaseFiles(snapshot);
-    }
+    ensureReleaseTag(plan, {
+      capture: commandCapture,
+      run: commandRun,
+    });
+    publishTarball(plan, artifact.tarballPath, {
+      capture: commandCapture,
+      run: commandRun,
+    });
+    createGitHubRelease(plan, {
+      capture: commandCapture,
+      env: options.env,
+      run: commandRun,
+    });
   }
+
+  console.log(`RELEASED_VERSION=${plan.nextVersion}`);
+  console.log(
+    mode === releaseModes.publish
+      ? `Published ${plan.packageName} ${plan.nextVersion}.`
+      : `Dry run validated ${plan.packageName} ${plan.nextVersion} without publishing.`,
+  );
+
+  return {
+    artifact,
+    mode,
+    plan,
+    published: mode === releaseModes.publish,
+  };
 }
 
 export function validateReleaseArtifact(plan, options = {}) {
   const commandRun = options.run ?? defaultRun;
 
-  runCompatibilityStep('compat:pack', commandRun);
-  runCompatibilityStep('compat:artifact', commandRun);
+  runCompatibilityStep('compat:pack', commandRun, {
+    env: { [plannedPackageVersionEnv]: plan.nextVersion },
+  });
+  runCompatibilityStep('compat:artifact', commandRun, {
+    env: { [plannedPackageVersionEnv]: plan.nextVersion },
+  });
   const artifact = assertPlannedArtifactVersion(plan, options.artifact);
   runCompatibilityStep('playwright:install', commandRun);
-  runCompatibilityStep('compat:test', commandRun);
+  runCompatibilityStep('compat:test', commandRun, {
+    env: { [plannedPackageVersionEnv]: plan.nextVersion },
+  });
 
   return artifact;
 }
 
-function runCompatibilityStep(id, commandRun) {
+function runCompatibilityStep(id, commandRun, options = {}) {
   const step = compatibilityValidationSteps.find(
     (candidate) => candidate.id === id,
   );
@@ -158,7 +154,7 @@ function runCompatibilityStep(id, commandRun) {
     throw new Error(`Unknown compatibility validation step: ${id}`);
   }
 
-  commandRun(step.command, step.args);
+  commandRun(step.command, step.args, options);
 }
 
 function normalizeMode(mode) {

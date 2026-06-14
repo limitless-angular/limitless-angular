@@ -8,12 +8,8 @@ export const releasePackageRoot = resolve(
 export const workspaceRoot = resolve(releasePackageRoot, '../..');
 export const packageRoot = resolve(workspaceRoot, 'packages/sanity');
 export const packageJsonPath = resolve(packageRoot, 'package.json');
-export const changelogPath = resolve(packageRoot, 'CHANGELOG.md');
 export const artifactDir = resolve(workspaceRoot, '.compat/artifacts');
+export const initialReleaseVersion = '0.0.0';
+export const plannedPackageVersionEnv = 'LIMITLESS_RELEASE_VERSION';
 export const releaseTagPrefix = 'sanity@';
 export const repoUrl = 'https://github.com/limitless-angular/limitless-angular';
-
-export const sanityPackageRelativePaths = {
-  changelog: 'packages/sanity/CHANGELOG.md',
-  packageJson: 'packages/sanity/package.json',
-};

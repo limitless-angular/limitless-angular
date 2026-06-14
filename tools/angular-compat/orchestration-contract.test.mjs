@@ -74,6 +74,11 @@ const compatTurboTasks = [
   'compat:release-parity',
   'compat:test',
 ];
+const releaseVersionAwareCompatTasks = new Set([
+  'compat:artifact',
+  'compat:pack',
+  'compat:test',
+]);
 
 const legacyPackageScriptNames = [
   'affected',
@@ -138,7 +143,12 @@ test('compat-only Turbo task settings are scoped to the compat package', () => {
   );
 
   for (const task of compatTurboTasks) {
-    assert.deepEqual(compatTurbo.tasks[task], { cache: false });
+    assert.deepEqual(
+      compatTurbo.tasks[task],
+      releaseVersionAwareCompatTasks.has(task)
+        ? { cache: false, passThroughEnv: ['LIMITLESS_RELEASE_VERSION'] }
+        : { cache: false },
+    );
   }
 
   assert.equal(

@@ -9,7 +9,8 @@
       "cache": false
     },
     "compat:artifact": {
-      "cache": false
+      "cache": false,
+      "passThroughEnv": ["LIMITLESS_RELEASE_VERSION"]
     },
     "compat:canary-report": {
       "cache": false
@@ -18,7 +19,8 @@
       "cache": false
     },
     "compat:pack": {
-      "cache": false
+      "cache": false,
+      "passThroughEnv": ["LIMITLESS_RELEASE_VERSION"]
     },
     "compat:pipeline": {
       "cache": false
@@ -27,7 +29,8 @@
       "cache": false
     },
     "compat:test": {
-      "cache": false
+      "cache": false,
+      "passThroughEnv": ["LIMITLESS_RELEASE_VERSION"]
     }
   }
 }

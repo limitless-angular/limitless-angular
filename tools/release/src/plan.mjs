@@ -1,7 +1,7 @@
 import semver from 'semver';
 
 import {
-  changelogPath,
+  initialReleaseVersion,
   packageJsonPath,
   releaseTagPrefix,
   repoUrl,
@@ -17,20 +17,28 @@ export function createReleasePlan(options = {}) {
   const paths = resolveReleasePaths(options.paths);
   const commandCapture = options.capture ?? defaultCapture;
   const packageJson = readJson(paths.packageJsonPath);
-  const currentVersion = packageJson.version;
   const packageRepositoryUrl = getRepositoryUrl(packageJson.repository);
-  const latestTag = getLatestTag(currentVersion, {
+  const resolvedReleaseTagPrefix = options.releaseTagPrefix ?? releaseTagPrefix;
+  const releaseTags = getReachableReleaseTags({
     capture: commandCapture,
-    releaseTagPrefix: options.releaseTagPrefix ?? releaseTagPrefix,
+    releaseTagPrefix: resolvedReleaseTagPrefix,
   });
+  const headReleaseTag = getHeadReleaseTags({
+    capture: commandCapture,
+    releaseTagPrefix: resolvedReleaseTagPrefix,
+  })[0];
+  const latestReleaseTag = releaseTags[0] ?? null;
+  const releaseBaseTag = headReleaseTag
+    ? (releaseTags.find((tag) => tag.tag !== headReleaseTag.tag) ?? null)
+    : latestReleaseTag;
+  const currentVersion = releaseBaseTag?.version ?? initialReleaseVersion;
+  const latestTag = releaseBaseTag?.tag ?? null;
   const commits = getCommitsSince(latestTag, { capture: commandCapture });
-  const nextVersion = options.versionSpecifier
-    ? resolveVersionSpecifier(currentVersion, options.versionSpecifier, {
-        prerelease: options.prerelease,
-      })
-    : inferVersionFromCommits(currentVersion, commits, {
-        prerelease: options.prerelease,
-      });
+  const requestedNextVersion = resolveNextVersion(currentVersion, commits, {
+    prerelease: options.prerelease,
+    versionSpecifier: options.versionSpecifier,
+  });
+  const nextVersion = headReleaseTag?.version ?? requestedNextVersion;
 
   if (!nextVersion) {
     throw new Error(
@@ -38,23 +46,34 @@ export function createReleasePlan(options = {}) {
     );
   }
 
-  if (!semver.gt(nextVersion, currentVersion)) {
+  if (
+    headReleaseTag &&
+    requestedNextVersion &&
+    requestedNextVersion !== nextVersion
+  ) {
+    throw new Error(
+      `HEAD is already tagged for ${headReleaseTag.tag}; refusing to plan ${requestedNextVersion}.`,
+    );
+  }
+
+  if (!headReleaseTag && !semver.gt(nextVersion, currentVersion)) {
     throw new Error(
       `Refusing to release ${nextVersion}; it must be greater than the current version ${currentVersion}.`,
     );
   }
 
-  const resolvedReleaseTagPrefix = options.releaseTagPrefix ?? releaseTagPrefix;
   const generatedAt = options.now ?? new Date();
-  const releaseTag = `${resolvedReleaseTagPrefix}${nextVersion}`;
+  const releaseTag =
+    headReleaseTag?.tag ?? `${resolvedReleaseTagPrefix}${nextVersion}`;
   const isPrerelease = Boolean(semver.prerelease(nextVersion));
+  const releaseNotes = buildReleaseNotes(nextVersion, commits, {
+    now: generatedAt,
+  });
 
   return {
-    changelogSection: buildChangelogSection(nextVersion, commits, {
-      now: generatedAt,
-    }),
     commits,
     currentVersion,
+    existingReleaseTag: Boolean(headReleaseTag),
     generatedAt: generatedAt.toISOString(),
     latestTag,
     nextVersion,
@@ -63,7 +82,9 @@ export function createReleasePlan(options = {}) {
     packageRepositoryUrl,
     paths,
     prerelease: isPrerelease,
+    releaseNotes,
     releaseTag,
+    sourceVersion: packageJson.version,
   };
 }
 
@@ -79,6 +100,7 @@ export function summarizeReleasePlan(plan) {
   return {
     commitCount: plan.commits.length,
     currentVersion: plan.currentVersion,
+    existingReleaseTag: plan.existingReleaseTag,
     generatedAt: plan.generatedAt,
     latestTag: plan.latestTag,
     nextVersion: plan.nextVersion,
@@ -103,9 +125,18 @@ export function printReleasePlan(plan) {
 
 function resolveReleasePaths(paths = {}) {
   return {
-    changelogPath: paths.changelogPath ?? changelogPath,
     packageJsonPath: paths.packageJsonPath ?? packageJsonPath,
   };
+}
+
+function resolveNextVersion(currentVersion, commits, options = {}) {
+  return options.versionSpecifier
+    ? resolveVersionSpecifier(currentVersion, options.versionSpecifier, {
+        prerelease: options.prerelease,
+      })
+    : inferVersionFromCommits(currentVersion, commits, {
+        prerelease: options.prerelease,
+      });
 }
 
 function getRepositoryUrl(repository) {
@@ -210,23 +241,52 @@ function toPrereleaseIncrement(specifier) {
   }
 }
 
-function getLatestTag(currentVersion, { capture, releaseTagPrefix }) {
-  const currentTag = `${releaseTagPrefix}${currentVersion}`;
-
-  if (commandSucceeds('git', ['rev-parse', '--verify', currentTag], capture)) {
-    return currentTag;
-  }
-
+function getReachableReleaseTags({ capture, releaseTagPrefix }) {
   try {
-    return capture('git', [
-      'describe',
-      '--tags',
-      '--abbrev=0',
-      `--match=${releaseTagPrefix}*`,
-    ]).trim();
+    return parseReleaseTags(
+      capture('git', [
+        'tag',
+        '--merged',
+        'HEAD',
+        '--list',
+        `${releaseTagPrefix}*`,
+      ]),
+      releaseTagPrefix,
+    );
   } catch {
-    return null;
+    return [];
   }
+}
+
+function getHeadReleaseTags({ capture, releaseTagPrefix }) {
+  try {
+    return parseReleaseTags(
+      capture('git', [
+        'tag',
+        '--points-at',
+        'HEAD',
+        '--list',
+        `${releaseTagPrefix}*`,
+      ]),
+      releaseTagPrefix,
+    );
+  } catch {
+    return [];
+  }
+}
+
+function parseReleaseTags(output, releaseTagPrefix) {
+  return output
+    .trim()
+    .split('\n')
+    .map((tag) => tag.trim())
+    .filter(Boolean)
+    .map((tag) => ({
+      tag,
+      version: semver.valid(tag.slice(releaseTagPrefix.length)),
+    }))
+    .filter((tag) => tag.version)
+    .sort((a, b) => semver.rcompare(a.version, b.version));
 }
 
 function getCommitsSince(tag, { capture }) {
@@ -253,7 +313,7 @@ function getCommitsSince(tag, { capture }) {
     });
 }
 
-function buildChangelogSection(version, commits, { now }) {
+function buildReleaseNotes(version, commits, { now }) {
   const groupedCommits = commits.reduce(
     (groups, commit) => {
       if (isBreakingCommit(commit)) {
@@ -335,13 +395,4 @@ function isBreakingCommit(commit) {
     /^\w+(?:\([^)]+\))!:/.test(commit.subject) ||
     /BREAKING CHANGE:/i.test(commit.body)
   );
-}
-
-function commandSucceeds(command, args, capture) {
-  try {
-    capture(command, args);
-    return true;
-  } catch {
-    return false;
-  }
 }
