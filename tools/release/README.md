@@ -76,4 +76,6 @@ before publishing.
 The npm package must trust the GitHub Actions publisher for
 `limitless-angular/limitless-angular`, workflow `release-and-publish.yml`, and
 environment `npm-release`; the publish job uses npm trusted publishing instead
-of a long-lived npm token.
+of a long-lived npm token. The package `repository.url` must exactly match
+`https://github.com/limitless-angular/limitless-angular` so npm can match the
+OIDC publisher to the package metadata.

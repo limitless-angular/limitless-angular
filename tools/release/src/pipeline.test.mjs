@@ -217,7 +217,18 @@ function createReleaseFixture() {
 
   writeFileSync(
     packageJsonPath,
-    `${JSON.stringify({ name: '@limitless-angular/sanity', version: '1.0.0' }, null, 2)}\n`,
+    `${JSON.stringify(
+      {
+        name: '@limitless-angular/sanity',
+        repository: {
+          type: 'git',
+          url: 'https://github.com/limitless-angular/limitless-angular',
+        },
+        version: '1.0.0',
+      },
+      null,
+      2,
+    )}\n`,
   );
   writeFileSync(changelogPath, '## 1.0.0\n');
 

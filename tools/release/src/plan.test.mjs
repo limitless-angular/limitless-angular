@@ -71,6 +71,10 @@ test('release plan infers the next version from conventional commits', () => {
     assert.equal(plan.currentVersion, '1.0.0');
     assert.equal(plan.nextVersion, '1.1.0');
     assert.equal(plan.npmDistTag, 'latest');
+    assert.equal(
+      plan.packageRepositoryUrl,
+      'https://github.com/limitless-angular/limitless-angular',
+    );
     assert.equal(plan.prerelease, false);
     assert.equal(plan.releaseTag, 'sanity@1.1.0');
     assert.match(plan.changelogSection, /## 1\.1\.0 \(2026-06-08\)/);
@@ -135,7 +139,18 @@ function createReleaseFixture({ version = '1.0.0' } = {}) {
 
   writeFileSync(
     packageJsonPath,
-    `${JSON.stringify({ name: '@limitless-angular/sanity', version }, null, 2)}\n`,
+    `${JSON.stringify(
+      {
+        name: '@limitless-angular/sanity',
+        repository: {
+          type: 'git',
+          url: 'https://github.com/limitless-angular/limitless-angular',
+        },
+        version,
+      },
+      null,
+      2,
+    )}\n`,
   );
   writeFileSync(changelogPath, '## 1.0.0\n');
 

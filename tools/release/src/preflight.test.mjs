@@ -9,6 +9,8 @@ import {
 const plan = {
   nextVersion: '1.1.0',
   packageName: '@limitless-angular/sanity',
+  packageRepositoryUrl:
+    'https://github.com/limitless-angular/limitless-angular',
   releaseTag: 'sanity@1.1.0',
 };
 
@@ -45,6 +47,25 @@ test('publish preflight rejects dirty worktrees', () => {
         run: recordRun(),
       }),
     /uncommitted workspace changes/,
+  );
+});
+
+test('publish preflight rejects repository URLs that cannot satisfy npm trust', () => {
+  assert.throws(
+    () =>
+      assertPublishPreconditions(
+        {
+          ...plan,
+          packageRepositoryUrl:
+            'git+https://github.com/limitless-angular/limitless-angular.git',
+        },
+        {
+          capture: createCapture(),
+          env: { GITHUB_REF: 'refs/heads/main', GITHUB_TOKEN: 'token' },
+          run: recordRun(),
+        },
+      ),
+    /repository\.url .* must exactly match .* npm trusted publishing/,
   );
 });
 
