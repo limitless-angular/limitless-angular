@@ -28,10 +28,10 @@ pnpm turbo run release:publish --filter=@limitless-angular/release-tools -- --ve
 pnpm turbo run release:publish --filter=@limitless-angular/release-tools -- --prerelease
 ```
 
-Prerelease mode infers the release level from conventional commits and uses the
-`next` prerelease identifier. For example, a feature-level release from
-`19.2.0` becomes `19.3.0-next.0`; the next prerelease in that train becomes
-`19.3.0-next.1`.
+Prerelease mode infers the release level from package-relevant conventional
+commits and uses the `next` prerelease identifier. For example, a feature-level
+release from `19.2.0` becomes `19.3.0-next.0`; the next prerelease in that train
+becomes `19.3.0-next.1`.
 
 ## Source of Truth
 
@@ -47,12 +47,40 @@ planned version only into the temporary compatibility build workspace and the
 packed npm tarball. Do not update the source package version or add a committed
 changelog for releases.
 
+## Package Relevance
+
+Release planning is package-aware. Each releasable package is configured in
+`tools/release/src/config.mjs` with:
+
+- `releasePaths`: repository paths that belong to the package.
+- `releaseScopes`: conventional commit scopes that explicitly target the
+  package.
+- `ignoredReleaseScopes`: infrastructure scopes that should not infer a package
+  release from the commit scope alone.
+- `ignoredReleaseScopePaths`: source-only metadata paths that ignored
+  infrastructure scopes may touch without inferring a package release.
+- `ignoredReleaseScopeJsonFields`: top-level JSON fields that ignored
+  infrastructure scopes may touch without inferring a package release.
+- `releaseTagPrefix`: the Git tag prefix for that package's versions.
+
+The planner derives inferred versions and GitHub Release notes from commits that
+either touch a configured package path or use a configured package scope. For
+`@limitless-angular/sanity`, a change under `packages/sanity/**` or a commit like
+`feat(sanity): add preview support` is release-relevant. Tooling-only commits
+such as `feat(release): harden publishing` do not create package releases, even
+when they touch configured source-only package metadata. For
+`packages/sanity/package.json`, only release-bookkeeping fields such as
+`version` and `private` are ignored this way; consumer-facing manifest changes
+such as dependency, peer dependency, or export updates still infer a release.
+Source changes still infer releases by path, even if their conventional commit
+scope is wrong. Maintainers can always pass an explicit `--version`.
+
 ## Pipeline
 
 Both dry-run and publish mode use the same release pipeline:
 
 1. Compute the release plan from the latest reachable `sanity@*` tag, explicit
-   version input, or conventional commits.
+   version input, or package-relevant conventional commits.
 2. In publish mode only, verify the release is running from `main`, the
    worktree matches `origin/main`, existing release state points at the current
    commit, npm trusted publishing OIDC is available, and `GITHUB_TOKEN` is

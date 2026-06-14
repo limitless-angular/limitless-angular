@@ -1,9 +1,10 @@
+import { isDeepStrictEqual } from 'node:util';
+
 import semver from 'semver';
 
 import {
+  defaultReleasePackage,
   initialReleaseVersion,
-  packageJsonPath,
-  releaseTagPrefix,
   repoUrl,
 } from './config.mjs';
 import { capture as defaultCapture } from './commands.mjs';
@@ -12,13 +13,17 @@ import { readJson } from './files.mjs';
 const prereleaseIdentifier = 'next';
 const prereleaseNpmDistTag = 'next';
 const stableNpmDistTag = 'latest';
+const missingJsonFile = Symbol('missingJsonFile');
+const invalidJsonFile = Symbol('invalidJsonFile');
 
 export function createReleasePlan(options = {}) {
-  const paths = resolveReleasePaths(options.paths);
+  const releasePackage = options.releasePackage ?? defaultReleasePackage;
+  const paths = resolveReleasePaths(options.paths, releasePackage);
   const commandCapture = options.capture ?? defaultCapture;
   const packageJson = readJson(paths.packageJsonPath);
   const packageRepositoryUrl = getRepositoryUrl(packageJson.repository);
-  const resolvedReleaseTagPrefix = options.releaseTagPrefix ?? releaseTagPrefix;
+  const resolvedReleaseTagPrefix =
+    options.releaseTagPrefix ?? releasePackage.releaseTagPrefix;
   const releaseTags = getReachableReleaseTags({
     capture: commandCapture,
     releaseTagPrefix: resolvedReleaseTagPrefix,
@@ -33,7 +38,8 @@ export function createReleasePlan(options = {}) {
     : latestReleaseTag;
   const currentVersion = releaseBaseTag?.version ?? initialReleaseVersion;
   const latestTag = releaseBaseTag?.tag ?? null;
-  const commits = getCommitsSince(latestTag, { capture: commandCapture });
+  const allCommits = getCommitsSince(latestTag, { capture: commandCapture });
+  const commits = filterReleaseCommits(allCommits, releasePackage);
   const requestedNextVersion = resolveNextVersion(currentVersion, commits, {
     prerelease: options.prerelease,
     versionSpecifier: options.versionSpecifier,
@@ -42,7 +48,7 @@ export function createReleasePlan(options = {}) {
 
   if (!nextVersion) {
     throw new Error(
-      'No release version could be determined. Pass --version or add a conventional commit with feat, fix, perf, refactor, or a breaking change.',
+      `No release version could be determined for ${releasePackage.name}. Pass --version or add a package-relevant conventional commit with feat, fix, perf, refactor, or a breaking change.`,
     );
   }
 
@@ -80,6 +86,7 @@ export function createReleasePlan(options = {}) {
     npmDistTag: isPrerelease ? prereleaseNpmDistTag : stableNpmDistTag,
     packageName: packageJson.name,
     packageRepositoryUrl,
+    releasePackage,
     paths,
     prerelease: isPrerelease,
     releaseNotes,
@@ -123,9 +130,9 @@ export function printReleasePlan(plan) {
   console.log(`Release commits: ${summary.commitCount}`);
 }
 
-function resolveReleasePaths(paths = {}) {
+function resolveReleasePaths(paths = {}, releasePackage) {
   return {
-    packageJsonPath: paths.packageJsonPath ?? packageJsonPath,
+    packageJsonPath: paths.packageJsonPath ?? releasePackage.packageJsonPath,
   };
 }
 
@@ -308,9 +315,219 @@ function getCommitsSince(tag, { capture }) {
     .map((entry) => {
       const [hash = '', subject = '', body = '', author = ''] =
         entry.split('\x01');
+      const changedJsonFields = new Map();
 
-      return { author, body, hash, subject };
+      return {
+        author,
+        body,
+        files: getCommitFiles(hash, { capture }),
+        getChangedJsonFields(file) {
+          const normalizedFile = normalizeRepoPath(file);
+
+          if (!changedJsonFields.has(normalizedFile)) {
+            changedJsonFields.set(
+              normalizedFile,
+              getChangedJsonFields(hash, normalizedFile, { capture }),
+            );
+          }
+
+          return changedJsonFields.get(normalizedFile);
+        },
+        hash,
+        subject,
+      };
     });
+}
+
+function getCommitFiles(hash, { capture }) {
+  const output = capture('git', [
+    'diff-tree',
+    '--no-commit-id',
+    '--name-only',
+    '-r',
+    '--root',
+    hash,
+  ]).trim();
+
+  if (!output) {
+    return [];
+  }
+
+  return output
+    .split('\n')
+    .map((file) => normalizeRepoPath(file))
+    .filter(Boolean);
+}
+
+function filterReleaseCommits(commits, releasePackage) {
+  return commits.filter((commit) => isReleaseCommit(commit, releasePackage));
+}
+
+function isReleaseCommit(commit, releasePackage) {
+  const releaseFiles = getReleaseFiles(commit, releasePackage);
+  const touchesPackagePath = releaseFiles.length > 0;
+
+  if (hasIgnoredReleaseScope(commit, releasePackage)) {
+    return releaseFiles.some(
+      (file) => !matchesIgnoredReleaseScopeFile(commit, file, releasePackage),
+    );
+  }
+
+  return hasReleaseScope(commit, releasePackage) || touchesPackagePath;
+}
+
+function hasReleaseScope(commit, releasePackage) {
+  const scope = getCommitScope(commit);
+  const releaseScopes = releasePackage.releaseScopes ?? [];
+
+  if (!scope || releaseScopes.length === 0) {
+    return false;
+  }
+
+  return releaseScopes.some(
+    (releaseScope) => releaseScope.toLowerCase() === scope.toLowerCase(),
+  );
+}
+
+function hasIgnoredReleaseScope(commit, releasePackage) {
+  const scope = getCommitScope(commit);
+  const ignoredScopes = releasePackage.ignoredReleaseScopes ?? [];
+
+  if (!scope || ignoredScopes.length === 0) {
+    return false;
+  }
+
+  return ignoredScopes.some(
+    (ignoredScope) => ignoredScope.toLowerCase() === scope.toLowerCase(),
+  );
+}
+
+function getReleaseFiles(commit, releasePackage) {
+  const releasePaths = releasePackage.releasePaths ?? [];
+
+  return commit.files.filter((file) =>
+    releasePaths.some((pattern) => matchesPathPattern(file, pattern)),
+  );
+}
+
+function matchesIgnoredReleaseScopeFile(commit, file, releasePackage) {
+  return (
+    matchesIgnoredReleaseScopePath(file, releasePackage) ||
+    matchesIgnoredReleaseScopeJsonFieldChange(commit, file, releasePackage)
+  );
+}
+
+function matchesIgnoredReleaseScopePath(file, releasePackage) {
+  const ignoredPaths = releasePackage.ignoredReleaseScopePaths ?? [];
+
+  return ignoredPaths.some((pattern) => matchesPathPattern(file, pattern));
+}
+
+function matchesIgnoredReleaseScopeJsonFieldChange(
+  commit,
+  file,
+  releasePackage,
+) {
+  const ignoredFields = getIgnoredReleaseScopeJsonFields(file, releasePackage);
+
+  if (ignoredFields.size === 0 || !commit.getChangedJsonFields) {
+    return false;
+  }
+
+  const changedFields = commit.getChangedJsonFields(file);
+
+  if (!changedFields) {
+    return false;
+  }
+
+  return changedFields.every((field) => ignoredFields.has(field));
+}
+
+function getIgnoredReleaseScopeJsonFields(file, releasePackage) {
+  const ignoredJsonFields = releasePackage.ignoredReleaseScopeJsonFields ?? {};
+  const fields = Object.entries(ignoredJsonFields).flatMap(
+    ([pattern, ignoredFields]) =>
+      matchesPathPattern(file, pattern) ? ignoredFields : [],
+  );
+
+  return new Set(fields);
+}
+
+function getChangedJsonFields(hash, file, { capture }) {
+  const before = readJsonAtCommit(`${hash}^`, file, { capture });
+  const after = readJsonAtCommit(hash, file, { capture });
+
+  if (
+    before === invalidJsonFile ||
+    after === invalidJsonFile ||
+    (before === missingJsonFile && after === missingJsonFile)
+  ) {
+    return null;
+  }
+
+  const beforeJson = before === missingJsonFile ? {} : before;
+  const afterJson = after === missingJsonFile ? {} : after;
+
+  return [...new Set([...Object.keys(beforeJson), ...Object.keys(afterJson)])]
+    .filter((field) => !isDeepStrictEqual(beforeJson[field], afterJson[field]))
+    .sort();
+}
+
+function readJsonAtCommit(revision, file, { capture }) {
+  try {
+    return JSON.parse(capture('git', ['show', `${revision}:${file}`]));
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      return invalidJsonFile;
+    }
+
+    return missingJsonFile;
+  }
+}
+
+function matchesPathPattern(file, pattern) {
+  const normalizedFile = normalizeRepoPath(file);
+  const normalizedPattern = normalizeRepoPath(pattern);
+
+  if (normalizedPattern.endsWith('/**')) {
+    const directory = normalizedPattern.slice(0, -3);
+
+    return (
+      normalizedFile === directory || normalizedFile.startsWith(`${directory}/`)
+    );
+  }
+
+  if (normalizedPattern.includes('*')) {
+    return globPatternToRegExp(normalizedPattern).test(normalizedFile);
+  }
+
+  return (
+    normalizedFile === normalizedPattern ||
+    normalizedFile.startsWith(`${normalizedPattern}/`)
+  );
+}
+
+function globPatternToRegExp(pattern) {
+  const source = pattern
+    .split('/')
+    .map((segment) => {
+      if (segment === '**') {
+        return '.*';
+      }
+
+      return escapeRegExp(segment).replaceAll('\\*', '[^/]*');
+    })
+    .join('/');
+
+  return new RegExp(`^${source}$`);
+}
+
+function normalizeRepoPath(path) {
+  return path.replaceAll('\\', '/').replace(/^\.\//, '').trim();
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function buildReleaseNotes(version, commits, { now }) {
@@ -383,16 +600,33 @@ function formatAuthors(commits) {
 }
 
 function formatCommitSubject(subject) {
-  return subject.replace(/^\w+(?:\([^)]+\))?!?:\s*/, '');
+  return subject.replace(/^[a-zA-Z][\w-]*(?:\([^)]+\))?!?:\s*/, '');
 }
 
 function getCommitType(commit) {
-  return commit.subject.match(/^(\w+)(?:\([^)]+\))?!?:/)?.[1] ?? null;
+  return parseConventionalCommit(commit.subject)?.type ?? null;
+}
+
+function getCommitScope(commit) {
+  return parseConventionalCommit(commit.subject)?.scope ?? null;
+}
+
+function parseConventionalCommit(subject) {
+  const match = subject.match(/^([a-zA-Z][\w-]*)(?:\(([^)]+)\))?!?:/);
+
+  if (!match) {
+    return null;
+  }
+
+  return {
+    scope: match[2] ?? null,
+    type: match[1],
+  };
 }
 
 function isBreakingCommit(commit) {
   return (
-    /^\w+(?:\([^)]+\))!:/.test(commit.subject) ||
+    /^[a-zA-Z][\w-]*(?:\([^)]+\))!:/.test(commit.subject) ||
     /BREAKING CHANGE:/i.test(commit.body)
   );
 }
