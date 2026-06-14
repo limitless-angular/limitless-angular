@@ -293,6 +293,7 @@ function createReleaseFixture() {
 }
 
 function createReleaseHarness({
+  changedFiles = {},
   gitLog = '',
   githubRelease = null,
   headReleaseTags = [],
@@ -342,6 +343,10 @@ function createReleaseHarness({
 
       if (command === 'git' && args[0] === 'log') {
         return gitLog;
+      }
+
+      if (command === 'git' && args[0] === 'diff-tree') {
+        return (changedFiles[args.at(-1)] ?? []).join('\n');
       }
 
       if (command === 'git' && args[0] === 'ls-remote') {

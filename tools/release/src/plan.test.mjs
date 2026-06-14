@@ -85,6 +85,242 @@ test('release plan infers the next version from conventional commits', () => {
   }
 });
 
+test('release plan infers from package path changes without a package scope', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    const plan = createReleasePlan({
+      capture: createCapture({
+        changedFiles: {
+          abc1234: ['packages/sanity/src/index.ts'],
+        },
+        gitLog: 'abc1234\x01feat: add portable text support\x01\x01Alfonso\x02',
+      }),
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: workspace.paths,
+    });
+
+    assert.equal(plan.nextVersion, '1.1.0');
+    assert.equal(plan.commits.length, 1);
+    assert.match(plan.releaseNotes, /add portable text support/);
+  } finally {
+    workspace.cleanup();
+  }
+});
+
+test('release plan ignores tooling-only conventional commits', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    assert.throws(
+      () =>
+        createReleasePlan({
+          capture: createCapture({
+            changedFiles: {
+              abc1234: ['tools/release/src/plan.mjs'],
+            },
+            gitLog:
+              'abc1234\x01feat(release): publish from tags without source version churn\x01\x01Alfonso\x02',
+            releaseTags: ['sanity@20.0.0-next.0', 'sanity@19.2.0'],
+          }),
+          now: new Date('2026-06-08T00:00:00.000Z'),
+          paths: workspace.paths,
+          prerelease: true,
+        }),
+      /No release version could be determined for @limitless-angular\/sanity/,
+    );
+  } finally {
+    workspace.cleanup();
+  }
+});
+
+test('release plan ignores configured infrastructure scopes on source-only package metadata', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    assert.throws(
+      () =>
+        createReleasePlan({
+          capture: createCapture({
+            changedFiles: {
+              abc1234: [
+                'packages/sanity/CHANGELOG.md',
+                'packages/sanity/package.json',
+              ],
+            },
+            changedJsonFiles: {
+              abc1234: {
+                'packages/sanity/package.json': {
+                  after: createPackageManifest({
+                    private: true,
+                    version: '0.0.0-development',
+                  }),
+                  before: createPackageManifest({
+                    private: false,
+                    version: '19.2.0',
+                  }),
+                },
+              },
+            },
+            gitLog:
+              'abc1234\x01feat(release): publish from tags without source version churn\x01\x01Alfonso\x02',
+            releaseTags: ['sanity@20.0.0-next.0', 'sanity@19.2.0'],
+          }),
+          now: new Date('2026-06-08T00:00:00.000Z'),
+          paths: workspace.paths,
+          prerelease: true,
+        }),
+      /No release version could be determined for @limitless-angular\/sanity/,
+    );
+  } finally {
+    workspace.cleanup();
+  }
+});
+
+test('release plan includes infrastructure-scoped package manifest consumer changes', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    const plan = createReleasePlan({
+      capture: createCapture({
+        changedFiles: {
+          abc1234: ['packages/sanity/package.json'],
+        },
+        changedJsonFiles: {
+          abc1234: {
+            'packages/sanity/package.json': {
+              after: createPackageManifest({
+                peerDependencies: {
+                  '@angular/core': '^18.0.0 || ^19.0.0 || ^20.0.0',
+                },
+              }),
+              before: createPackageManifest({
+                peerDependencies: {
+                  '@angular/core': '^18.0.0 || ^19.0.0',
+                },
+              }),
+            },
+          },
+        },
+        gitLog:
+          'abc1234\x01fix(release): expand Angular peer dependency range\x01\x01Alfonso\x02',
+      }),
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: workspace.paths,
+    });
+
+    assert.equal(plan.nextVersion, '1.0.1');
+    assert.equal(plan.commits.length, 1);
+    assert.match(plan.releaseNotes, /expand Angular peer dependency range/);
+  } finally {
+    workspace.cleanup();
+  }
+});
+
+test('release plan includes configured infrastructure scopes on package source changes', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    const plan = createReleasePlan({
+      capture: createCapture({
+        changedFiles: {
+          abc1234: ['packages/sanity/src/index.ts'],
+        },
+        gitLog:
+          'abc1234\x01feat(release): add portable text support\x01\x01Alfonso\x02',
+      }),
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: workspace.paths,
+    });
+
+    assert.equal(plan.nextVersion, '1.1.0');
+    assert.equal(plan.commits.length, 1);
+    assert.match(plan.releaseNotes, /add portable text support/);
+  } finally {
+    workspace.cleanup();
+  }
+});
+
+test('release plan includes infrastructure-scoped commits with mixed metadata and source changes', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    const plan = createReleasePlan({
+      capture: createCapture({
+        changedFiles: {
+          abc1234: [
+            'packages/sanity/package.json',
+            'packages/sanity/src/index.ts',
+          ],
+        },
+        gitLog:
+          'abc1234\x01fix(release): handle live preview initialization\x01\x01Alfonso\x02',
+      }),
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: workspace.paths,
+    });
+
+    assert.equal(plan.nextVersion, '1.0.1');
+    assert.equal(plan.commits.length, 1);
+    assert.match(plan.releaseNotes, /handle live preview initialization/);
+  } finally {
+    workspace.cleanup();
+  }
+});
+
+test('release plan keeps notes scoped to package-relevant commits', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    const plan = createReleasePlan({
+      capture: createCapture({
+        changedFiles: {
+          abc1234: ['tools/release/src/plan.mjs'],
+          def5678: ['packages/sanity/src/index.ts'],
+        },
+        gitLog: [
+          'abc1234\x01feat(release): publish from tags without source version churn\x01\x01Alfonso',
+          'def5678\x01fix: handle live preview initialization\x01\x01Alfonso',
+        ].join('\x02'),
+      }),
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: workspace.paths,
+    });
+
+    assert.equal(plan.nextVersion, '1.0.1');
+    assert.equal(plan.commits.length, 1);
+    assert.match(plan.releaseNotes, /handle live preview initialization/);
+    assert.doesNotMatch(plan.releaseNotes, /publish from tags/);
+  } finally {
+    workspace.cleanup();
+  }
+});
+
+test('explicit release versions bypass package relevance inference', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    const plan = createReleasePlan({
+      capture: createCapture({
+        changedFiles: {
+          abc1234: ['tools/release/src/plan.mjs'],
+        },
+        gitLog:
+          'abc1234\x01feat(release): publish from tags without source version churn\x01\x01Alfonso\x02',
+      }),
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: workspace.paths,
+      versionSpecifier: '1.1.0',
+    });
+
+    assert.equal(plan.nextVersion, '1.1.0');
+    assert.equal(plan.commits.length, 0);
+    assert.doesNotMatch(plan.releaseNotes, /publish from tags/);
+  } finally {
+    workspace.cleanup();
+  }
+});
+
 test('prerelease plan infers next prerelease from conventional commits', () => {
   const workspace = createReleaseFixture();
 
@@ -188,7 +424,21 @@ function createReleaseFixture() {
   };
 }
 
+function createPackageManifest(overrides = {}) {
+  return {
+    name: '@limitless-angular/sanity',
+    peerDependencies: {
+      '@angular/core': '^18.0.0 || ^19.0.0',
+    },
+    private: false,
+    version: '19.2.0',
+    ...overrides,
+  };
+}
+
 function createCapture({
+  changedFiles = {},
+  changedJsonFiles = {},
   gitLog,
   headReleaseTags = [],
   releaseTags = ['sanity@1.0.0'],
@@ -206,6 +456,30 @@ function createCapture({
       return gitLog;
     }
 
+    if (command === 'git' && args[0] === 'diff-tree') {
+      return (changedFiles[args.at(-1)] ?? []).join('\n');
+    }
+
+    if (command === 'git' && args[0] === 'show') {
+      return captureGitShow(args[1], changedJsonFiles);
+    }
+
     throw new Error(`Unexpected command: ${command} ${args.join(' ')}`);
   };
+}
+
+function captureGitShow(ref, changedJsonFiles) {
+  const separatorIndex = ref.indexOf(':');
+  const revision = ref.slice(0, separatorIndex);
+  const file = ref.slice(separatorIndex + 1);
+  const before = revision.endsWith('^');
+  const hash = before ? revision.slice(0, -1) : revision;
+  const change = changedJsonFiles[hash]?.[file];
+  const json = before ? change?.before : change?.after;
+
+  if (json === undefined) {
+    throw new Error(`Missing git show fixture for ${ref}`);
+  }
+
+  return JSON.stringify(json);
 }
