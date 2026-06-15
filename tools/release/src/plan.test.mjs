@@ -195,12 +195,12 @@ test('release plan includes infrastructure-scoped package manifest consumer chan
             'packages/sanity/package.json': {
               after: createPackageManifest({
                 peerDependencies: {
-                  '@angular/core': '^18.0.0 || ^19.0.0 || ^20.0.0',
+                  '@angular/core': '^19.0.0 || ^20.0.0 || ^21.0.0',
                 },
               }),
               before: createPackageManifest({
                 peerDependencies: {
-                  '@angular/core': '^18.0.0 || ^19.0.0',
+                  '@angular/core': '^19.0.0 || ^20.0.0',
                 },
               }),
             },
@@ -544,7 +544,7 @@ function createPackageManifest(overrides = {}) {
   return {
     name: '@limitless-angular/sanity',
     peerDependencies: {
-      '@angular/core': '^18.0.0 || ^19.0.0',
+      '@angular/core': '^19.0.0 || ^20.0.0',
     },
     private: false,
     version: '19.2.0',

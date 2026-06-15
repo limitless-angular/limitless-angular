@@ -76,15 +76,14 @@ function getInsertMenuOptions(
               @if (previewImageUrl(schemaType); as previewImage) {
                 <img class="preview-image" [src]="previewImage" alt="" />
               } @else {
-                @if (iconFor(schemaType); as icon) {
-                  <span class="icon" [attr.aria-label]="icon.label">
-                    @if (icon.html) {
-                      <span [innerHTML]="icon.html"></span>
-                    } @else {
-                      {{ icon.text }}
-                    }
-                  </span>
-                }
+                @let icon = iconFor(schemaType);
+                <span class="icon" [attr.aria-label]="icon.label">
+                  @if (icon.html) {
+                    <span [innerHTML]="icon.html"></span>
+                  } @else {
+                    {{ icon.text }}
+                  }
+                </span>
               }
               <span class="label">{{ labelFor(schemaType) }}</span>
             </button>
