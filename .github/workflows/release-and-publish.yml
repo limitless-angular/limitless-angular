@@ -141,6 +141,8 @@ jobs:
               `- Release tag: ${plan.releaseTag}`,
               `- npm dist-tag: ${plan.npmDistTag}`,
               `- Commit count: ${plan.commitCount}`,
+              `- Release notes base tag: ${plan.releaseNotesBaseTag || 'none'}`,
+              `- Release note commit count: ${plan.releaseNotesCommitCount}`,
             );
           } else {
             lines.push('- Planned version: unavailable; release planning did not complete.');

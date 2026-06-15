@@ -4,7 +4,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
 
-import { createReleasePlan, resolveReleaseSpecifier } from './plan.mjs';
+import {
+  createReleasePlan,
+  resolveReleaseSpecifier,
+  summarizeReleasePlan,
+} from './plan.mjs';
 
 test('release specifier accepts semver increments and explicit versions', () => {
   assert.equal(resolveReleaseSpecifier('1.2.3', 'patch'), '1.2.4');
@@ -364,7 +368,82 @@ test('prerelease plan increments the current prerelease train', () => {
     assert.equal(plan.currentVersion, '1.1.0-next.0');
     assert.equal(plan.nextVersion, '1.1.0-next.1');
     assert.equal(plan.npmDistTag, 'next');
+    assert.equal(plan.releaseNotesBaseTag, 'sanity@1.1.0-next.0');
+    assert.equal(plan.releaseNotesCommits.length, 1);
     assert.equal(plan.releaseTag, 'sanity@1.1.0-next.1');
+  } finally {
+    workspace.cleanup();
+  }
+});
+
+test('stable release notes include the full prerelease train', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    const plan = createReleasePlan({
+      capture: createCapture({
+        gitLogs: {
+          'sanity@1.1.0-next.1..HEAD': '',
+          'sanity@1.0.0..HEAD': [
+            'abc1234\x01feat(sanity): add portable text support\x01\x01Alfonso',
+            'def5678\x01fix(sanity): handle live preview initialization\x01\x01Blanca',
+            'fed9876\x01feat(release): publish from tags without source version churn\x01\x01Alfonso',
+          ].join('\x02'),
+        },
+        releaseTags: [
+          'sanity@1.1.0-next.1',
+          'sanity@1.1.0-next.0',
+          'sanity@1.0.0',
+        ],
+      }),
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: workspace.paths,
+      versionSpecifier: '1.1.0',
+    });
+
+    assert.equal(plan.currentVersion, '1.1.0-next.1');
+    assert.equal(plan.nextVersion, '1.1.0');
+    assert.equal(plan.latestTag, 'sanity@1.1.0-next.1');
+    assert.equal(plan.commits.length, 0);
+    assert.equal(plan.releaseNotesBaseTag, 'sanity@1.0.0');
+    assert.equal(plan.releaseNotesCommits.length, 2);
+    assert.match(plan.releaseNotes, /add portable text support/);
+    assert.match(plan.releaseNotes, /handle live preview initialization/);
+    assert.doesNotMatch(plan.releaseNotes, /publish from tags/);
+
+    const summary = summarizeReleasePlan(plan);
+
+    assert.equal(summary.releaseNotesBaseTag, 'sanity@1.0.0');
+    assert.equal(summary.releaseNotesCommitCount, 2);
+  } finally {
+    workspace.cleanup();
+  }
+});
+
+test('stable release resume keeps notes based on the previous stable tag', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    const plan = createReleasePlan({
+      capture: createCapture({
+        gitLogs: {
+          'sanity@1.1.0-next.1..HEAD': '',
+          'sanity@1.0.0..HEAD':
+            'abc1234\x01feat(sanity): add portable text support\x01\x01Alfonso\x02',
+        },
+        headReleaseTags: ['sanity@1.1.0'],
+        releaseTags: ['sanity@1.1.0', 'sanity@1.1.0-next.1', 'sanity@1.0.0'],
+      }),
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: workspace.paths,
+    });
+
+    assert.equal(plan.existingReleaseTag, true);
+    assert.equal(plan.currentVersion, '1.1.0-next.1');
+    assert.equal(plan.nextVersion, '1.1.0');
+    assert.equal(plan.releaseNotesBaseTag, 'sanity@1.0.0');
+    assert.equal(plan.releaseNotesCommits.length, 1);
+    assert.match(plan.releaseNotes, /add portable text support/);
   } finally {
     workspace.cleanup();
   }
@@ -440,6 +519,7 @@ function createCapture({
   changedFiles = {},
   changedJsonFiles = {},
   gitLog,
+  gitLogs = {},
   headReleaseTags = [],
   releaseTags = ['sanity@1.0.0'],
 }) {
@@ -453,7 +533,7 @@ function createCapture({
     }
 
     if (command === 'git' && args[0] === 'log') {
-      return gitLog;
+      return gitLogs[args[1]] ?? gitLog;
     }
 
     if (command === 'git' && args[0] === 'diff-tree') {
