@@ -36,8 +36,8 @@ pnpm run compat:matrix --canary
 pnpm run compat:pack
 pnpm run compat:artifact
 pnpm run compat:test
-pnpm run compat:test --set angular-18-floor
-pnpm run compat:test --set angular-19-latest --skip-runtime
+pnpm run compat:test --set angular-19-floor
+pnpm run compat:test --set angular-21-latest --skip-runtime
 pnpm run compat:canary-report --status-dir .compat/canary-status
 pnpm run compat:release-parity
 ```
@@ -68,8 +68,8 @@ Stable required consumers live in `consumerVersionSets`:
 
 ```json
 {
-  "id": "angular-18-floor",
-  "angularMajor": 18,
+  "id": "angular-19-floor",
+  "angularMajor": 19,
   "mode": "floor"
 }
 ```
@@ -77,7 +77,7 @@ Stable required consumers live in `consumerVersionSets`:
 Supported modes:
 
 - `floor`: latest patch in the first minor for that major, such as
-  `>=18.0.0 <18.1.0`. This protects consumers on the lowest version promised by
+  `>=19.0.0 <19.1.0`. This protects consumers on the lowest version promised by
   the peer range.
 - `latest`: latest published release for that Angular major.
 - `dist-tag`: npm dist-tag such as `next`. Use this only in

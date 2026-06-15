@@ -8,7 +8,6 @@ import {
 
 import { TypedObject } from '@portabletext/types';
 
-import { isAngularVersionLessThan19 } from '@limitless-angular/sanity/shared';
 import { PortableTextComponent } from '../components/portable-text.component';
 
 // eslint-disable-next-line @angular-eslint/directive-selector
@@ -21,16 +20,13 @@ export class RenderNode {
   #vcr = inject(ViewContainerRef);
 
   constructor() {
-    effect(
-      () => {
-        this.#vcr.clear();
-        this.#vcr.createEmbeddedView(this.#renderNode(), {
-          $implicit: this.node(),
-          isInline: this.isInline(),
-          index: this.index(),
-        });
-      },
-      isAngularVersionLessThan19() ? { allowSignalWrites: true } : undefined,
-    );
+    effect(() => {
+      this.#vcr.clear();
+      this.#vcr.createEmbeddedView(this.#renderNode(), {
+        $implicit: this.node(),
+        isInline: this.isInline(),
+        index: this.index(),
+      });
+    });
   }
 }

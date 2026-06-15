@@ -51,15 +51,14 @@ type ContextMenuState = NonNullable<OverlayState['contextMenu']>;
       #menu
     >
       <div class="header">
-        @if (titleIcon(); as icon) {
-          <span class="icon" [attr.aria-label]="icon.label">
-            @if (icon.html) {
-              <span [innerHTML]="icon.html"></span>
-            } @else {
-              {{ icon.text }}
-            }
-          </span>
-        }
+        @let icon = titleIcon();
+        <span class="icon" [attr.aria-label]="icon.label">
+          @if (icon.html) {
+            <span [innerHTML]="icon.html"></span>
+          } @else {
+            {{ icon.text }}
+          }
+        </span>
         <span class="title">{{ title() }}</span>
       </div>
       @if (items(); as items) {

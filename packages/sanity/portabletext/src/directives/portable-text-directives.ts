@@ -14,7 +14,6 @@ import {
   TypedObject,
 } from '@portabletext/types';
 
-import { isAngularVersionLessThan19 } from '@limitless-angular/sanity/shared';
 import { PortableTextListBlock } from '../types';
 import { PortableTextComponent } from '../components/portable-text.component';
 
@@ -32,15 +31,12 @@ export class DynamicPortableTextContent<Node extends TypedObject = TypedObject>
   template = inject(PortableTextComponent).childrenTmpl;
 
   // eslint-disable-next-line no-unused-private-class-members
-  #_ = effect(
-    () => {
-      this.container()?.clear();
-      this.container()?.createEmbeddedView(this.template(), {
-        children: this.children(),
-      });
-    },
-    isAngularVersionLessThan19() ? { allowSignalWrites: true } : undefined,
-  );
+  #_ = effect(() => {
+    this.container()?.clear();
+    this.container()?.createEmbeddedView(this.template(), {
+      children: this.children(),
+    });
+  });
 
   /**
    * @deprecated empty hook that is used just to avoid a breaking change, it will be removed in a major version

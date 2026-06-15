@@ -19,7 +19,7 @@ Limitless Angular is a powerful collection of Angular libraries focused on Sanit
 - 🖼️ **Image Optimization**: Built-in image loader and directives for Sanity images
 - 🔄 **Real-time Preview**: Live content updates with Preview Kit
 - ✏️ **Visual Editing**: Seamless content management integration
-- 🎯 **Angular-First**: Built specifically for Angular 18+
+- 🎯 **Angular-First**: Built specifically for Angular 19+
 
 ## Installation
 
@@ -31,11 +31,19 @@ npm install --save @limitless-angular/sanity @sanity/client
 
 | Angular | `@limitless-angular/sanity` |
 | ------- | --------------------------- |
-| 20.x    | 20.x                        |
-| 19.x    | 20.x, 19.x                  |
+| 21.x    | 21.x                        |
+| 20.x    | 21.x, 20.x                  |
+| 19.x    | 21.x, 20.x, 19.x            |
 | 18.x    | 20.x, 19.x, 18.x            |
 
-The current 20.x package line supports Angular 18, Angular 19, and Angular 20.
+The current stable 20.x package line supports Angular 18, Angular 19, and
+Angular 20.
+
+Angular 21 support is available on the `next` prerelease line:
+
+```bash
+npm install @limitless-angular/sanity@next
+```
 
 ## Quick Start
 
