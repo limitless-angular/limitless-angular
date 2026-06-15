@@ -300,6 +300,43 @@ test('release plan keeps notes scoped to package-relevant commits', () => {
   }
 });
 
+test('release notes include breaking change descriptions', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    const plan = createReleasePlan({
+      capture: createCapture({
+        gitLog: [
+          'abc1234',
+          'feat(sanity): add Angular 20 support',
+          [
+            'BREAKING CHANGE: Angular 17 is no longer supported.',
+            'Consumers must use Angular 18 or newer.',
+            '',
+            '* [autofix.ci] apply automated fixes',
+            'Refs: #123',
+          ].join('\n'),
+          'Alfonso',
+        ].join('\x01'),
+      }),
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: workspace.paths,
+    });
+
+    assert.equal(plan.nextVersion, '2.0.0');
+    assert.match(plan.releaseNotes, /### ⚠️ Breaking Changes/);
+    assert.match(plan.releaseNotes, /- add Angular 20 support/);
+    assert.match(
+      plan.releaseNotes,
+      /  - Angular 17 is no longer supported\. Consumers must use Angular 18 or newer\./,
+    );
+    assert.doesNotMatch(plan.releaseNotes, /autofix/);
+    assert.doesNotMatch(plan.releaseNotes, /Refs: #123/);
+  } finally {
+    workspace.cleanup();
+  }
+});
+
 test('explicit release versions bypass package relevance inference', () => {
   const workspace = createReleaseFixture();
 

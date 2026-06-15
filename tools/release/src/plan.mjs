@@ -603,7 +603,10 @@ function buildReleaseNotes(version, commits, { now }) {
     formatCommitGroup('### 🚀 Features', groupedCommits.features),
     formatCommitGroup('### 🩹 Fixes', groupedCommits.fixes),
     formatCommitGroup('### 🧹 Refactors', groupedCommits.refactors),
-    formatCommitGroup('### ⚠️ Breaking Changes', groupedCommits.breaking),
+    formatBreakingCommitGroup(
+      '### ⚠️ Breaking Changes',
+      groupedCommits.breaking,
+    ),
     formatAuthors(commits),
   ].filter(Boolean);
 
@@ -620,11 +623,29 @@ function formatCommitGroup(title, commits) {
   return [
     title,
     '',
-    ...commits.map(
-      (commit) =>
-        `- ${formatCommitSubject(commit.subject)} ([${commit.hash.slice(0, 7)}](${repoUrl}/commit/${commit.hash}))`,
-    ),
+    ...commits.map((commit) => formatCommitBullet(commit)),
   ].join('\n');
+}
+
+function formatBreakingCommitGroup(title, commits) {
+  if (commits.length === 0) {
+    return null;
+  }
+
+  return [
+    title,
+    '',
+    ...commits.flatMap((commit) => [
+      formatCommitBullet(commit),
+      ...getBreakingChangeDescriptions(commit.body).map(
+        (description) => `  - ${description}`,
+      ),
+    ]),
+  ].join('\n');
+}
+
+function formatCommitBullet(commit) {
+  return `- ${formatCommitSubject(commit.subject)} ([${commit.hash.slice(0, 7)}](${repoUrl}/commit/${commit.hash}))`;
 }
 
 function formatAuthors(commits) {
@@ -668,9 +689,65 @@ function parseConventionalCommit(subject) {
   };
 }
 
+function getBreakingChangeDescriptions(body) {
+  const descriptions = [];
+  const lines = (body ?? '').replace(/\r\n?/g, '\n').split('\n');
+  let currentDescription = null;
+
+  for (const line of lines) {
+    const breakingChangeMatch = line.match(/^BREAKING(?: |-)CHANGE:\s*(.*)$/i);
+
+    if (breakingChangeMatch) {
+      pushBreakingChangeDescription(descriptions, currentDescription);
+      currentDescription = [breakingChangeMatch[1]];
+      continue;
+    }
+
+    if (!currentDescription) {
+      continue;
+    }
+
+    if (line.trim() === '') {
+      pushBreakingChangeDescription(descriptions, currentDescription);
+      currentDescription = null;
+      continue;
+    }
+
+    if (isConventionalFooterLine(line)) {
+      pushBreakingChangeDescription(descriptions, currentDescription);
+      currentDescription = null;
+      continue;
+    }
+
+    currentDescription.push(line);
+  }
+
+  pushBreakingChangeDescription(descriptions, currentDescription);
+
+  return descriptions;
+}
+
+function pushBreakingChangeDescription(descriptions, lines) {
+  const description = lines
+    ?.join('\n')
+    .trim()
+    .replace(/[ \t]*\n[ \t]*/g, ' ')
+    .replace(/[ \t]+/g, ' ');
+
+  if (description) {
+    descriptions.push(description);
+  }
+}
+
+function isConventionalFooterLine(line) {
+  return /^[A-Za-z][A-Za-z0-9-]*(?: [A-Za-z][A-Za-z0-9-]*)?:\s+/.test(
+    line.trim(),
+  );
+}
+
 function isBreakingCommit(commit) {
   return (
     /^[a-zA-Z][\w-]*(?:\([^)]+\))!:/.test(commit.subject) ||
-    /BREAKING CHANGE:/i.test(commit.body)
+    getBreakingChangeDescriptions(commit.body).length > 0
   );
 }
