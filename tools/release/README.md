@@ -79,7 +79,9 @@ GitHub Release notes use the same package-relevance filter, but their base tag
 depends on the release type. Prerelease notes are incremental from the latest
 reachable `sanity@*` tag. Stable release notes start at the latest stable
 `sanity@*` tag, ignoring prerelease tags, so a final `20.0.0` release summarizes
-the full `20.0.0-next.*` train since the previous stable release.
+the full `20.0.0-next.*` train since the previous stable release. Breaking
+change sections include the `BREAKING CHANGE:` footer text when commits provide
+one.
 
 ## Pipeline
 
