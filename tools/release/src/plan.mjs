@@ -72,7 +72,20 @@ export function createReleasePlan(options = {}) {
   const releaseTag =
     headReleaseTag?.tag ?? `${resolvedReleaseTagPrefix}${nextVersion}`;
   const isPrerelease = Boolean(semver.prerelease(nextVersion));
-  const releaseNotes = buildReleaseNotes(nextVersion, commits, {
+  const releaseNotesBaseTag = resolveReleaseNotesBaseTag({
+    headReleaseTag,
+    prerelease: isPrerelease,
+    releaseBaseTag,
+    releaseTags,
+  });
+  const releaseNotesCommits =
+    releaseNotesBaseTag === latestTag
+      ? commits
+      : filterReleaseCommits(
+          getCommitsSince(releaseNotesBaseTag, { capture: commandCapture }),
+          releasePackage,
+        );
+  const releaseNotes = buildReleaseNotes(nextVersion, releaseNotesCommits, {
     now: generatedAt,
   });
 
@@ -90,6 +103,8 @@ export function createReleasePlan(options = {}) {
     paths,
     prerelease: isPrerelease,
     releaseNotes,
+    releaseNotesBaseTag,
+    releaseNotesCommits,
     releaseTag,
     sourceVersion: packageJson.version,
   };
@@ -114,6 +129,8 @@ export function summarizeReleasePlan(plan) {
     npmDistTag: plan.npmDistTag,
     packageName: plan.packageName,
     prerelease: plan.prerelease,
+    releaseNotesBaseTag: plan.releaseNotesBaseTag,
+    releaseNotesCommitCount: plan.releaseNotesCommits.length,
     releaseTag: plan.releaseTag,
   };
 }
@@ -128,6 +145,10 @@ export function printReleasePlan(plan) {
   console.log(`npm dist-tag: ${summary.npmDistTag}`);
   console.log(`Release tag: ${summary.releaseTag}`);
   console.log(`Release commits: ${summary.commitCount}`);
+  console.log(
+    `Release notes base tag: ${summary.releaseNotesBaseTag ?? 'none'}`,
+  );
+  console.log(`Release note commits: ${summary.releaseNotesCommitCount}`);
 }
 
 function resolveReleasePaths(paths = {}, releasePackage) {
@@ -246,6 +267,29 @@ function toPrereleaseIncrement(specifier) {
     default:
       return null;
   }
+}
+
+function resolveReleaseNotesBaseTag({
+  headReleaseTag,
+  prerelease,
+  releaseBaseTag,
+  releaseTags,
+}) {
+  if (prerelease) {
+    return releaseBaseTag?.tag ?? null;
+  }
+
+  return (
+    getLatestStableReleaseTag(releaseTags, {
+      excludeTag: headReleaseTag?.tag,
+    })?.tag ?? null
+  );
+}
+
+function getLatestStableReleaseTag(releaseTags, { excludeTag } = {}) {
+  return releaseTags.find(
+    (tag) => tag.tag !== excludeTag && !semver.prerelease(tag.version),
+  );
 }
 
 function getReachableReleaseTags({ capture, releaseTagPrefix }) {
