@@ -6,7 +6,10 @@
     "entryFile": "src/index.ts"
   },
   "allowedNonPeerDependencies": [
+    "@portabletext/toolkit",
+    "@portabletext/types",
     "@sanity/comlink",
+    "@sanity/image-url",
     "@sanity/mutate",
     "@sanity/presentation-comlink",
     "@sanity/visual-editing",

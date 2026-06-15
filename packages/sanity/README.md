@@ -24,17 +24,18 @@ Limitless Angular is a powerful collection of Angular libraries focused on Sanit
 ## Installation
 
 ```bash
-npm install --save @limitless-angular/sanity
+npm install --save @limitless-angular/sanity @sanity/client
 ```
 
 ### Version Compatibility
 
-| Angular | `@limitless-angular/sanity` |
-| ------- | --------------------------- |
-| 19.x    | 19.x                        |
-| 18.x    | 19.x, 18.x                  |
+| Angular | Support |
+| ------- | ------- |
+| 20.x    | yes     |
+| 19.x    | yes     |
+| 18.x    | yes     |
 
-The current 19.x package line supports Angular 18 and Angular 19.
+The current package line supports Angular 18, Angular 19, and Angular 20.
 
 ## Quick Start
 
