@@ -33,7 +33,7 @@ You can also see the example project in the monorepo: [`apps/sanity-example`](/a
 ## Installation
 
 ```
-npm install --save @limitless-angular/sanity
+npm install --save @limitless-angular/sanity @sanity/client
 ```
 
 ## Basic usage

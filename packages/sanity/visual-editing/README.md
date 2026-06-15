@@ -17,11 +17,16 @@ This secondary entry point is used to create clickable elements to take editors 
 
 ## Installation
 
-First, ensure you have installed the `@limitless-angular/sanity` package in your Angular project:
+First, ensure you have installed the `@limitless-angular/sanity` package and its
+Sanity client peer in your Angular project:
 
 ```bash
-npm install @limitless-angular/sanity
+npm install @limitless-angular/sanity @sanity/client
 ```
+
+Visual Editing uses Angular Router for client-side navigation. If your Angular
+app was created without routing, add `@angular/router` with the same major
+version as the rest of your Angular packages.
 
 ## Importing the Component
 

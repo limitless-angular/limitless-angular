@@ -13,7 +13,7 @@ The `@limitless-angular/sanity/image-loader` package provides two powerful featu
 1. Install the package:
 
 ```bash
-npm install --save @limitless-angular/sanity
+npm install --save @limitless-angular/sanity @sanity/client
 ```
 
 2. Configure in your `app.config.ts`:

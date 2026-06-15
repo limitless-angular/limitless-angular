@@ -24,10 +24,11 @@ The preview-kit provides real-time preview capabilities for Sanity content in An
 
 ## Installation
 
-The preview-kit is included with `@limitless-angular/sanity`. Install the main package:
+The preview-kit is included with `@limitless-angular/sanity`. Install the main
+package and its Sanity client peer:
 
 ```bash
-npm install @limitless-angular/sanity
+npm install @limitless-angular/sanity @sanity/client
 ```
 
 ## Basic Setup

@@ -94,11 +94,22 @@ function writeConsumerProject(
   const packageName = `sanity-${versionSet.id}-compat-consumer`;
   const runtimePort = getRuntimePort(versionSet.id);
   const sharedSanityDeps = {
-    '@portabletext/toolkit':
-      packageJson.peerDependencies['@portabletext/toolkit'],
-    '@portabletext/types': packageJson.peerDependencies['@portabletext/types'],
-    '@sanity/client': packageJson.peerDependencies['@sanity/client'],
-    '@sanity/image-url': packageJson.peerDependencies['@sanity/image-url'],
+    '@portabletext/toolkit': getPublishedDependencyRange(
+      packageJson,
+      '@portabletext/toolkit',
+    ),
+    '@portabletext/types': getPublishedDependencyRange(
+      packageJson,
+      '@portabletext/types',
+    ),
+    '@sanity/client': getPublishedDependencyRange(
+      packageJson,
+      '@sanity/client',
+    ),
+    '@sanity/image-url': getPublishedDependencyRange(
+      packageJson,
+      '@sanity/image-url',
+    ),
     rxjs: packageJson.peerDependencies.rxjs,
     tslib: packageJson.dependencies.tslib,
   };
@@ -243,6 +254,20 @@ function writeConsumerProject(
   );
 
   console.log(`Consumer workspace: ${relative(workspaceRoot, workspace)}`);
+}
+
+function getPublishedDependencyRange(packageJson, dependencyName) {
+  const range =
+    packageJson.dependencies?.[dependencyName] ??
+    packageJson.peerDependencies?.[dependencyName];
+
+  if (!range) {
+    throw new Error(
+      `Expected ${dependencyName} in dependencies or peerDependencies.`,
+    );
+  }
+
+  return range;
 }
 
 function entrypointsSource() {

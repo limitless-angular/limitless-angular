@@ -32,19 +32,19 @@
     "@angular/common": "^18.0.0 || ^19.0.0 || ^20.0.0",
     "@angular/core": "^18.0.0 || ^19.0.0 || ^20.0.0",
     "@angular/router": "^18.0.0 || ^19.0.0 || ^20.0.0",
-    "@portabletext/toolkit": "^2.0.15 || ^3.0.0 || ^4.0.0 || ^5.0.0",
-    "@portabletext/types": "^2.0.13 || ^3.0.0 || ^4.0.0",
     "@sanity/client": "^6.28.0 || ^7.0.0",
-    "@sanity/image-url": "^1.0.2 || ^2.0.2",
     "rxjs": "^7.8.0"
   },
   "peerDependenciesMeta": {
-    "@sanity/client": {
+    "@angular/router": {
       "optional": true
     }
   },
   "dependencies": {
+    "@portabletext/toolkit": "^2.0.15 || ^3.0.0 || ^4.0.0 || ^5.0.0",
+    "@portabletext/types": "^2.0.13 || ^3.0.0 || ^4.0.0",
     "@sanity/comlink": "^4.0.1",
+    "@sanity/image-url": "^1.0.2 || ^2.0.2",
     "@sanity/mutate": "0.18.0",
     "@sanity/presentation-comlink": "^2.1.0",
     "@sanity/visual-editing": "5.4.3",
@@ -65,10 +65,7 @@
     "@angular/core": "~20.0.0",
     "@angular/platform-browser": "~20.0.0",
     "@angular/router": "~20.0.0",
-    "@portabletext/toolkit": "^5.0.2",
-    "@portabletext/types": "^4.0.2",
     "@sanity/client": "^7.22.1",
-    "@sanity/image-url": "^2.1.1",
     "@testing-library/angular": "^18.1.1",
     "@testing-library/dom": "^10.4.0",
     "@types/lodash-es": "^4.17.12",
