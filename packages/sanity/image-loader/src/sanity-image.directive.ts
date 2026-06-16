@@ -15,16 +15,19 @@ import {
   NgOptimizedImage,
 } from '@angular/common';
 
-import imageUrlBuilder from '@sanity/image-url';
+import { createImageUrlBuilder } from '@sanity/image-url';
+import type {
+  ImageUrlBuilderOptionsWithAliases,
+  SanityImageSource,
+} from '@sanity/image-url';
 
 import {
   SANITY_CONFIG,
   type SanityConfig,
 } from '@limitless-angular/sanity/shared';
 import { sanityImageLoader } from './loader';
-import type { ImageUrlBuilderOptions, SanityImageSource } from './types';
 
-type LoaderParams = Omit<ImageUrlBuilderOptions, 'quality'>;
+type LoaderParams = Omit<ImageUrlBuilderOptionsWithAliases, 'quality'>;
 
 function getNoopImageLoader() {
   return (
@@ -72,7 +75,7 @@ export class SanityImage extends NgOptimizedImage implements OnInit, OnChanges {
 
   private imageUrl = computed(() => {
     const url = new URL(
-      imageUrlBuilder(this.sanityConfig)
+      createImageUrlBuilder(this.sanityConfig)
         .image(this.sanityImage())
         .withOptions(this._loaderParams)
         .url(),
