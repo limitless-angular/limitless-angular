@@ -191,14 +191,7 @@ export class VisualEditingClientComponent {
       });
   }
 
-  private defaultRefresh: VisualEditingOptions['refresh'] = (payload) => {
-    if (payload.source === 'mutation' && payload.livePreviewEnabled) {
-      console.debug(
-        'Live preview is setup, mutation is skipped assuming its handled by the live preview',
-      );
-      return false;
-    }
-
+  private defaultRefresh: VisualEditingOptions['refresh'] = () => {
     console.debug(
       'No Angular route revalidation hook was provided, refreshing the browser document',
     );

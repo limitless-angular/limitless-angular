@@ -48,6 +48,12 @@ type RenderElement = ElementState & {
   draggable: boolean;
 };
 
+type NavigatorWithUserAgentData = Navigator & {
+  userAgentData?: {
+    platform?: string;
+  };
+};
+
 function raf2(fn: () => void): () => void {
   let r1: number | undefined;
   const r0 = requestAnimationFrame(() => {
@@ -66,8 +72,16 @@ function isAltKey(event: KeyboardEvent): boolean {
   return event.key === 'Alt';
 }
 
+function isAppleModifierPlatform(navigator: Navigator): boolean {
+  const platform =
+    (navigator as NavigatorWithUserAgentData).userAgentData?.platform ??
+    navigator.userAgent;
+
+  return /Mac|iPod|iPhone|iPad/i.test(platform);
+}
+
 function isHotkey(keys: string[], event: KeyboardEvent): boolean {
-  const isMac = /Mac|iPod|iPhone|iPad/.test(window.navigator.platform);
+  const isMac = isAppleModifierPlatform(window.navigator);
   const modifiers: Record<
     string,
     'altKey' | 'ctrlKey' | 'metaKey' | 'shiftKey'

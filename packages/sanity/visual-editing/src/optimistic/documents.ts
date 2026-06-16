@@ -70,10 +70,18 @@ function getDocumentsAndSnapshot<T extends Record<string, any>>(
   });
 
   const getSnapshot = () => snapshotPromise;
+  const getRequiredSnapshot = () => {
+    if (!snapshot) {
+      throw new Error(`Snapshot for document "${id}" not found`);
+    }
+
+    return snapshot;
+  };
 
   return {
     draftDoc: draftDocument,
     draftId,
+    getRequiredSnapshot,
     getSnapshot,
     publishedDoc: publishedDocument,
     publishedId,
@@ -81,11 +89,7 @@ function getDocumentsAndSnapshot<T extends Record<string, any>>(
      * @deprecated - use `getSnapshot` instead
      */
     get snapshot() {
-      if (!snapshot) {
-        throw new Error(`Snapshot for document "${id}" not found`);
-      }
-
-      return snapshot;
+      return getRequiredSnapshot();
     },
   };
 }
@@ -107,7 +111,8 @@ function createDocumentGet<T extends Record<string, any>>(
   return <P extends Path<T, keyof T>>(
     path?: P,
   ): PathValue<T, P> | SanityDocument<T> | undefined => {
-    const { snapshot } = getDocumentsAndSnapshot<T>(id, actor);
+    const { getRequiredSnapshot } = getDocumentsAndSnapshot<T>(id, actor);
+    const snapshot = getRequiredSnapshot();
 
     return path
       ? (getAtPath(snapshot, path) as PathValue<T, P>)
@@ -142,7 +147,7 @@ function createDocumentPatch<T extends Record<string, any>>(
        * @deprecated - use `getSnapshot` instead
        */
       get snapshot() {
-        return result.snapshot;
+        return result.getRequiredSnapshot();
       },
       getSnapshot,
     };

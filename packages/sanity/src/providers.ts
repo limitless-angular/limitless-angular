@@ -1,8 +1,8 @@
 import {
-  ENVIRONMENT_INITIALIZER,
   type EnvironmentProviders,
   makeEnvironmentProviders,
   type Provider,
+  provideEnvironmentInitializer,
 } from '@angular/core';
 
 import {
@@ -23,14 +23,10 @@ export function provideSanity(
           { provide: SANITY_CONFIG, useValue: factoryOrConfig()?.config() },
         ]
       : [{ provide: SANITY_CONFIG, useValue: factoryOrConfig }]),
-    {
-      provide: ENVIRONMENT_INITIALIZER,
-      multi: true,
-      useValue: () => {
-        // This is a placeholder for any initialization logic you might need.
-        // For example, you could set up global error handling for Sanity queries here.
-      },
-    },
+    provideEnvironmentInitializer(() => {
+      // This is a placeholder for any initialization logic you might need.
+      // For example, you could set up global error handling for Sanity queries here.
+    }),
     features.map((feature) => feature.ɵproviders),
   ]);
 }
