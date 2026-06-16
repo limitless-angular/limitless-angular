@@ -1,7 +1,7 @@
 import { inject, Provider } from '@angular/core';
 import { IMAGE_LOADER, ImageLoaderConfig } from '@angular/common';
 
-import imageUrlBuilder from '@sanity/image-url';
+import { createImageUrlBuilder } from '@sanity/image-url';
 
 import {
   SANITY_CONFIG,
@@ -16,7 +16,7 @@ export function sanityImageLoader(config?: SanityConfig | null) {
     try {
       url = new URL(src);
     } catch {
-      const builder = imageUrlBuilder(config ?? undefined);
+      const builder = createImageUrlBuilder(config ?? undefined);
       url = new URL(builder.image(src).withOptions(options).url());
     }
 

@@ -22,6 +22,16 @@ const bundledFeatureDependencies = [
   '@portabletext/types',
   '@sanity/image-url',
 ];
+const supportedSanityDependencyRanges = {
+  peerDependencies: {
+    '@sanity/client': '^7.0.0',
+  },
+  dependencies: {
+    '@portabletext/toolkit': '^5.0.0',
+    '@portabletext/types': '^4.0.0',
+    '@sanity/image-url': '^2.0.2',
+  },
+};
 
 test('@limitless-angular/sanity keeps framework and client packages peer-owned', () => {
   const dependencies = dependencyNames('dependencies');
@@ -88,6 +98,16 @@ test('@limitless-angular/sanity avoids dependency bucket duplication', () => {
       !dependencies.has(dependency),
       `${dependency} should not be both a dependency and peerDependency`,
     );
+  }
+});
+
+test('@limitless-angular/sanity only supports current Sanity dependency majors', () => {
+  for (const [section, ranges] of Object.entries(
+    supportedSanityDependencyRanges,
+  )) {
+    for (const [dependency, range] of Object.entries(ranges)) {
+      assert.equal(sanityPackageJson[section]?.[dependency], range);
+    }
   }
 });
 
