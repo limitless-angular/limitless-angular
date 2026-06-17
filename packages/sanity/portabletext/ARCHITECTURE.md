@@ -140,7 +140,6 @@ The implementation showcases several modern Angular patterns:
 
 - `merge.ts`: Merges default and custom components
 - `utils.ts`: Provides utility functions for serializing blocks and tracking
-- `angular-versions.ts`: Provides version detection for compatibility
 
 ### Types and Tokens
 

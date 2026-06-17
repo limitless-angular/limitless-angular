@@ -2,7 +2,6 @@ import {
   ApplicationConfig,
   provideBrowserGlobalErrorListeners,
   provideEnvironmentInitializer,
-  provideZonelessChangeDetection,
 } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { provideClientHydration } from '@angular/platform-browser';
@@ -20,7 +19,6 @@ import { updateMetaTagsOnRouteChange } from './utils/meta-tags';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideZonelessChangeDetection(),
     provideBrowserGlobalErrorListeners(),
     provideFileRouter(
       withComponentInputBinding(),
