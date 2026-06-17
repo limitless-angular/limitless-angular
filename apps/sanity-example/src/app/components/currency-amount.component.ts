@@ -1,5 +1,4 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   inject,
@@ -74,7 +73,6 @@ interface CurrencySnapshotValue {
       {{ value().amount }} {{ value().currency }}
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CurrencyAmountComponent extends PortableTextTypeComponent<CurrencyAmountDef> {
   private readonly languages = getLanguagesFn()();

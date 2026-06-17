@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
+import { Component, computed } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterOutlet } from '@angular/router';
 
@@ -41,7 +41,6 @@ interface BlogPageProps {
       <visual-editing />
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class BlogPage {
   data = toSignal(injectChildrenLoad<BlogPageProps>(), { requireSync: true });

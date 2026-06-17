@@ -8,12 +8,7 @@
  *
  */
 
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-} from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import {
   PortableTextBlockComponent,
   PortableTextComponent as SanityPortableTextComponent,
@@ -28,7 +23,6 @@ import { TypedObject } from '@portabletext/types';
   standalone: true,
   template: `<ng-container #children />`,
   host: { '[class]': '"mb-2 text-sm font-semibold"' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Heading5Component extends PortableTextBlockComponent {}
 
@@ -38,7 +32,6 @@ export class Heading5Component extends PortableTextBlockComponent {}
   standalone: true,
   template: `<ng-container #children />`,
   host: { '[class]': '"mb-2 text-sm font-semibold"' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Heading6Component extends PortableTextBlockComponent {}
 
@@ -51,7 +44,6 @@ export class Heading6Component extends PortableTextBlockComponent {}
     '[href]': 'value()?.href',
     '[rel]': '"noreferrer noopener"',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LinkComponent extends PortableTextMarkComponent<{
   _type: 'link';
@@ -69,7 +61,6 @@ export class LinkComponent extends PortableTextMarkComponent<{
       [components]="components"
     ></div>
   }`,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PortableTextComponent {
   class = input<string>('');

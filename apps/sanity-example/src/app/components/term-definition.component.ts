@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 
 import { PortableTextMarkComponent } from '@limitless-angular/sanity/portabletext';
 
@@ -20,6 +20,5 @@ interface DefinitionMark {
   host: {
     '[class]': '"relative underline"',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TermDefinitionComponent extends PortableTextMarkComponent<DefinitionMark> {}

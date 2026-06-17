@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 import { type LoadResult } from './[slug].server';
 import { PostPageComponent } from './post-page.component';
@@ -13,7 +13,6 @@ import { createLiveData } from '@limitless-angular/sanity/preview-kit';
   selector: 'blog-preview-post-page',
   template: `<blog-post-page [slug]="slug()" [data]="liveData()" />`,
   imports: [PostPageComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PreviewPostPageComponent {
   slug = input.required<string>();

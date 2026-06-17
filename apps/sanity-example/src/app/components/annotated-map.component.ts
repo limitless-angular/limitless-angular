@@ -1,6 +1,5 @@
 import {
   afterNextRender,
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   signal,
@@ -50,7 +49,6 @@ export interface AnnotatedMapBlock {
   ],
   // host: { ngSkipHydration: 'true' },
   encapsulation: ViewEncapsulation.None,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnnotatedMapComponent extends PortableTextTypeComponent<AnnotatedMapBlock> {
   isLoading = signal(true);

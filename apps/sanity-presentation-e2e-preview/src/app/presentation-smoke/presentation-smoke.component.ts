@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-} from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { createClient } from '@sanity/client';
 import type {
   ContentSourceMap,
@@ -197,7 +192,6 @@ function getInitialDocument(): PresentationSmokeDocument {
       margin: 0;
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PresentationSmokeContentComponent {
   config = input.required<PresentationSmokeConfig>();
@@ -247,7 +241,6 @@ export class PresentationSmokeContentComponent {
     { provide: SANITY_CLIENT_FACTORY, useValue: getSmokeClient },
     { provide: SANITY_CONFIG, useFactory: getPresentationSmokeClientConfig },
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PresentationSmokeComponent {
   config = getPresentationSmokeConfig();

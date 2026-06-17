@@ -4,7 +4,7 @@ import {
   ɵSERVER_CONTEXT as SERVER_CONTEXT,
 } from '@angular/platform-server';
 
-import { appConfig } from './app.config';
+import { appServerConfig } from './app.config';
 
 const serverConfig: ApplicationConfig = {
   providers: [
@@ -13,4 +13,4 @@ const serverConfig: ApplicationConfig = {
   ],
 };
 
-export const config = mergeApplicationConfig(appConfig, serverConfig);
+export const config = mergeApplicationConfig(appServerConfig, serverConfig);

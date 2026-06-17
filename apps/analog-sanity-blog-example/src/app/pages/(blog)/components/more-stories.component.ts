@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import type { MoreStoriesQueryResult } from '@/analog-sanity-blog-example/sanity';
@@ -38,7 +38,6 @@ import { DateComponent } from './date.component';
       }
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MoreStoriesComponent {
   moreStories = input<

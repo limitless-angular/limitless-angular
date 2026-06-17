@@ -1,9 +1,12 @@
 import {
-  ApplicationConfig,
+  type ApplicationConfig,
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import {
+  provideRouter,
+  withExperimentalPlatformNavigation,
+} from '@angular/router';
 import {
   provideClientHydration,
   withEventReplay,
@@ -11,11 +14,19 @@ import {
 
 import { appRoutes } from './app.routes';
 
+const appProviders: NonNullable<ApplicationConfig['providers']> = [
+  provideClientHydration(withEventReplay()),
+  provideZonelessChangeDetection(),
+  provideBrowserGlobalErrorListeners(),
+];
+
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideClientHydration(withEventReplay()),
-    provideZonelessChangeDetection(),
-    provideBrowserGlobalErrorListeners(),
-    provideRouter(appRoutes),
+    ...appProviders,
+    provideRouter(appRoutes, withExperimentalPlatformNavigation()),
   ],
+};
+
+export const appServerConfig: ApplicationConfig = {
+  providers: [...appProviders, provideRouter(appRoutes)],
 };

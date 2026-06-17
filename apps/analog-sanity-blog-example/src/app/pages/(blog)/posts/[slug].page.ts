@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-} from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
 import { type LoadResult } from './[slug].server';
 import { type ResolveFn } from '@angular/router';
@@ -47,7 +42,6 @@ export const routeMeta: RouteMeta = {
     }
   `,
   imports: [PreviewPostPageComponent, PostPageComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class PostPage {
   slug = input.required<string>();

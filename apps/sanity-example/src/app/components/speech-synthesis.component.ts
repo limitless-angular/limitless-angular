@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 
 import { PortableTextMarkComponent } from '@limitless-angular/sanity/portabletext';
 
@@ -17,7 +17,6 @@ interface SpeechSynthesisMark {
     '[type]': '"button"',
     '(click)': 'onClick()',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SpeechSynthesisComponent extends PortableTextMarkComponent<SpeechSynthesisMark> {
   onClick() {

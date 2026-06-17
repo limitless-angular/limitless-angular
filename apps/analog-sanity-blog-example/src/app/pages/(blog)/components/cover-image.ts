@@ -1,17 +1,10 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  computed,
-  input,
-  booleanAttribute,
-} from '@angular/core';
+import { Component, computed, input, booleanAttribute } from '@angular/core';
 
 import { SanityImage } from '@limitless-angular/sanity/image-loader';
 
 @Component({
   selector: 'blog-cover-image',
   imports: [SanityImage],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
       class="shadow-md transition-shadow duration-200 group-hover:shadow-lg sm:mx-0"

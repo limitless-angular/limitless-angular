@@ -14,7 +14,7 @@ interface CodeBlock {
 }
 
 const exampleCode = `
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { PortableTextTypeComponent } from '@limitless-angular/sanity/portabletext';
 import { LowlightComponent } from './lowlight.component';
 
@@ -34,7 +34,6 @@ interface CodeBlock {
       [code]="value().code"
     ></app-lowlight>
   \`,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CodeComponent extends PortableTextTypeComponent<CodeBlock> {}
 `.trim();

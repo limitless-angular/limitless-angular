@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 import type { SettingsQueryResult } from '@/analog-sanity-blog-example/sanity';
 import { PortableTextComponent } from './portable-text.component';
@@ -37,7 +37,6 @@ import { PortableTextComponent } from './portable-text.component';
     }
   </div>`,
   host: { class: 'bg-accent-1 border-accent-2 border-t' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FooterComponent {
   footer = input.required<

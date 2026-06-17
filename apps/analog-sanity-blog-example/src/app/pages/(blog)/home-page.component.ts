@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-} from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { type LoadResult } from './(home).server';
 import { FooterComponent } from './components/footer.component';
 import { OnboardingComponent } from './components/onboarding.component';
@@ -32,7 +27,6 @@ import { demo } from '@/analog-sanity-blog-example/sanity';
       </h2>
     </section>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class IntroComponent {
   title = input<string | null | undefined>();
@@ -78,7 +72,6 @@ export class IntroComponent {
       </div>
     </article>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HeroPostComponent {
   title = input.required<string>();
@@ -131,7 +124,6 @@ export class HeroPostComponent {
     </div>
     <footer blog-footer [footer]="settings()?.footer"></footer>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePageComponent {
   data = input.required<LoadResult>();

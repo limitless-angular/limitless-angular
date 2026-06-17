@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 import { HomePageComponent } from './home-page.component';
 import type { LoadResult } from './(home).server';
@@ -12,7 +12,6 @@ import { createLiveData } from '@limitless-angular/sanity/preview-kit';
   selector: 'blog-preview-home-page',
   imports: [HomePageComponent],
   template: `<blog-home-page [data]="liveData()" />`,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PreviewHomePageComponent {
   data = input.required<LoadResult>();

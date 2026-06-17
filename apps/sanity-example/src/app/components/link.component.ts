@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
+import { Component, computed } from '@angular/core';
 
 import { PortableTextMarkComponent } from '@limitless-angular/sanity/portabletext';
 
@@ -17,7 +17,6 @@ interface LinkMark {
     '[target]': 'target()',
     '[rel]': 'rel()',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LinkComponent extends PortableTextMarkComponent<LinkMark> {
   target = computed(() =>

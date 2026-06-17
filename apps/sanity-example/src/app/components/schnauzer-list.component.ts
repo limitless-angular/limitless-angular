@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  signal,
-} from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 
 import { PortableTextListComponent } from '@limitless-angular/sanity/portabletext';
 
@@ -15,7 +10,6 @@ import { PortableTextListComponent } from '@limitless-angular/sanity/portabletex
   host: {
     '[style.listStyle]': 'listStyle()',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SchnauzerListComponent extends PortableTextListComponent {
   private size = signal(14);
