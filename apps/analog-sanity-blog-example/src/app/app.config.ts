@@ -5,9 +5,7 @@ import {
   provideZonelessChangeDetection,
 } from '@angular/core';
 import { provideHttpClient, withFetch } from '@angular/common/http';
-import {
-  provideClientHydration,
-} from '@angular/platform-browser';
+import { provideClientHydration } from '@angular/platform-browser';
 import {
   withComponentInputBinding,
   withNavigationErrorHandler,
