@@ -82,6 +82,14 @@
   },
   "sideEffects": false,
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./image-loader": "./image-loader/src/index.ts",
+    "./portabletext": "./portabletext/src/index.ts",
+    "./preview-kit": "./preview-kit/src/index.ts",
+    "./shared": "./shared/src/index.ts",
+    "./visual-editing": "./visual-editing/src/index.ts"
+  },
   "publishConfig": {
     "access": "public"
   }
