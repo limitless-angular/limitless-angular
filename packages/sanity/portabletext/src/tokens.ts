@@ -1,8 +1,4 @@
-import {
-  InjectionToken,
-  type Signal,
-  type TemplateRef,
-} from '@angular/core';
+import { InjectionToken, type Signal, type TemplateRef } from '@angular/core';
 import type { TypedObject } from '@portabletext/types';
 
 import type { RenderNodeContext } from './types';
