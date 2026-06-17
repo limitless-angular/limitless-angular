@@ -9,7 +9,7 @@ import { ROUTE_META_TAGS_KEY, ROUTE_TITLE_KEY } from '../../../utils/meta-tags';
 import { toPlainText } from '@limitless-angular/sanity/portabletext';
 import { resolveOpenGraphImage } from '../../../utils/resolve-open-graph-image';
 import { generateMetaTags } from '../../../utils/generate-metatags';
-import { demo } from '@/analog-sanity-blog-example/sanity';
+import { demo } from '#sanity';
 
 // See https://discord.com/channels/994618831987290112/1276597066096840784
 export const routeMeta: RouteMeta = {

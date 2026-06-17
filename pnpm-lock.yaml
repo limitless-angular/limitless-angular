@@ -167,9 +167,6 @@ importers:
       postcss:
         specifier: ^8.4.5
         version: 8.4.49
-      rollup-plugin-typescript-paths:
-        specifier: ^1.5.0
-        version: 1.5.0(typescript@6.0.3)
       tailwindcss:
         specifier: ^3.0.2
         version: 3.4.16(ts-node@10.9.1(@swc/core@1.5.29(@swc/helpers@0.5.23))(@types/node@22.19.20)(typescript@6.0.3))
@@ -7876,11 +7873,6 @@ packages:
     peerDependencies:
       rollup: ^3.29.4 || ^4
       typescript: ^4.5 || ^5.0 || ^6.0
-
-  rollup-plugin-typescript-paths@1.5.0:
-    resolution: {integrity: sha512-zly2aiGNjYJNq5YUi6eyGrQnCYUQ8b5czOtHZIGriwG9U3Ba2F9hlSklafXCdsNulK/IlNmE0Kzj0h+fVV32pA==}
-    peerDependencies:
-      typescript: '>=3.4'
 
   rollup-plugin-visualizer@7.0.1:
     resolution: {integrity: sha512-UJUT4+1Ho4OcWmPYU3sYXgUqI8B8Ayfe06MX7y0qCJ1K8aGoKtR/NDd/2nZqM7ADkrzny+I99Ul7GgyoiVNAgg==}
@@ -17436,10 +17428,6 @@ snapshots:
       typescript: 6.0.3
     optionalDependencies:
       '@babel/code-frame': 7.29.7
-
-  rollup-plugin-typescript-paths@1.5.0(typescript@6.0.3):
-    dependencies:
-      typescript: 6.0.3
 
   rollup-plugin-visualizer@7.0.1(rolldown@1.0.3)(rollup@4.61.1):
     dependencies:

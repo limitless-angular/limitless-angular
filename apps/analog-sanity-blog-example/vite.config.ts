@@ -1,9 +1,8 @@
-import { dirname, resolve } from 'node:path';
+import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import analog from '@analogjs/platform';
 import { defineConfig, loadEnv } from 'vite';
 import webfontDownload from 'vite-plugin-webfont-dl';
-import { typescriptPaths } from 'rollup-plugin-typescript-paths';
 
 const configDir = dirname(fileURLToPath(import.meta.url));
 
@@ -18,18 +17,9 @@ export default defineConfig(({ mode }) => {
       outDir: 'dist/client',
       target: ['es2022'],
     },
-    resolve: {
-      tsconfigPaths: true,
-    },
     plugins: [
       analog({
         nitro: {
-          alias: {
-            '@/analog-sanity-blog-example/sanity': resolve(
-              configDir,
-              'src/sanity/lib/index.ts',
-            ),
-          },
           static: false,
           routeRules: {
             '/': { prerender: false, isr: 60 },
@@ -38,14 +28,6 @@ export default defineConfig(({ mode }) => {
           },
           vercel: {
             config: { bypassToken: process.env['BYPASS_TOKEN'] },
-          },
-          rollupConfig: {
-            plugins: [
-              typescriptPaths({
-                tsConfigPath: resolve(configDir, '../../tsconfig.base.json'),
-                preserveExtensions: true,
-              }),
-            ],
           },
         },
         useAPIMiddleware: false,

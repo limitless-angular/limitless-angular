@@ -1,7 +1,7 @@
 import type { SanityImageSource } from '@sanity/asset-utils';
 import createImageUrlBuilder from '@sanity/image-url';
 
-import { dataset, projectId } from '@/analog-sanity-blog-example/sanity';
+import { dataset, projectId } from '#sanity';
 
 const imageBuilder = createImageUrlBuilder({ projectId, dataset });
 

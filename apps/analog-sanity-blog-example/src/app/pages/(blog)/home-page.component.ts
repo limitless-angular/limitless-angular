@@ -8,7 +8,7 @@ import { RouterLink } from '@angular/router';
 import { CoverImageComponent } from './components/cover-image';
 import { DateComponent } from './components/date.component';
 import { AvatarComponent } from './components/avatar.component';
-import { demo } from '@/analog-sanity-blog-example/sanity';
+import { demo } from '#sanity';
 
 @Component({
   selector: 'blog-intro',

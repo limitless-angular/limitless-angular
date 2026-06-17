@@ -4,6 +4,15 @@
     "outDir": "./out-tsc/app",
     "types": ["node"]
   },
-  "include": ["src/**/*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "../../packages/analog-sanity-blog/src/**/*.ts",
+    "../../packages/sanity/src/**/*.ts",
+    "../../packages/sanity/image-loader/src/**/*.ts",
+    "../../packages/sanity/portabletext/src/**/*.ts",
+    "../../packages/sanity/preview-kit/src/**/*.ts",
+    "../../packages/sanity/shared/src/**/*.ts",
+    "../../packages/sanity/visual-editing/src/**/*.ts"
+  ],
   "exclude": ["src/**/*.spec.ts"]
 }

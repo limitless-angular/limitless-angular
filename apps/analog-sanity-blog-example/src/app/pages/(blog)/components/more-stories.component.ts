@@ -1,7 +1,7 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import type { MoreStoriesQueryResult } from '@/analog-sanity-blog-example/sanity';
+import type { MoreStoriesQueryResult } from '#sanity';
 import { CoverImageComponent } from './cover-image';
 import { AvatarComponent } from './avatar.component';
 import { DateComponent } from './date.component';

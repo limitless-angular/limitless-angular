@@ -1,6 +1,6 @@
 import { Component, input } from '@angular/core';
 
-import type { SettingsQueryResult } from '@/analog-sanity-blog-example/sanity';
+import type { SettingsQueryResult } from '#sanity';
 import { PortableTextComponent } from './portable-text.component';
 
 @Component({
