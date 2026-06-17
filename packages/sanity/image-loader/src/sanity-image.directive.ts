@@ -69,7 +69,7 @@ export class SanityImage extends NgOptimizedImage implements OnInit, OnChanges {
     return this._loaderParams;
   }
 
-  @Input() override ngSrc = '';
+  @Input() override ngSrc!: string;
 
   quality = input<number>();
 
