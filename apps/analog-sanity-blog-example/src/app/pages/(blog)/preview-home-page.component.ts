@@ -2,10 +2,7 @@ import { Component, input } from '@angular/core';
 
 import { HomePageComponent } from './home-page.component';
 import type { LoadResult } from './(home).server';
-import {
-  moreStoriesQuery,
-  settingsQuery,
-} from '#sanity';
+import { moreStoriesQuery, settingsQuery } from '#sanity';
 import { createLiveData } from '@limitless-angular/sanity/preview-kit';
 
 @Component({

@@ -2,11 +2,7 @@ import { Component, input } from '@angular/core';
 
 import { type LoadResult } from './[slug].server';
 import { PostPageComponent } from './post-page.component';
-import {
-  moreStoriesQuery,
-  postBySlugQuery,
-  settingsQuery,
-} from '#sanity';
+import { moreStoriesQuery, postBySlugQuery, settingsQuery } from '#sanity';
 import { createLiveData } from '@limitless-angular/sanity/preview-kit';
 
 @Component({
