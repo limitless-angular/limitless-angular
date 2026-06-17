@@ -7,7 +7,6 @@ import {
 import { provideHttpClient, withFetch } from '@angular/common/http';
 import {
   provideClientHydration,
-  withNoIncrementalHydration,
 } from '@angular/platform-browser';
 import {
   withComponentInputBinding,
@@ -28,7 +27,7 @@ export const appConfig: ApplicationConfig = {
       withComponentInputBinding(),
       withNavigationErrorHandler(console.error),
     ),
-    provideClientHydration(withNoIncrementalHydration()),
+    provideClientHydration(),
     provideHttpClient(withFetch()),
     provideSanity(getClient, withLivePreview()),
     provideEnvironmentInitializer(() => updateMetaTagsOnRouteChange()),
