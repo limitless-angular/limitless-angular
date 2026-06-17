@@ -1,17 +1,44 @@
 {
+  "compileOnSave": false,
   "compilerOptions": {
-    "target": "es2022",
-    "useDefineForClassFields": false,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "preserve",
+    "paths": {
+      "@limitless-angular/sanity": ["../../packages/sanity/src/index.ts"],
+      "@limitless-angular/sanity/channels": [
+        "../../packages/sanity/channels/src/index.ts"
+      ],
+      "@limitless-angular/sanity/image-loader": [
+        "../../packages/sanity/image-loader/src/index.ts"
+      ],
+      "@limitless-angular/sanity/portabletext": [
+        "../../packages/sanity/portabletext/src/index.ts"
+      ],
+      "@limitless-angular/sanity/preview-kit": [
+        "../../packages/sanity/preview-kit/src/index.ts"
+      ],
+      "@limitless-angular/sanity/shared": [
+        "../../packages/sanity/shared/src/index.ts"
+      ],
+      "@limitless-angular/sanity/visual-editing": [
+        "../../packages/sanity/visual-editing/src/index.ts"
+      ]
+    }
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true
   },
   "files": [],
-  "include": [],
   "references": [
     {
       "path": "./tsconfig.editor.json"
@@ -19,14 +46,5 @@
     {
       "path": "./tsconfig.app.json"
     }
-  ],
-  "extends": "../../tsconfig.base.json",
-  "angularCompilerOptions": {
-    "enableI18nLegacyMessageIdFormat": false,
-    "strictInjectionParameters": true,
-    "strictInputAccessModifiers": true,
-    "strictStandalone": true,
-    "typeCheckHostBindings": true,
-    "strictTemplates": true
-  }
+  ]
 }
