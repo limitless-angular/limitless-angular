@@ -1,56 +1,56 @@
-import { APP_BASE_HREF } from '@angular/common';
-import { CommonEngine, isMainModule } from '@angular/ssr/node';
-import { render } from '@netlify/angular-runtime/common-engine.js';
-import express, {
-  type Request as ExpressRequest,
-  type Response as ExpressResponse,
-} from 'express';
-import { dirname, join, resolve } from 'node:path';
+import { AngularAppEngine, createRequestHandler } from '@angular/ssr';
+import {
+  AngularNodeAppEngine,
+  isMainModule,
+  writeResponseToNodeResponse,
+} from '@angular/ssr/node';
+import {
+  getAllowedHosts,
+  getContext,
+  getTrustProxyHeaders,
+} from '@netlify/angular-runtime/app-engine.js';
+import express from 'express';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import bootstrap from './main.server';
-import { REQUEST, RESPONSE } from './server.tokens';
+const angularAppEngine = new AngularAppEngine({
+  allowedHosts: getAllowedHosts(),
+  trustProxyHeaders: getTrustProxyHeaders(),
+});
 
-const netlifyCommonEngine = new CommonEngine();
-
-export async function netlifyCommonEngineHandler(): Promise<globalThis.Response> {
-  return await render(netlifyCommonEngine);
+export async function netlifyAppEngineHandler(
+  request: Request,
+): Promise<Response> {
+  const response = await angularAppEngine.handle(request, getContext());
+  return response ?? new Response('Not found', { status: 404 });
 }
+
+export const reqHandler = createRequestHandler(netlifyAppEngineHandler);
 
 export function app(): express.Express {
   const server = express();
   const serverDistFolder = dirname(fileURLToPath(import.meta.url));
   const browserDistFolder = resolve(serverDistFolder, '../browser');
-  const indexHtml = join(serverDistFolder, 'index.server.html');
-  const commonEngine = new CommonEngine();
+  const angularNodeAppEngine = new AngularNodeAppEngine();
 
   server.set('view engine', 'html');
   server.set('views', browserDistFolder);
 
-  server.get(
-    '*.*',
+  server.use(
     express.static(browserDistFolder, {
       maxAge: '1y',
+      index: false,
+      redirect: false,
     }),
   );
 
-  server.get('**', (req: ExpressRequest, res: ExpressResponse, next) => {
-    const { protocol, originalUrl, baseUrl, headers } = req;
-
-    commonEngine
-      .render({
-        bootstrap,
-        documentFilePath: indexHtml,
-        url: `${protocol}://${headers.host}${originalUrl}`,
-        publicPath: browserDistFolder,
-        providers: [
-          { provide: APP_BASE_HREF, useValue: baseUrl },
-          { provide: REQUEST, useValue: req },
-          { provide: RESPONSE, useValue: res },
-        ],
-      })
-      .then((html) => res.send(html))
-      .catch((error: unknown) => next(error));
+  server.use((req, res, next) => {
+    angularNodeAppEngine
+      .handle(req)
+      .then((response) =>
+        response ? writeResponseToNodeResponse(response, res) : next(),
+      )
+      .catch(next);
   });
 
   return server;
