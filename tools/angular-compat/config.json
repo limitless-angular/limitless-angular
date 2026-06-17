@@ -2,18 +2,8 @@
   "packageName": "@limitless-angular/sanity",
   "packageRoot": "packages/sanity",
   "artifactDir": ".compat/artifacts",
-  "buildAngularMajor": 21,
+  "buildAngularMajor": 22,
   "consumerVersionSets": [
-    {
-      "angularMajor": 19,
-      "id": "angular-19-floor",
-      "mode": "floor"
-    },
-    {
-      "id": "angular-19-latest",
-      "angularMajor": 19,
-      "mode": "latest"
-    },
     {
       "angularMajor": 20,
       "id": "angular-20-floor",
@@ -32,6 +22,16 @@
     {
       "angularMajor": 21,
       "id": "angular-21-latest",
+      "mode": "latest"
+    },
+    {
+      "angularMajor": 22,
+      "id": "angular-22-floor",
+      "mode": "floor"
+    },
+    {
+      "angularMajor": 22,
+      "id": "angular-22-latest",
       "mode": "latest"
     }
   ],

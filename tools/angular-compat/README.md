@@ -36,8 +36,8 @@ pnpm run compat:matrix --canary
 pnpm run compat:pack
 pnpm run compat:artifact
 pnpm run compat:test
-pnpm run compat:test --set angular-19-floor
-pnpm run compat:test --set angular-21-latest --skip-runtime
+pnpm run compat:test --set angular-20-floor
+pnpm run compat:test --set angular-22-latest --skip-runtime
 pnpm run compat:canary-report --status-dir .compat/canary-status
 pnpm run compat:release-parity
 ```
@@ -68,8 +68,8 @@ Stable required consumers live in `consumerVersionSets`:
 
 ```json
 {
-  "id": "angular-19-floor",
-  "angularMajor": 19,
+  "id": "angular-20-floor",
+  "angularMajor": 20,
   "mode": "floor"
 }
 ```

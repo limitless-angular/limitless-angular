@@ -5,7 +5,10 @@ import {
   provideZonelessChangeDetection,
 } from '@angular/core';
 import { provideHttpClient, withFetch } from '@angular/common/http';
-import { provideClientHydration } from '@angular/platform-browser';
+import {
+  provideClientHydration,
+  withNoIncrementalHydration,
+} from '@angular/platform-browser';
 import {
   withComponentInputBinding,
   withNavigationErrorHandler,
@@ -25,7 +28,7 @@ export const appConfig: ApplicationConfig = {
       withComponentInputBinding(),
       withNavigationErrorHandler(console.error),
     ),
-    provideClientHydration(),
+    provideClientHydration(withNoIncrementalHydration()),
     provideHttpClient(withFetch()),
     provideSanity(getClient, withLivePreview()),
     provideEnvironmentInitializer(() => updateMetaTagsOnRouteChange()),
