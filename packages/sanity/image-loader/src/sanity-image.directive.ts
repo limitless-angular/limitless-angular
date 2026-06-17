@@ -1,8 +1,6 @@
 import {
-  computed,
   Directive,
   inject,
-  Input,
   input,
   OnChanges,
   OnInit,
@@ -29,6 +27,16 @@ import { sanityImageLoader } from './loader';
 
 type LoaderParams = Omit<ImageUrlBuilderOptionsWithAliases, 'quality'>;
 
+const imageUrlInputs = [
+  'sanityImage',
+  'loaderParams',
+  'quality',
+  'width',
+  'height',
+];
+
+const staticNgOptimizedImageInputs = ['loaderParams', 'width', 'height'];
+
 function getNoopImageLoader() {
   return (
     IMAGE_LOADER.ɵprov as {
@@ -41,7 +49,7 @@ function getNoopImageLoader() {
   // eslint-disable-next-line @angular-eslint/directive-selector
   selector: 'img[sanityImage]',
   // eslint-disable-next-line @angular-eslint/no-inputs-metadata-property
-  inputs: ['ngSrc'],
+  inputs: ['ngSrc', 'loaderParams'],
   providers: [
     {
       provide: IMAGE_LOADER,
@@ -57,27 +65,15 @@ function getNoopImageLoader() {
   ],
 })
 export class SanityImage extends NgOptimizedImage implements OnInit, OnChanges {
-  private _loaderParams: LoaderParams = {};
-
   sanityImage = input.required<SanityImageSource>();
-
-  @Input()
-  // @ts-expect-error we want to add some internal properties to loaderParams input
-  override set loaderParams(loaderParams: LoaderParams) {
-    this._loaderParams = loaderParams;
-  }
-
-  override get loaderParams(): LoaderParams {
-    return this._loaderParams;
-  }
 
   quality = input<number>();
 
-  private imageUrl = computed(() => {
+  private imageUrl() {
     const url = new URL(
       createImageUrlBuilder(this.sanityConfig)
         .image(this.sanityImage())
-        .withOptions(this._loaderParams)
+        .withOptions((this.loaderParams ?? {}) as LoaderParams)
         .url(),
     );
     if (this.width) {
@@ -94,7 +90,7 @@ export class SanityImage extends NgOptimizedImage implements OnInit, OnChanges {
     }
 
     return url.toString();
-  });
+  }
 
   private sanityConfig = inject<SanityConfig>(SANITY_CONFIG);
 
@@ -105,16 +101,28 @@ export class SanityImage extends NgOptimizedImage implements OnInit, OnChanges {
 
   // ngSrc is not being updated by NgOptimizedImage, so we need to do it manually
   override ngOnChanges(changes: SimpleChanges) {
-    if (changes['sanityImage']) {
+    const ngOptimizedImageChanges: SimpleChanges = { ...changes };
+
+    if (imageUrlInputs.some((inputName) => changes[inputName])) {
+      const previousNgSrc = this.ngSrc;
       const ngSrc = this.imageUrl();
-      changes['ngSrc'] = new SimpleChange(
-        this.ngSrc,
+      ngOptimizedImageChanges['ngSrc'] = new SimpleChange(
+        previousNgSrc,
         ngSrc,
-        changes['sanityImage'].isFirstChange(),
+        !previousNgSrc,
       );
       this.ngSrc = ngSrc;
     }
 
-    super.ngOnChanges(changes);
+    for (const inputName of staticNgOptimizedImageInputs) {
+      if (
+        ngOptimizedImageChanges[inputName] &&
+        !ngOptimizedImageChanges[inputName].isFirstChange()
+      ) {
+        delete ngOptimizedImageChanges[inputName];
+      }
+    }
+
+    super.ngOnChanges(ngOptimizedImageChanges);
   }
 }
