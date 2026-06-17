@@ -6,7 +6,7 @@ import { PortableTextMarkComponent } from '../../directives/portable-text-direct
   selector: 'span',
   template: '<ng-container #children />',
   host: {
-    '[style.border]': 'value().thickness + "px solid"',
+    '[style.border]': 'value()!.thickness + "px solid"',
     '[class.highlight]': 'true',
   },
 })

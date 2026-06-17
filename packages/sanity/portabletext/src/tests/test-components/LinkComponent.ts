@@ -5,7 +5,7 @@ import { PortableTextMarkComponent } from '../../directives/portable-text-direct
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'a',
   template: '<ng-container #children />',
-  host: { '[class]': '"mahlink"', '[href]': 'value().href' },
+  host: { '[class]': '"mahlink"', '[href]': 'value()!.href' },
 })
 export class LinkComponent extends PortableTextMarkComponent<{
   _type: 'link';

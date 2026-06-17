@@ -8,6 +8,8 @@
     "skipLibCheck": true,
     "isolatedModules": true,
     "importHelpers": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
     "target": "ES2022",
     "module": "preserve"
   },

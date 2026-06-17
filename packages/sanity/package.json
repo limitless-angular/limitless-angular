@@ -6,7 +6,7 @@
   "scripts": {
     "build": "ng-packagr -c tsconfig.lib.prod.json",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "ng run sanity:test --watch=false"
   },
   "author": "Alfonso Andrés López Molina <osnoser3@gmail.com>",
   "license": "MIT",
@@ -56,9 +56,8 @@
     "xstate": "^5.19.2"
   },
   "devDependencies": {
-    "@analogjs/vite-plugin-angular": "^2.6.1",
-    "@analogjs/vitest-angular": "^2.6.1",
     "@angular/build": "~22.0.0",
+    "@angular/cli": "~22.0.0",
     "@angular/common": "~22.0.0",
     "@angular/compiler": "~22.0.0",
     "@angular/compiler-cli": "~22.0.0",

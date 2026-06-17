@@ -8,7 +8,7 @@ import {
 
 import { TypedObject } from '@portabletext/types';
 
-import { PortableTextComponent } from '../components/portable-text.component';
+import { PORTABLE_TEXT_RENDERER_CONTEXT } from '../tokens';
 
 // eslint-disable-next-line @angular-eslint/directive-selector
 @Directive({ selector: '[renderNode]' })
@@ -16,7 +16,7 @@ export class RenderNode {
   node = input.required<TypedObject>({ alias: 'renderNode' });
   index = input<number>();
   isInline = input.required<boolean>();
-  #renderNode = inject(PortableTextComponent).renderNode;
+  #renderNode = inject(PORTABLE_TEXT_RENDERER_CONTEXT).renderNode;
   #vcr = inject(ViewContainerRef);
 
   constructor() {

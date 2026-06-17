@@ -15,7 +15,7 @@ import {
 } from '@portabletext/types';
 
 import { PortableTextListBlock } from '../types';
-import { PortableTextComponent } from '../components/portable-text.component';
+import { PORTABLE_TEXT_RENDERER_CONTEXT } from '../tokens';
 
 // eslint-disable-next-line @angular-eslint/directive-selector
 @Directive({ selector: '[portableTextContent]' })
@@ -28,7 +28,7 @@ export class DynamicPortableTextContent<Node extends TypedObject = TypedObject>
   container = viewChild<ViewContainerRef, ViewContainerRef>('children', {
     read: ViewContainerRef,
   });
-  template = inject(PortableTextComponent).childrenTmpl;
+  template = inject(PORTABLE_TEXT_RENDERER_CONTEXT).childrenTmpl;
 
   // eslint-disable-next-line no-unused-private-class-members
   #_ = effect(() => {
