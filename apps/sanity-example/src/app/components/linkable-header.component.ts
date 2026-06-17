@@ -15,7 +15,6 @@ function slugify(text: string): string {
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'h2',
-  standalone: true,
   template: `
     <ng-container #children />
     @if (slug(); as slugValue) {

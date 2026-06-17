@@ -26,7 +26,6 @@ interface CodeBlock {
 
 @Component({
   selector: 'app-code',
-  standalone: true,
   imports: [LowlightComponent],
   template: \`
     <app-lowlight

@@ -5,7 +5,6 @@ import { PortableTextListComponent } from '@limitless-angular/sanity/portabletex
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'ul',
-  standalone: true,
   template: `<ng-container #children />`,
   host: {
     '[style.listStyle]': 'listStyle()',

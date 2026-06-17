@@ -16,7 +16,6 @@ function lerp(v0: number, v1: number, t: number): number {
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'sanity-visual-editing-drag-insert-marker',
-  standalone: true,
   template: '<div class="marker" [style]="style()"></div>',
   styles: `
     .marker {

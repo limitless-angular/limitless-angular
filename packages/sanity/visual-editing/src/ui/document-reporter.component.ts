@@ -28,7 +28,6 @@ function haveSameDocumentIds(
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'sanity-visual-editing-document-reporter',
-  standalone: true,
   template: '',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

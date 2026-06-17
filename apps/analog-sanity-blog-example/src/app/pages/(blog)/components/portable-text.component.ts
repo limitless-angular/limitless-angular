@@ -20,7 +20,6 @@ import { TypedObject } from '@portabletext/types';
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'h5',
-  standalone: true,
   template: `<ng-container #children />`,
   host: { '[class]': '"mb-2 text-sm font-semibold"' },
 })
@@ -29,7 +28,6 @@ export class Heading5Component extends PortableTextBlockComponent {}
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'h6',
-  standalone: true,
   template: `<ng-container #children />`,
   host: { '[class]': '"mb-2 text-sm font-semibold"' },
 })
@@ -38,7 +36,6 @@ export class Heading6Component extends PortableTextBlockComponent {}
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'a',
-  standalone: true,
   template: `<ng-container #children />`,
   host: {
     '[href]': 'value()?.href',

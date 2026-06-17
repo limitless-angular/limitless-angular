@@ -18,7 +18,6 @@ interface CodeBlock {
 
 @Component({
   selector: 'app-code-block',
-  standalone: true,
   template: `
     <pre
       class="not-prose"

@@ -42,7 +42,6 @@ function getInsertMenuOptions(
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'sanity-visual-editing-insert-menu',
-  standalone: true,
   template: `
     <div class="insert-menu">
       <div class="toolbar">

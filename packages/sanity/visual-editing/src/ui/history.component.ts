@@ -10,7 +10,6 @@ import type { HistoryAdapter, VisualEditingNode } from '../types';
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'sanity-visual-editing-history',
-  standalone: true,
   template: '',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

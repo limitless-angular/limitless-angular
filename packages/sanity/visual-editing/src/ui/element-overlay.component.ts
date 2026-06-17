@@ -155,7 +155,6 @@ function createIntentLink(node: SanityNode): string {
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'sanity-visual-editing-element-overlay',
-  standalone: true,
   imports: [VisualEditingPointerEventsComponent],
   template: `
     @if (menuOpen() || activeExclusivePlugin()) {

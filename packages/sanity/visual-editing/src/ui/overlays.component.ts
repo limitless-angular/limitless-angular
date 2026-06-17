@@ -94,7 +94,6 @@ function targetsLink(target: EventTarget | null): boolean {
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'sanity-visual-editing-overlays',
-  standalone: true,
   imports: [
     ContextMenuComponent,
     DocumentReporterComponent,

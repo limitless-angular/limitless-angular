@@ -10,7 +10,6 @@ interface LinkMark {
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'a',
-  standalone: true,
   template: `<ng-container #children />`,
   host: {
     '[href]': 'value()?.href',

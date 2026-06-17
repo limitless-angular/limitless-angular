@@ -16,7 +16,6 @@ import { LoaderComlinkService } from './loader-comlink/loader-comlink.service';
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'sanity-visual-editing-loader-comlink',
-  standalone: true,
   template: '',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

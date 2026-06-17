@@ -10,7 +10,6 @@ interface SpeechSynthesisMark {
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'button',
-  standalone: true,
   template: `<ng-container #children />`,
   host: {
     '[class]': '"bg-black text-white hover:bg-black/90 h-9 rounded-md px-3"',

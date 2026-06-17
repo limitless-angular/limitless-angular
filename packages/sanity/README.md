@@ -97,7 +97,6 @@ Render [Portable Text](https://portabletext.org/) with Angular.
 
 ```typescript
 @Component({
-  standalone: true,
   imports: [PortableTextComponent],
   template: `<div portable-text [value]="content" [components]="components"></div>`,
 })
@@ -119,7 +118,6 @@ Powerful features for working with Sanity images in Angular applications:
 
 ```typescript
 @Component({
-  standalone: true,
   imports: [SanityImage],
   template: `
     <img
@@ -144,7 +142,6 @@ of content as it's being edited in the Sanity Studio:
 import { LiveQueryProviderComponent } from '@limitless-angular/sanity/preview-kit';
 
 @Component({
-  standalone: true,
   imports: [LiveQueryProviderComponent],
   template: `
     @if (draftMode()) {
@@ -172,7 +169,6 @@ document and field in Sanity Studio.
 
 ```typescript
 @Component({
-  standalone: true,
   imports: [VisualEditingComponent],
   template: `
     <main>

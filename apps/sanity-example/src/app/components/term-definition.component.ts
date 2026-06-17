@@ -10,7 +10,6 @@ interface DefinitionMark {
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'term-definition',
-  standalone: true,
   template: `<span class="peer"><ng-container #children /></span
     ><span
       class="peer-hover:inline-block w-[350px] bg-white px-1 border border-solid rounded-md absolute left-1/2

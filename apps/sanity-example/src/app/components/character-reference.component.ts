@@ -27,7 +27,6 @@ const characters: Record<string, CharacterDefinition> = {
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'span[character-reference]',
-  standalone: true,
   template: `
     @if (characterData(); as data) {
       <a

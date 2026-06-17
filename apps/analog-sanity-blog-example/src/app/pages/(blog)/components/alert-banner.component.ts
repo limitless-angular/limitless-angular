@@ -2,7 +2,6 @@ import { Component, signal, computed, effect } from '@angular/core';
 
 @Component({
   selector: 'blog-alert-banner',
-  standalone: true,
   template: `
     @if (shouldShow()) {
       <div

@@ -61,7 +61,6 @@ interface CurrencySnapshotValue {
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'currency-amount',
-  standalone: true,
   template: `
     @if (currency(); as curr) {
       {{ value().amount }} {{ value().currency }}
