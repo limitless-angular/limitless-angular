@@ -3,17 +3,14 @@ import {
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
 import { provideClientHydration } from '@angular/platform-browser';
-import {
-  provideRouter,
-  withExperimentalPlatformNavigation,
-} from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(routes, withExperimentalPlatformNavigation()),
+    provideRouter(routes),
     provideClientHydration(),
   ],
 };

@@ -7,7 +7,6 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideClientHydration } from '@angular/platform-browser';
 import {
   withComponentInputBinding,
-  withExperimentalPlatformNavigation,
   withNavigationErrorHandler,
 } from '@angular/router';
 
@@ -22,7 +21,6 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideFileRouter(
       withComponentInputBinding(),
-      withExperimentalPlatformNavigation(),
       withNavigationErrorHandler(console.error),
     ),
     provideClientHydration(),
