@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-} from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
 import { type LoadResult } from './[slug].server';
 import { type ResolveFn } from '@angular/router';
@@ -14,7 +9,7 @@ import { ROUTE_META_TAGS_KEY, ROUTE_TITLE_KEY } from '../../../utils/meta-tags';
 import { toPlainText } from '@limitless-angular/sanity/portabletext';
 import { resolveOpenGraphImage } from '../../../utils/resolve-open-graph-image';
 import { generateMetaTags } from '../../../utils/generate-metatags';
-import { demo } from '@/analog-sanity-blog-example/sanity';
+import { demo } from '#sanity';
 
 // See https://discord.com/channels/994618831987290112/1276597066096840784
 export const routeMeta: RouteMeta = {
@@ -47,7 +42,6 @@ export const routeMeta: RouteMeta = {
     }
   `,
   imports: [PreviewPostPageComponent, PostPageComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class PostPage {
   slug = input.required<string>();

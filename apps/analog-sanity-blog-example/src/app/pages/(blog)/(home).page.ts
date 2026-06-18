@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  input,
-} from '@angular/core';
+import { Component, computed, effect, input } from '@angular/core';
 import { type ResolveFn } from '@angular/router';
 import { type MetaTag, type RouteMeta } from '@analogjs/router';
 
@@ -41,7 +35,6 @@ export const routeMeta: RouteMeta = {
       <blog-home-page [data]="load()" />
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class HomePage {
   load = input.required<Awaited<ReturnType<typeof load>>>();

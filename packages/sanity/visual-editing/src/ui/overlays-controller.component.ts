@@ -23,7 +23,6 @@ import { TelemetryService } from './telemetry/telemetry.service';
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'sanity-visual-editing-overlays-controller',
-  standalone: true,
   template: '',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

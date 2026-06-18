@@ -10,7 +10,6 @@ import type { VisualEditingNode, VisualEditingOptions } from '../types';
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'sanity-visual-editing-refresh',
-  standalone: true,
   template: '',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

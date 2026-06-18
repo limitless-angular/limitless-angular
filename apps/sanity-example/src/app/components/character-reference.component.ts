@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ViewEncapsulation,
-  computed,
-} from '@angular/core';
+import { Component, ViewEncapsulation, computed } from '@angular/core';
 
 import { PortableTextMarkComponent } from '@limitless-angular/sanity/portabletext';
 
@@ -32,7 +27,6 @@ const characters: Record<string, CharacterDefinition> = {
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'span[character-reference]',
-  standalone: true,
   template: `
     @if (characterData(); as data) {
       <a
@@ -67,7 +61,6 @@ const characters: Record<string, CharacterDefinition> = {
   host: {
     '[class]': '"relative"',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })
 export class CharacterReferenceComponent extends PortableTextMarkComponent<CharacterReferenceMark> {

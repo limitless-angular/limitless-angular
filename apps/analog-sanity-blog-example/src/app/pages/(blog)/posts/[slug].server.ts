@@ -1,12 +1,7 @@
 import { PageServerLoad } from '@analogjs/router';
 
 import { isDraftMode } from '../../../../server/utils/draft-mode';
-import {
-  getClient,
-  getMoreStories,
-  getPostBySlug,
-  getSettings,
-} from '@/analog-sanity-blog-example/sanity';
+import { getClient, getMoreStories, getPostBySlug, getSettings } from '#sanity';
 
 import { readToken } from '../../../../sanity/lib/token';
 

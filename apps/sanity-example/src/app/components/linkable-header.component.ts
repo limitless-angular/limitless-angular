@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
+import { Component, computed } from '@angular/core';
 
 import {
   PortableTextBlockComponent,
@@ -15,7 +15,6 @@ function slugify(text: string): string {
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'h2',
-  standalone: true,
   template: `
     <ng-container #children />
     @if (slug(); as slugValue) {
@@ -34,7 +33,6 @@ function slugify(text: string): string {
   host: {
     '[id]': 'slug()',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LinkableHeaderComponent extends PortableTextBlockComponent {
   slug = computed(() => slugify(toPlainText(this.value())));

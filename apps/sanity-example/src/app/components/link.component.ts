@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
+import { Component, computed } from '@angular/core';
 
 import { PortableTextMarkComponent } from '@limitless-angular/sanity/portabletext';
 
@@ -10,14 +10,12 @@ interface LinkMark {
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'a',
-  standalone: true,
   template: `<ng-container #children />`,
   host: {
     '[href]': 'value()?.href',
     '[target]': 'target()',
     '[rel]': 'rel()',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LinkComponent extends PortableTextMarkComponent<LinkMark> {
   target = computed(() =>

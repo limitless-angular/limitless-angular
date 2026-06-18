@@ -3,7 +3,6 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'sanity-visual-editing-minimap-prompt',
-  standalone: true,
   template: `
     <div class="prompt">
       <kbd>Shift</kbd>

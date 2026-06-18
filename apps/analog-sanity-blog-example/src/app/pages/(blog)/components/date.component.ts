@@ -1,9 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-} from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
 import { format } from 'date-fns';
 
@@ -13,7 +8,6 @@ import { format } from 'date-fns';
   template: `
     <time [attr.dateTime]="dateString()">{{ formattedDate() }}</time>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DateComponent {
   dateString = input.required<string>();

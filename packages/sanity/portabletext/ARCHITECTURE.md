@@ -98,8 +98,9 @@ The library provides default implementations for common elements:
 
 ### Dependency Injection
 
-1. Components and services communicate through dependency injection
-2. Functional services are used where appropriate for better performance and tree-shaking
+1. Components, directives, and services communicate through dependency injection
+2. `PortableTextComponent` provides the internal `PORTABLE_TEXT_RENDERER_CONTEXT` token so recursive rendering directives can access renderer templates without importing the component class directly
+3. Functional services are used where appropriate for better performance and tree-shaking
 
 ## Integration with External Libraries
 
@@ -140,12 +141,11 @@ The implementation showcases several modern Angular patterns:
 
 - `merge.ts`: Merges default and custom components
 - `utils.ts`: Provides utility functions for serializing blocks and tracking
-- `angular-versions.ts`: Provides version detection for compatibility
 
 ### Types and Tokens
 
 - `types.ts`: Defines TypeScript interfaces for the library
-- `tokens.ts`: Defines dependency injection tokens
+- `tokens.ts`: Defines internal dependency injection tokens. Renderer tokens belong here when they are shared across components and directives, but should not be exported from the public entry point unless they become supported API.
 
 ### Default Components
 

@@ -1,9 +1,23 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
+    "rootDir": "../..",
     "outDir": "./out-tsc/app",
     "types": ["node"]
   },
-  "files": ["src/main.ts", "src/main.server.ts", "src/server.ts"],
-  "include": ["src/**/*.d.ts", "src/**/*.ts"]
+  "include": [
+    "src/**/*.ts",
+    "../../packages/sanity/src/**/*.ts",
+    "../../packages/sanity/image-loader/src/**/*.ts",
+    "../../packages/sanity/portabletext/src/**/*.ts",
+    "../../packages/sanity/preview-kit/src/**/*.ts",
+    "../../packages/sanity/shared/src/**/*.ts",
+    "../../packages/sanity/visual-editing/src/**/*.ts"
+  ],
+  "exclude": [
+    "src/**/*.spec.ts",
+    "../../packages/**/*.spec.ts",
+    "../../packages/**/*.test.ts",
+    "../../packages/**/src/tests/**/*.ts"
+  ]
 }

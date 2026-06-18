@@ -35,7 +35,6 @@ type ContextMenuState = NonNullable<OverlayState['contextMenu']>;
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'sanity-visual-editing-context-menu',
-  standalone: true,
   imports: [NgTemplateOutlet, VisualEditingInsertMenuComponent],
   template: `
     <div

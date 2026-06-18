@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
-import { demo } from '@/analog-sanity-blog-example/sanity';
+import { demo } from '#sanity';
 
 import { type LoadResult } from './[slug].server';
 import { RouterLink } from '@angular/router';
@@ -80,7 +80,6 @@ import { PortableTextComponent } from '../components/portable-text.component';
     AvatarComponent,
     DateComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PostPageComponent {
   slug = input.required<string>();

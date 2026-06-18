@@ -19,7 +19,7 @@ Limitless Angular is a powerful collection of Angular libraries focused on Sanit
 - 🖼️ **Image Optimization**: Built-in image loader and directives for Sanity images
 - 🔄 **Real-time Preview**: Live content updates with Preview Kit
 - ✏️ **Visual Editing**: Seamless content management integration
-- 🎯 **Angular-First**: Built specifically for Angular 19+
+- 🎯 **Angular-First**: Built specifically for Angular 20+
 
 ## Installation
 
@@ -31,14 +31,20 @@ npm install --save @limitless-angular/sanity @sanity/client
 
 | Angular | `@limitless-angular/sanity` |
 | ------- | --------------------------- |
-| 21.x    | 21.x                        |
-| 20.x    | 21.x, 20.x                  |
+| 22.x    | 22.x                        |
+| 21.x    | 22.x, 21.x                  |
+| 20.x    | 22.x, 21.x, 20.x            |
 | 19.x    | 21.x, 20.x, 19.x            |
 | 18.x    | 20.x, 19.x, 18.x            |
 
 The current stable 21.x package line supports Angular 19, Angular 20, and
-Angular 21. Angular 18 remains supported by the 20.x, 19.x, and 18.x package
-lines.
+Angular 21.
+
+Angular 22 support is available on the `next` prerelease line:
+
+```bash
+npm install @limitless-angular/sanity@next
+```
 
 ## Quick Start
 
@@ -102,7 +108,6 @@ Render [Portable Text](https://portabletext.org/) with Angular.
 
 ```typescript
 @Component({
-  standalone: true,
   imports: [PortableTextComponent],
   template: `<div portable-text [value]="content" [components]="components"></div>`,
 })
@@ -124,7 +129,6 @@ Powerful features for working with Sanity images in Angular applications:
 
 ```typescript
 @Component({
-  standalone: true,
   imports: [SanityImage],
   template: `
     <img
@@ -149,7 +153,6 @@ of content as it's being edited in the Sanity Studio:
 import { LiveQueryProviderComponent } from '@limitless-angular/sanity/preview-kit';
 
 @Component({
-  standalone: true,
   imports: [LiveQueryProviderComponent],
   template: `
     @if (draftMode()) {
@@ -177,7 +180,6 @@ document and field in Sanity Studio.
 
 ```typescript
 @Component({
-  standalone: true,
   imports: [VisualEditingComponent],
   template: `
     <main>

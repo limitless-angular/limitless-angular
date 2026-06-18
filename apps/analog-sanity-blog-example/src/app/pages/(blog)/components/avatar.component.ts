@@ -1,12 +1,7 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  input,
-} from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
 import { SanityImage } from '@limitless-angular/sanity/image-loader';
-import type { Author } from '@/analog-sanity-blog-example/sanity';
+import type { Author } from '#sanity';
 
 @Component({
   selector: 'blog-avatar',
@@ -32,7 +27,6 @@ import type { Author } from '@/analog-sanity-blog-example/sanity';
       </div>
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AvatarComponent {
   name = input.required<string>();

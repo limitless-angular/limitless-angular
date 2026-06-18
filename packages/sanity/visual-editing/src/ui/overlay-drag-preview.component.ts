@@ -27,7 +27,6 @@ function mapRange(
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'sanity-visual-editing-drag-preview',
-  standalone: true,
   template: `
     <div class="preview" [style]="previewStyle()">
       <div class="card" [style.borderRadius.px]="radius()">

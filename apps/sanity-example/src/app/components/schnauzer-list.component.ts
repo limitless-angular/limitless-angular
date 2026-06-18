@@ -1,21 +1,14 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  signal,
-} from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 
 import { PortableTextListComponent } from '@limitless-angular/sanity/portabletext';
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'ul',
-  standalone: true,
   template: `<ng-container #children />`,
   host: {
     '[style.listStyle]': 'listStyle()',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SchnauzerListComponent extends PortableTextListComponent {
   private size = signal(14);

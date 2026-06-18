@@ -1,34 +1,22 @@
 import {
-  ChangeDetectionStrategy,
   Component,
   computed,
   inject,
   PLATFORM_ID,
-  type ProviderToken,
+  REQUEST,
 } from '@angular/core';
 import { isPlatformBrowser, isPlatformServer } from '@angular/common';
 
 import { PortableTextTypeComponent } from '@limitless-angular/sanity/portabletext';
-import { type Request as ExpressRequest } from 'express';
-
-import { REQUEST } from '../../server.tokens';
-
-const NETLIFY_REQUEST = 'netlify.request' as unknown as ProviderToken<Request>;
 
 // FIXME: request token isn't injected with `ng serve` see: https://github.com/angular/angular-cli/issues/26323
 const getLanguagesFn = () => {
   const platformId = inject(PLATFORM_ID);
-  const expressRequest = inject<ExpressRequest>(REQUEST, { optional: true });
-  const netlifyRequest = inject<Request>(NETLIFY_REQUEST, { optional: true });
+  const request = inject(REQUEST);
 
   return () => {
-    if (isPlatformServer(platformId) && (expressRequest || netlifyRequest)) {
-      const acceptLanguageHeader = expressRequest?.headers['accept-language'];
-      const expressAcceptLanguage = Array.isArray(acceptLanguageHeader)
-        ? acceptLanguageHeader.join(',')
-        : acceptLanguageHeader;
-      const acceptLanguage =
-        expressAcceptLanguage ?? netlifyRequest?.headers.get('accept-language');
+    if (isPlatformServer(platformId) && request) {
+      const acceptLanguage = request.headers.get('accept-language');
 
       if (acceptLanguage) {
         return acceptLanguage
@@ -62,7 +50,6 @@ interface CurrencySnapshotValue {
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'currency-amount',
-  standalone: true,
   template: `
     @if (currency(); as curr) {
       {{ value().amount }} {{ value().currency }}
@@ -74,7 +61,6 @@ interface CurrencySnapshotValue {
       {{ value().amount }} {{ value().currency }}
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CurrencyAmountComponent extends PortableTextTypeComponent<CurrencyAmountDef> {
   private readonly languages = getLanguagesFn()();

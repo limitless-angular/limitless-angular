@@ -12,7 +12,7 @@ import type {
   ToolkitPortableTextList,
   ToolkitPortableTextListItem,
 } from '@portabletext/toolkit';
-import {
+import type {
   PortableTextTypeComponent,
   PortableTextMarkComponent,
   PortableTextBlockComponent,

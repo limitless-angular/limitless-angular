@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  forwardRef,
   inject,
   Injector,
   input,
@@ -37,6 +38,7 @@ import { ChildrenComponent } from './children.component';
 import { NodeRendererComponent } from './node-renderer.component';
 import { injectResolveNode } from '../services/node-resolver.service';
 import { TextComponent } from './text.component';
+import { PORTABLE_TEXT_RENDERER_CONTEXT } from '../tokens';
 
 /**
  * PortableTextComponent is the main component for rendering Portable Text content.
@@ -90,6 +92,12 @@ import { TextComponent } from './text.component';
     }
   `,
   host: { '[class.portable-text]': 'true' },
+  providers: [
+    {
+      provide: PORTABLE_TEXT_RENDERER_CONTEXT,
+      useExisting: forwardRef(() => PortableTextComponent),
+    },
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })

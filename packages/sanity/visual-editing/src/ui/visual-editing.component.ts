@@ -29,7 +29,6 @@ import { VisualEditingEnvironmentService } from './environment/environment.servi
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'sanity-visual-editing-ui',
-  standalone: true,
   imports: [
     HistoryComponent,
     LoaderComlinkComponent,

@@ -1,6 +1,5 @@
 import {
   AfterViewInit,
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   viewChild,
@@ -19,7 +18,6 @@ interface CodeBlock {
 
 @Component({
   selector: 'app-code-block',
-  standalone: true,
   template: `
     <pre
       class="not-prose"
@@ -27,7 +25,6 @@ interface CodeBlock {
   `,
   // This is only to avoid a blink while the style loads
   styleUrl: '../../../node_modules/prismjs/themes/prism-okaidia.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   encapsulation: ViewEncapsulation.None,
 })
 export class CodeComponent

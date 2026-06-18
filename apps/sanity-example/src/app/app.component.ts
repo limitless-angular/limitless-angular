@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 import {
@@ -61,7 +61,6 @@ const ptComponents: PortableTextComponents = {
     </main>
     <router-outlet />
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {
   protected readonly blocks = blocks;

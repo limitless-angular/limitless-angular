@@ -10,7 +10,6 @@ import type { OverlayRect } from '../types';
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'sanity-visual-editing-drag-group-rect',
-  standalone: true,
   template: '<div class="group-rect" [style]="style()"></div>',
   styles: `
     .group-rect {

@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  signal,
-} from '@angular/core';
+import { Component, computed, effect, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -65,7 +59,6 @@ import { RouterLink } from '@angular/router';
       </div>
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OnboardingComponent {
   private isTopWindow = signal(false);

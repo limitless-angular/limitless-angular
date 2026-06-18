@@ -33,7 +33,6 @@ function isSchemaUnionNode(
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
   selector: 'sanity-visual-editing-union-insert-menu-overlay',
-  standalone: true,
   imports: [VisualEditingInsertMenuComponent],
   template: `
     @if (unionParent(); as parent) {

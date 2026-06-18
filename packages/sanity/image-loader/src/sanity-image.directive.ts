@@ -40,6 +40,8 @@ function getNoopImageLoader() {
 @Directive({
   // eslint-disable-next-line @angular-eslint/directive-selector
   selector: 'img[sanityImage]',
+  // eslint-disable-next-line @angular-eslint/no-inputs-metadata-property
+  inputs: ['ngSrc'],
   providers: [
     {
       provide: IMAGE_LOADER,
@@ -68,8 +70,6 @@ export class SanityImage extends NgOptimizedImage implements OnInit, OnChanges {
   override get loaderParams(): LoaderParams {
     return this._loaderParams;
   }
-
-  @Input() override ngSrc!: string;
 
   quality = input<number>();
 

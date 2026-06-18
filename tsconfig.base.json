@@ -10,49 +10,7 @@
     "module": "esnext",
     "lib": ["es2022", "dom"],
     "skipLibCheck": true,
-    "skipDefaultLibCheck": true,
-    "paths": {
-      "@limitless-angular/analog-sanity-blog/demo": [
-        "./packages/analog-sanity-blog/src/demo/index.ts"
-      ],
-      "@limitless-angular/analog-sanity-blog/env": [
-        "./packages/analog-sanity-blog/src/env/index.ts"
-      ],
-      "@limitless-angular/analog-sanity-blog/presentation": [
-        "./packages/analog-sanity-blog/src/presentation/index.ts"
-      ],
-      "@limitless-angular/analog-sanity-blog/queries": [
-        "./packages/analog-sanity-blog/src/queries/index.ts"
-      ],
-      "@limitless-angular/analog-sanity-blog/schema": [
-        "./packages/analog-sanity-blog/src/schema/index.ts"
-      ],
-      "@limitless-angular/analog-sanity-blog/structure": [
-        "./packages/analog-sanity-blog/src/structure/index.ts"
-      ],
-      "@/analog-sanity-blog-example/sanity": [
-        "./apps/analog-sanity-blog-example/src/sanity/lib/index.ts"
-      ],
-      "@limitless-angular/sanity": ["./packages/sanity/src/index.ts"],
-      "@limitless-angular/sanity/channels": [
-        "./packages/sanity/channels/src/index.ts"
-      ],
-      "@limitless-angular/sanity/image-loader": [
-        "./packages/sanity/image-loader/src/index.ts"
-      ],
-      "@limitless-angular/sanity/portabletext": [
-        "./packages/sanity/portabletext/src/index.ts"
-      ],
-      "@limitless-angular/sanity/preview-kit": [
-        "./packages/sanity/preview-kit/src/index.ts"
-      ],
-      "@limitless-angular/sanity/shared": [
-        "./packages/sanity/shared/src/index.ts"
-      ],
-      "@limitless-angular/sanity/visual-editing": [
-        "./packages/sanity/visual-editing/src/index.ts"
-      ]
-    }
+    "skipDefaultLibCheck": true
   },
   "exclude": ["node_modules", "tmp"]
 }

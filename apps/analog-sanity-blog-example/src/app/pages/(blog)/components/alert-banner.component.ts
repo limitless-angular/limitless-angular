@@ -1,15 +1,7 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  signal,
-  computed,
-  effect,
-} from '@angular/core';
+import { Component, signal, computed, effect } from '@angular/core';
 
 @Component({
   selector: 'blog-alert-banner',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (shouldShow()) {
       <div

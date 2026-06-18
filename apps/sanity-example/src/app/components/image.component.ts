@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
+import { Component, computed } from '@angular/core';
 
 import { getImageDimensions } from '@sanity/asset-utils';
 
@@ -25,7 +25,6 @@ import { PortableTextTypeComponent } from '@limitless-angular/sanity/portabletex
       @apply block;
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   // Project data taken from https://www.sanity.io/demos/studio
   providers: [provideSanityLoader({ projectId: 'k4hg38xw', dataset: 'demo' })],
 })
