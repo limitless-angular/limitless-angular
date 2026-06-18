@@ -67,13 +67,16 @@
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": false
             }
           },
           "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "prebundle": false
+          },
           "configurations": {
             "production": {
               "buildTarget": "sanity-example:build:production"
