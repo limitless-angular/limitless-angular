@@ -216,10 +216,7 @@ test('release workflows delegate to the release tools package', () => {
   const publishWorkflow = readWorkspaceWorkflow(publishWorkflowPath);
   const dryRunWorkflow = readWorkspaceWorkflow(dryRunWorkflowPath);
   const validateJob = getWorkflowJob(publishWorkflow, 'validate-release');
-  const publishJob = getWorkflowJob(
-    publishWorkflow,
-    'release-and-publish',
-  );
+  const publishJob = getWorkflowJob(publishWorkflow, 'release-and-publish');
   const dryRunJob = getWorkflowJob(dryRunWorkflow, 'release-dry-run');
   const validateSetupNodeStep = getWorkflowStep(
     validateJob,
