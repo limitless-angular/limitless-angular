@@ -27,9 +27,7 @@ const sanityConfig = {
 })
 class SanityImageHost {
   readonly directive = viewChild.required(SanityImage);
-  readonly image = signal(
-    'image-Tb9Ew8CXIwaY6R1kjMvI0uRR-2000x3000-jpg',
-  );
+  readonly image = signal('image-Tb9Ew8CXIwaY6R1kjMvI0uRR-2000x3000-jpg');
 }
 
 @Component({
@@ -77,7 +75,9 @@ function directiveInputs() {
     .inputs;
 }
 
-function imageSearchParams(fixture: { componentInstance: MutableSanityImageHost }) {
+function imageSearchParams(fixture: {
+  componentInstance: MutableSanityImageHost;
+}) {
   return new URL(fixture.componentInstance.directive().ngSrc).searchParams;
 }
 
