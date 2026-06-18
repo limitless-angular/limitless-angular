@@ -68,10 +68,15 @@ export function runReleasePipeline(options = {}) {
   const commandRun = options.run ?? defaultRun;
   const commandCapture = options.capture ?? defaultCapture;
   const plan = createReleasePlan({
+    allowMajorWithoutPrerelease: options.allowMajorWithoutPrerelease,
+    bump: options.bump,
     capture: commandCapture,
+    manualReason: options.manualReason,
+    manualVersion: options.manualVersion,
     now: options.now,
     paths: options.paths,
     prerelease: options.prerelease,
+    releaseIntent: options.releaseIntent,
     versionSpecifier: options.versionSpecifier,
   });
   if (options.verbose || mode === releaseModes.dryRun) {

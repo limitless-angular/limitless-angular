@@ -9,6 +9,7 @@ import {
   releaseModes,
   runReleasePipeline,
 } from './pipeline.mjs';
+import { releaseBumps, releaseIntents } from './plan.mjs';
 
 const trustedPublishingEnv = {
   ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'github-oidc-token',
@@ -130,7 +131,8 @@ test('publish mode tags npm and GitHub prereleases', () => {
       mode: releaseModes.publish,
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: fixture.paths,
-      prerelease: true,
+      bump: releaseBumps.auto,
+      releaseIntent: releaseIntents.prerelease,
       run: harness.run,
     });
 

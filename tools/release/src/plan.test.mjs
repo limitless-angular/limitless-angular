@@ -5,7 +5,10 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 
 import {
+  assertReleasePlanSummaryMatches,
   createReleasePlan,
+  releaseBumps,
+  releaseIntents,
   resolveReleaseSpecifier,
   summarizeReleasePlan,
 } from './plan.mjs';
@@ -57,6 +60,316 @@ test('release plan rejects explicit versions that do not move forward', () => {
   } finally {
     workspace.cleanup();
   }
+});
+
+test('stable release intent infers patch and minor releases from package commits', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    const patchPlan = createReleasePlan({
+      capture: createCapture({
+        gitLog:
+          'abc1234\x01fix(sanity): tighten release validation\x01\x01Alfonso\x02',
+      }),
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: workspace.paths,
+      releaseIntent: releaseIntents.stable,
+    });
+
+    assert.equal(patchPlan.nextVersion, '1.0.1');
+    assert.equal(patchPlan.releaseIntent, releaseIntents.stable);
+    assert.equal(patchPlan.releaseBump, releaseBumps.auto);
+
+    const minorPlan = createReleasePlan({
+      capture: createCapture({
+        gitLog:
+          'abc1234\x01feat(sanity): add release validation\x01\x01Alfonso\x02',
+      }),
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: workspace.paths,
+      releaseIntent: releaseIntents.stable,
+    });
+
+    assert.equal(minorPlan.nextVersion, '1.1.0');
+  } finally {
+    workspace.cleanup();
+  }
+});
+
+test('stable release intent requires confirmation for major releases without prereleases', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    assert.throws(
+      () =>
+        createReleasePlan({
+          capture: createCapture({
+            gitLog:
+              'abc1234\x01feat(sanity)!: add Angular 22 support\x01BREAKING CHANGE: Angular 19 is no longer supported.\x01Alfonso\x02',
+          }),
+          now: new Date('2026-06-08T00:00:00.000Z'),
+          paths: workspace.paths,
+          releaseIntent: releaseIntents.stable,
+        }),
+      /Refusing to publish major stable release 2\.0\.0 without a prerelease train/,
+    );
+
+    const plan = createReleasePlan({
+      allowMajorWithoutPrerelease: true,
+      capture: createCapture({
+        gitLog:
+          'abc1234\x01feat(sanity)!: add Angular 22 support\x01BREAKING CHANGE: Angular 19 is no longer supported.\x01Alfonso\x02',
+      }),
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: workspace.paths,
+      releaseIntent: releaseIntents.stable,
+    });
+
+    assert.equal(plan.nextVersion, '2.0.0');
+    assert.equal(plan.npmDistTag, 'latest');
+  } finally {
+    workspace.cleanup();
+  }
+});
+
+test('stable release intent refuses to guess when latest release is a prerelease', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    assert.throws(
+      () =>
+        createReleasePlan({
+          bump: releaseBumps.patch,
+          capture: createCapture({
+            gitLog: '',
+            releaseTags: ['sanity@2.0.0-next.0', 'sanity@1.0.0'],
+          }),
+          now: new Date('2026-06-08T00:00:00.000Z'),
+          paths: workspace.paths,
+          releaseIntent: releaseIntents.stable,
+        }),
+      /Latest release tag sanity@2\.0\.0-next\.0 is a prerelease/,
+    );
+  } finally {
+    workspace.cleanup();
+  }
+});
+
+test('prerelease intent supports explicit major release trains without typing a version', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    const plan = createReleasePlan({
+      bump: releaseBumps.major,
+      capture: createCapture({ gitLog: '' }),
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: workspace.paths,
+      releaseIntent: releaseIntents.prerelease,
+    });
+
+    assert.equal(plan.currentVersion, '1.0.0');
+    assert.equal(plan.nextVersion, '2.0.0-next.0');
+    assert.equal(plan.npmDistTag, 'next');
+    assert.equal(plan.prerelease, true);
+    assert.equal(plan.releaseTag, 'sanity@2.0.0-next.0');
+  } finally {
+    workspace.cleanup();
+  }
+});
+
+test('promote-stable intent derives stable version from latest prerelease train', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    const plan = createReleasePlan({
+      capture: createCapture({
+        gitLogs: {
+          'sanity@2.0.0-next.1..HEAD': '',
+          'sanity@1.0.0..HEAD': [
+            'abc1234\x01feat(sanity): add Angular 22 support\x01\x01Alfonso',
+            'def5678\x01fix(sanity): handle live preview initialization\x01\x01Blanca',
+          ].join('\x02'),
+        },
+        releaseTags: [
+          'sanity@2.0.0-next.1',
+          'sanity@2.0.0-next.0',
+          'sanity@1.0.0',
+        ],
+      }),
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: workspace.paths,
+      releaseIntent: releaseIntents.promoteStable,
+    });
+
+    assert.equal(plan.currentVersion, '2.0.0-next.1');
+    assert.equal(plan.nextVersion, '2.0.0');
+    assert.equal(plan.releaseIntent, releaseIntents.promoteStable);
+    assert.equal(plan.releaseBump, releaseBumps.auto);
+    assert.equal(plan.releaseNotesBaseTag, 'sanity@1.0.0');
+    assert.equal(plan.releaseNotesCommits.length, 2);
+  } finally {
+    workspace.cleanup();
+  }
+});
+
+test('promote-stable intent rejects package commits after the latest prerelease', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    assert.throws(
+      () =>
+        createReleasePlan({
+          capture: createCapture({
+            gitLog:
+              'abc1234\x01fix(sanity): change package after prerelease\x01\x01Alfonso\x02',
+            releaseTags: ['sanity@2.0.0-next.0', 'sanity@1.0.0'],
+          }),
+          now: new Date('2026-06-08T00:00:00.000Z'),
+          paths: workspace.paths,
+          releaseIntent: releaseIntents.promoteStable,
+        }),
+      /package-impacting commit\(s\) landed after that prerelease/,
+    );
+  } finally {
+    workspace.cleanup();
+  }
+});
+
+test('promote-stable intent allows package documentation commits after the latest prerelease', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    const plan = createReleasePlan({
+      capture: createCapture({
+        changedFiles: {
+          abc1234: ['packages/sanity/README.md'],
+        },
+        gitLogs: {
+          'sanity@2.0.0-next.0..HEAD':
+            'abc1234\x01docs(sanity): update Angular compatibility table\x01\x01Alfonso\x02',
+          'sanity@1.0.0..HEAD':
+            'def5678\x01feat(sanity): add Angular 22 support\x01\x01Alfonso\x02',
+        },
+        releaseTags: ['sanity@2.0.0-next.0', 'sanity@1.0.0'],
+      }),
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: workspace.paths,
+      releaseIntent: releaseIntents.promoteStable,
+    });
+
+    assert.equal(plan.nextVersion, '2.0.0');
+    assert.equal(plan.releaseNotesBaseTag, 'sanity@1.0.0');
+    assert.equal(plan.commits.length, 1);
+  } finally {
+    workspace.cleanup();
+  }
+});
+
+test('manual release intent requires an exact version and reason', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    assert.throws(
+      () =>
+        createReleasePlan({
+          capture: createCapture({ gitLog: '' }),
+          manualVersion: '1.1.0',
+          now: new Date('2026-06-08T00:00:00.000Z'),
+          paths: workspace.paths,
+          releaseIntent: releaseIntents.manual,
+        }),
+      /requires --manual-reason/,
+    );
+
+    const plan = createReleasePlan({
+      capture: createCapture({ gitLog: '' }),
+      manualReason: 'Recover from an external release-state mismatch.',
+      manualVersion: '1.1.0',
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: workspace.paths,
+      releaseIntent: releaseIntents.manual,
+    });
+
+    assert.equal(plan.nextVersion, '1.1.0');
+    assert.equal(plan.releaseIntent, releaseIntents.manual);
+    assert.equal(plan.releaseBump, 'manual');
+  } finally {
+    workspace.cleanup();
+  }
+});
+
+test('release plan summary comparison reports publish-time drift', () => {
+  assert.doesNotThrow(() =>
+    assertReleasePlanSummaryMatches(
+      {
+        commitCount: 1,
+        currentVersion: '1.0.0',
+        headSha: 'abc123',
+        latestTag: 'sanity@1.0.0',
+        nextVersion: '1.0.1',
+        npmDistTag: 'latest',
+        packageName: '@limitless-angular/sanity',
+        prerelease: false,
+        releaseBump: releaseBumps.auto,
+        releaseIntent: releaseIntents.stable,
+        releaseNotesBaseTag: 'sanity@1.0.0',
+        releaseNotesCommitCount: 1,
+        releaseTag: 'sanity@1.0.1',
+      },
+      {
+        commitCount: 1,
+        currentVersion: '1.0.0',
+        headSha: 'abc123',
+        latestTag: 'sanity@1.0.0',
+        nextVersion: '1.0.1',
+        npmDistTag: 'latest',
+        packageName: '@limitless-angular/sanity',
+        prerelease: false,
+        releaseBump: releaseBumps.auto,
+        releaseIntent: releaseIntents.stable,
+        releaseNotesBaseTag: 'sanity@1.0.0',
+        releaseNotesCommitCount: 1,
+        releaseTag: 'sanity@1.0.1',
+      },
+    ),
+  );
+
+  assert.throws(
+    () =>
+      assertReleasePlanSummaryMatches(
+        {
+          commitCount: 1,
+          currentVersion: '1.0.0',
+          headSha: 'abc123',
+          latestTag: 'sanity@1.0.0',
+          nextVersion: '1.0.1',
+          npmDistTag: 'latest',
+          packageName: '@limitless-angular/sanity',
+          prerelease: false,
+          releaseBump: releaseBumps.auto,
+          releaseIntent: releaseIntents.stable,
+          releaseNotesBaseTag: 'sanity@1.0.0',
+          releaseNotesCommitCount: 1,
+          releaseTag: 'sanity@1.0.1',
+        },
+        {
+          commitCount: 1,
+          currentVersion: '1.0.0',
+          headSha: 'def456',
+          latestTag: 'sanity@1.0.0',
+          nextVersion: '1.1.0',
+          npmDistTag: 'latest',
+          packageName: '@limitless-angular/sanity',
+          prerelease: false,
+          releaseBump: releaseBumps.auto,
+          releaseIntent: releaseIntents.stable,
+          releaseNotesBaseTag: 'sanity@1.0.0',
+          releaseNotesCommitCount: 1,
+          releaseTag: 'sanity@1.1.0',
+        },
+      ),
+    /nextVersion expected "1\.0\.1", found "1\.1\.0"/,
+  );
 });
 
 test('release plan infers the next version from conventional commits', () => {
@@ -305,6 +618,7 @@ test('release notes include breaking change descriptions', () => {
 
   try {
     const plan = createReleasePlan({
+      allowMajorWithoutPrerelease: true,
       capture: createCapture({
         gitLog: [
           'abc1234',
@@ -328,7 +642,7 @@ test('release notes include breaking change descriptions', () => {
     assert.match(plan.releaseNotes, /- add Angular 20 support/);
     assert.match(
       plan.releaseNotes,
-      /  - Angular 17 is no longer supported\. Consumers must use Angular 18 or newer\./,
+      / {2}- Angular 17 is no longer supported\. Consumers must use Angular 18 or newer\./,
     );
     assert.doesNotMatch(plan.releaseNotes, /autofix/);
     assert.doesNotMatch(plan.releaseNotes, /Refs: #123/);

@@ -27,6 +27,10 @@ export const releasePackages = [
     releaseScopes: ['sanity'],
     releaseTagPrefix,
     root: 'packages/sanity',
+    stablePromotionIgnoredPaths: [
+      'packages/sanity/*.md',
+      'packages/sanity/**/*.md',
+    ],
   },
 ];
 export const defaultReleasePackage = releasePackages[0];

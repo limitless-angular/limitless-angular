@@ -6,8 +6,10 @@
   "scripts": {
     "release": "node cli.mjs run",
     "release:dry-run": "node cli.mjs dry-run",
+    "release:notes": "node cli.mjs notes",
     "release:plan": "node cli.mjs plan",
     "release:publish": "node cli.mjs publish",
+    "release:verify-plan": "node cli.mjs verify-plan",
     "test": "node --test src/*.test.mjs"
   },
   "dependencies": {

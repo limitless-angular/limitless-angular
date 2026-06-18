@@ -3,15 +3,39 @@ name: Release Dry Run
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Version to validate (optional - will use conventional commits if not specified)'
-        required: false
-        default: ''
-      prerelease:
-        description: 'Infer or coerce the release as a next prerelease'
+      release_intent:
+        description: 'Release intent to validate'
+        required: true
+        default: stable
+        type: choice
+        options:
+          - stable
+          - prerelease
+          - promote-stable
+          - manual
+      bump:
+        description: 'Version bump for stable or prerelease intents'
+        required: true
+        default: auto
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+      allow_major_without_prerelease:
+        description: 'Allow a stable major release without a prerelease train'
         required: false
         default: false
         type: boolean
+      manual_version:
+        description: 'Exact semver version when release_intent is manual'
+        required: false
+        default: ''
+      manual_reason:
+        description: 'Reason when release_intent is manual'
+        required: false
+        default: ''
       verbose:
         description: 'Enable verbose logging'
         required: false
@@ -60,7 +84,9 @@ jobs:
           echo "Workspace directory: $(pwd)"
 
       - name: Configure release paths
-        run: echo "RELEASE_PLAN_PATH=$RUNNER_TEMP/release-plan.json" >> "$GITHUB_ENV"
+        run: |
+          echo "RELEASE_PLAN_PATH=$RUNNER_TEMP/release-plan.json" >> "$GITHUB_ENV"
+          echo "RELEASE_NOTES_PATH=$RUNNER_TEMP/release-notes.md" >> "$GITHUB_ENV"
 
       - name: Run tests
         run: pnpm turbo run test
@@ -71,19 +97,26 @@ jobs:
       - name: Validate release dry run
         id: release
         env:
+          RELEASE_ALLOW_MAJOR_WITHOUT_PRERELEASE: ${{ inputs.allow_major_without_prerelease }}
+          RELEASE_BUMP: ${{ inputs.bump }}
+          RELEASE_INTENT: ${{ inputs.release_intent }}
+          RELEASE_MANUAL_REASON: ${{ inputs.manual_reason }}
+          RELEASE_MANUAL_VERSION: ${{ inputs.manual_version }}
           RELEASE_VERBOSE: ${{ inputs.verbose }}
-          RELEASE_VERSION: ${{ inputs.version }}
-          RELEASE_PRERELEASE: ${{ inputs.prerelease }}
         run: |
-          PLAN_ARGS=()
-          PIPELINE_ARGS=()
-          if [ -n "$RELEASE_VERSION" ]; then
-            PLAN_ARGS+=(--version "$RELEASE_VERSION")
-            PIPELINE_ARGS+=(--version "$RELEASE_VERSION")
+          PLAN_ARGS=(--intent "$RELEASE_INTENT" --bump "$RELEASE_BUMP")
+          PIPELINE_ARGS=(--intent "$RELEASE_INTENT" --bump "$RELEASE_BUMP")
+          if [ "$RELEASE_ALLOW_MAJOR_WITHOUT_PRERELEASE" = "true" ]; then
+            PLAN_ARGS+=(--allow-major-without-prerelease)
+            PIPELINE_ARGS+=(--allow-major-without-prerelease)
           fi
-          if [ "$RELEASE_PRERELEASE" = "true" ]; then
-            PLAN_ARGS+=(--prerelease)
-            PIPELINE_ARGS+=(--prerelease)
+          if [ -n "$RELEASE_MANUAL_VERSION" ]; then
+            PLAN_ARGS+=(--manual-version "$RELEASE_MANUAL_VERSION")
+            PIPELINE_ARGS+=(--manual-version "$RELEASE_MANUAL_VERSION")
+          fi
+          if [ -n "$RELEASE_MANUAL_REASON" ]; then
+            PLAN_ARGS+=(--manual-reason "$RELEASE_MANUAL_REASON")
+            PIPELINE_ARGS+=(--manual-reason "$RELEASE_MANUAL_REASON")
           fi
           if [ "$RELEASE_VERBOSE" = "true" ]; then
             PIPELINE_ARGS+=(--verbose)
@@ -91,28 +124,35 @@ jobs:
 
           pnpm --filter=@limitless-angular/release-tools run --silent release:plan "${PLAN_ARGS[@]}" --json > "$RELEASE_PLAN_PATH"
           cat "$RELEASE_PLAN_PATH"
+          pnpm --filter=@limitless-angular/release-tools run --silent release:notes "${PLAN_ARGS[@]}" > "$RELEASE_NOTES_PATH"
+          cat "$RELEASE_NOTES_PATH"
 
           pnpm turbo run release:dry-run --filter=@limitless-angular/release-tools -- "${PIPELINE_ARGS[@]}"
 
       - name: Generate release dry-run summary
         if: always()
         env:
+          RELEASE_ALLOW_MAJOR_WITHOUT_PRERELEASE: ${{ inputs.allow_major_without_prerelease }}
+          RELEASE_BUMP: ${{ inputs.bump }}
+          RELEASE_INTENT: ${{ inputs.release_intent }}
+          RELEASE_MANUAL_VERSION: ${{ inputs.manual_version }}
           RELEASE_MODE: dry-run
           RELEASE_OUTCOME: ${{ steps.release.outcome }}
-          RELEASE_VERSION: ${{ inputs.version }}
-          RELEASE_PRERELEASE: ${{ inputs.prerelease }}
         run: |
           node <<'NODE'
           const fs = require('node:fs');
 
           const planPath = process.env.RELEASE_PLAN_PATH;
+          const notesPath = process.env.RELEASE_NOTES_PATH;
           const lines = [
             '## Release Dry Run Summary',
             '',
             `- Mode: ${process.env.RELEASE_MODE}`,
             `- Outcome: ${process.env.RELEASE_OUTCOME}`,
-            `- Version input: ${process.env.RELEASE_VERSION || 'conventional commits'}`,
-            `- Prerelease input: ${process.env.RELEASE_PRERELEASE}`,
+            `- Release intent input: ${process.env.RELEASE_INTENT}`,
+            `- Bump input: ${process.env.RELEASE_BUMP}`,
+            `- Allow major without prerelease: ${process.env.RELEASE_ALLOW_MAJOR_WITHOUT_PRERELEASE}`,
+            `- Manual version input: ${process.env.RELEASE_MANUAL_VERSION || 'none'}`,
           ];
 
           if (planPath && fs.existsSync(planPath)) {
@@ -120,15 +160,29 @@ jobs:
 
             lines.push(
               `- Package: ${plan.packageName}`,
+              `- Release intent: ${plan.releaseIntent}`,
+              `- Release bump: ${plan.releaseBump}`,
               `- Planned version: ${plan.nextVersion}`,
               `- Release tag: ${plan.releaseTag}`,
               `- npm dist-tag: ${plan.npmDistTag}`,
+              `- Head SHA: ${plan.headSha || 'unknown'}`,
               `- Commit count: ${plan.commitCount}`,
               `- Release notes base tag: ${plan.releaseNotesBaseTag || 'none'}`,
               `- Release note commit count: ${plan.releaseNotesCommitCount}`,
             );
           } else {
             lines.push('- Planned version: unavailable; release planning did not complete.');
+          }
+
+          if (notesPath && fs.existsSync(notesPath)) {
+            const notes = fs.readFileSync(notesPath, 'utf8').trimEnd();
+
+            lines.push(
+              '',
+              '## Future GitHub Release Notes',
+              '',
+              notes || '_No release notes were generated._',
+            );
           }
 
           fs.writeFileSync(process.env.GITHUB_STEP_SUMMARY, `${lines.join('\n')}\n`);
