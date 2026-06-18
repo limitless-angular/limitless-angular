@@ -47,6 +47,8 @@ export const comparableReleasePlanSummaryFields = [
 ];
 
 export function createReleasePlan(options = {}) {
+  assertSupportedReleaseOptions(options);
+
   const releasePackage = options.releasePackage ?? defaultReleasePackage;
   const paths = resolveReleasePaths(options.paths, releasePackage);
   const commandCapture = options.capture ?? defaultCapture;
@@ -160,14 +162,6 @@ export function createReleasePlan(options = {}) {
   };
 }
 
-export function resolveReleaseSpecifier(
-  currentVersion,
-  specifier,
-  options = {},
-) {
-  return resolveVersionSpecifier(currentVersion, specifier, options);
-}
-
 export function summarizeReleasePlan(plan) {
   return {
     commitCount: plan.commits.length,
@@ -240,30 +234,8 @@ function resolveReleaseRequest({
   releaseBaseTag,
   releasePackage,
 }) {
-  if (hasMixedReleaseOptions(options)) {
-    throw new Error(
-      'Use either release intent options or legacy --version/--prerelease options, not both.',
-    );
-  }
-
-  if (hasLegacyReleaseOptions(options)) {
-    const nextVersion = resolveLegacyNextVersion(currentVersion, commits, {
-      prerelease: options.prerelease,
-      versionSpecifier: options.versionSpecifier,
-    });
-
-    return {
-      expectedPrerelease: undefined,
-      nextVersion,
-      releaseBump: options.versionSpecifier ?? releaseBumps.auto,
-      releaseIntent: options.prerelease
-        ? releaseIntents.prerelease
-        : releaseIntents.stable,
-    };
-  }
-
   const releaseIntent = normalizeReleaseIntent(
-    options.releaseIntent ?? options.intent ?? releaseIntents.stable,
+    options.releaseIntent ?? releaseIntents.stable,
   );
   const releaseBump = normalizeReleaseBump(options.bump ?? releaseBumps.auto);
 
@@ -325,23 +297,18 @@ function resolveReleaseRequest({
   }
 }
 
-function hasLegacyReleaseOptions(options) {
-  return Boolean(options.versionSpecifier || options.prerelease);
-}
-
-function hasIntentReleaseOptions(options) {
-  return Boolean(
-    options.releaseIntent ||
-      options.intent ||
-      options.bump ||
-      options.manualVersion ||
-      options.manualReason ||
-      options.allowMajorWithoutPrerelease,
+function assertSupportedReleaseOptions(options) {
+  const unsupportedOptions = ['intent', 'prerelease', 'versionSpecifier'].filter(
+    (option) => Object.hasOwn(options, option),
   );
-}
 
-function hasMixedReleaseOptions(options) {
-  return hasLegacyReleaseOptions(options) && hasIntentReleaseOptions(options);
+  if (unsupportedOptions.length === 0) {
+    return;
+  }
+
+  throw new Error(
+    `Unsupported release option(s): ${unsupportedOptions.join(', ')}. Use releaseIntent with bump, or releaseIntent manual with manualVersion and manualReason.`,
+  );
 }
 
 function normalizeReleaseIntent(intent) {
@@ -362,20 +329,6 @@ function normalizeReleaseBump(bump) {
   throw new Error(
     `Unknown release bump: ${bump}. Expected one of ${Object.values(releaseBumps).join(', ')}.`,
   );
-}
-
-function resolveNextVersion(currentVersion, commits, options = {}) {
-  return options.versionSpecifier
-    ? resolveVersionSpecifier(currentVersion, options.versionSpecifier, {
-        prerelease: options.prerelease,
-      })
-    : inferVersionFromCommits(currentVersion, commits, {
-        prerelease: options.prerelease,
-      });
-}
-
-function resolveLegacyNextVersion(currentVersion, commits, options = {}) {
-  return resolveNextVersion(currentVersion, commits, options);
 }
 
 function resolveStableNextVersion(currentVersion, commits, options = {}) {
@@ -553,42 +506,6 @@ function getRepositoryUrl(repository) {
   return repository?.url;
 }
 
-function resolveVersionSpecifier(currentVersion, specifier, options = {}) {
-  const trimmedSpecifier = specifier.trim();
-
-  if (semver.valid(trimmedSpecifier)) {
-    if (options.prerelease && !semver.prerelease(trimmedSpecifier)) {
-      return appendPrereleaseIdentifier(trimmedSpecifier);
-    }
-
-    return trimmedSpecifier;
-  }
-
-  if (options.prerelease) {
-    const prereleaseIncrement = toPrereleaseIncrement(trimmedSpecifier);
-
-    if (prereleaseIncrement) {
-      return semver.inc(
-        currentVersion,
-        prereleaseIncrement,
-        prereleaseIdentifier,
-      );
-    }
-  }
-
-  return semver.inc(currentVersion, trimmedSpecifier);
-}
-
-function inferVersionFromCommits(currentVersion, commits, options = {}) {
-  const releaseType = inferReleaseTypeFromCommits(commits);
-
-  if (options.prerelease) {
-    return inferPrereleaseVersion(currentVersion, releaseType);
-  }
-
-  return releaseType ? semver.inc(currentVersion, releaseType) : null;
-}
-
 function inferReleaseTypeFromCommits(commits) {
   if (commits.some(isBreakingCommit)) {
     return 'major';
@@ -619,32 +536,6 @@ function inferPrereleaseVersion(currentVersion, releaseType) {
   }
 
   return semver.inc(currentVersion, `pre${releaseType}`, prereleaseIdentifier);
-}
-
-function appendPrereleaseIdentifier(version) {
-  const prereleaseVersion = `${version}-${prereleaseIdentifier}.0`;
-
-  if (!semver.valid(prereleaseVersion)) {
-    throw new Error(`Could not create prerelease version from ${version}.`);
-  }
-
-  return prereleaseVersion;
-}
-
-function toPrereleaseIncrement(specifier) {
-  switch (specifier) {
-    case 'major':
-    case 'minor':
-    case 'patch':
-      return `pre${specifier}`;
-    case 'premajor':
-    case 'preminor':
-    case 'prepatch':
-    case 'prerelease':
-      return specifier;
-    default:
-      return null;
-  }
 }
 
 function resolveReleaseNotesBaseTag({

@@ -157,17 +157,6 @@ function addReleaseOptions(command) {
       describe:
         'Reason for using the manual release intent. Required with manual releases.',
       type: 'string',
-    })
-    .option('version', {
-      describe:
-        'Legacy explicit semver version or increment, such as 19.3.0, patch, minor, or major.',
-      type: 'string',
-    })
-    .option('prerelease', {
-      default: false,
-      describe:
-        'Legacy flag to infer or coerce the planned version to a next prerelease.',
-      type: 'boolean',
     });
 }
 
@@ -177,9 +166,7 @@ function toReleaseOptions(argv) {
     bump: argv.bump,
     manualReason: argv.manualReason,
     manualVersion: argv.manualVersion,
-    prerelease: argv.prerelease,
     releaseIntent: argv.intent,
-    versionSpecifier: argv.version,
   };
 }
 

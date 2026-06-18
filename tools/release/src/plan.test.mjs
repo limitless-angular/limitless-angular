@@ -9,31 +9,10 @@ import {
   createReleasePlan,
   releaseBumps,
   releaseIntents,
-  resolveReleaseSpecifier,
   summarizeReleasePlan,
 } from './plan.mjs';
 
-test('release specifier accepts semver increments and explicit versions', () => {
-  assert.equal(resolveReleaseSpecifier('1.2.3', 'patch'), '1.2.4');
-  assert.equal(resolveReleaseSpecifier('1.2.3', 'minor'), '1.3.0');
-  assert.equal(resolveReleaseSpecifier('1.2.3', '2.0.0'), '2.0.0');
-  assert.equal(
-    resolveReleaseSpecifier('1.2.3', 'minor', { prerelease: true }),
-    '1.3.0-next.0',
-  );
-  assert.equal(
-    resolveReleaseSpecifier('1.2.3', '2.0.0', { prerelease: true }),
-    '2.0.0-next.0',
-  );
-  assert.equal(
-    resolveReleaseSpecifier('1.2.3', '2.0.0-next.2', {
-      prerelease: true,
-    }),
-    '2.0.0-next.2',
-  );
-});
-
-test('release plan rejects explicit versions that do not move forward', () => {
+test('manual release intent rejects versions that do not move forward', () => {
   const workspace = createReleaseFixture();
 
   try {
@@ -41,9 +20,11 @@ test('release plan rejects explicit versions that do not move forward', () => {
       () =>
         createReleasePlan({
           capture: createCapture({ gitLog: '', releaseTags: ['sanity@1.2.3'] }),
+          manualReason: 'Recover from an external release-state mismatch.',
+          manualVersion: '1.2.2',
           now: new Date('2026-06-08T00:00:00.000Z'),
           paths: workspace.paths,
-          versionSpecifier: '1.2.2',
+          releaseIntent: releaseIntents.manual,
         }),
       /must be greater than the current version 1\.2\.3/,
     );
@@ -51,9 +32,11 @@ test('release plan rejects explicit versions that do not move forward', () => {
       () =>
         createReleasePlan({
           capture: createCapture({ gitLog: '', releaseTags: ['sanity@1.2.3'] }),
+          manualReason: 'Recover from an external release-state mismatch.',
+          manualVersion: '1.2.3',
           now: new Date('2026-06-08T00:00:00.000Z'),
           paths: workspace.paths,
-          versionSpecifier: '1.2.3',
+          releaseIntent: releaseIntents.manual,
         }),
       /must be greater than the current version 1\.2\.3/,
     );
@@ -298,6 +281,35 @@ test('manual release intent requires an exact version and reason', () => {
   }
 });
 
+test('release plan rejects removed option aliases', () => {
+  const workspace = createReleaseFixture();
+
+  try {
+    assert.throws(
+      () =>
+        createReleasePlan({
+          capture: createCapture({ gitLog: '' }),
+          now: new Date('2026-06-08T00:00:00.000Z'),
+          paths: workspace.paths,
+          versionSpecifier: '1.1.0',
+        }),
+      /Unsupported release option\(s\): versionSpecifier/,
+    );
+    assert.throws(
+      () =>
+        createReleasePlan({
+          capture: createCapture({ gitLog: '' }),
+          now: new Date('2026-06-08T00:00:00.000Z'),
+          paths: workspace.paths,
+          prerelease: true,
+        }),
+      /Unsupported release option\(s\): prerelease/,
+    );
+  } finally {
+    workspace.cleanup();
+  }
+});
+
 test('release plan summary comparison reports publish-time drift', () => {
   assert.doesNotThrow(() =>
     assertReleasePlanSummaryMatches(
@@ -442,7 +454,7 @@ test('release plan ignores tooling-only conventional commits', () => {
           }),
           now: new Date('2026-06-08T00:00:00.000Z'),
           paths: workspace.paths,
-          prerelease: true,
+          releaseIntent: releaseIntents.prerelease,
         }),
       /No release version could be determined for @limitless-angular\/sanity/,
     );
@@ -485,7 +497,7 @@ test('release plan ignores configured infrastructure scopes on source-only packa
           }),
           now: new Date('2026-06-08T00:00:00.000Z'),
           paths: workspace.paths,
-          prerelease: true,
+          releaseIntent: releaseIntents.prerelease,
         }),
       /No release version could be determined for @limitless-angular\/sanity/,
     );
@@ -651,7 +663,7 @@ test('release notes include breaking change descriptions', () => {
   }
 });
 
-test('explicit release versions bypass package relevance inference', () => {
+test('manual release intent bypasses package relevance inference', () => {
   const workspace = createReleaseFixture();
 
   try {
@@ -663,9 +675,11 @@ test('explicit release versions bypass package relevance inference', () => {
         gitLog:
           'abc1234\x01feat(release): publish from tags without source version churn\x01\x01Alfonso\x02',
       }),
+      manualReason: 'Recover from an external release-state mismatch.',
+      manualVersion: '1.1.0',
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: workspace.paths,
-      versionSpecifier: '1.1.0',
+      releaseIntent: releaseIntents.manual,
     });
 
     assert.equal(plan.nextVersion, '1.1.0');
@@ -687,7 +701,7 @@ test('prerelease plan infers next prerelease from conventional commits', () => {
       }),
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: workspace.paths,
-      prerelease: true,
+      releaseIntent: releaseIntents.prerelease,
     });
 
     assert.equal(plan.currentVersion, '1.0.0');
@@ -713,7 +727,7 @@ test('prerelease plan increments the current prerelease train', () => {
       }),
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: workspace.paths,
-      prerelease: true,
+      releaseIntent: releaseIntents.prerelease,
     });
 
     assert.equal(plan.currentVersion, '1.1.0-next.0');
@@ -749,7 +763,7 @@ test('stable release notes include the full prerelease train', () => {
       }),
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: workspace.paths,
-      versionSpecifier: '1.1.0',
+      releaseIntent: releaseIntents.promoteStable,
     });
 
     assert.equal(plan.currentVersion, '1.1.0-next.1');
@@ -813,7 +827,7 @@ test('release plan resumes an existing release tag on HEAD', () => {
       }),
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: workspace.paths,
-      prerelease: true,
+      releaseIntent: releaseIntents.prerelease,
     });
 
     assert.equal(plan.currentVersion, '1.0.0');

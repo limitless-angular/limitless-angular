@@ -75,9 +75,7 @@ export function runReleasePipeline(options = {}) {
     manualVersion: options.manualVersion,
     now: options.now,
     paths: options.paths,
-    prerelease: options.prerelease,
     releaseIntent: options.releaseIntent,
-    versionSpecifier: options.versionSpecifier,
   });
   if (options.verbose || mode === releaseModes.dryRun) {
     printReleasePlan(plan);
