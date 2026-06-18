@@ -298,9 +298,11 @@ function resolveReleaseRequest({
 }
 
 function assertSupportedReleaseOptions(options) {
-  const unsupportedOptions = ['intent', 'prerelease', 'versionSpecifier'].filter(
-    (option) => Object.hasOwn(options, option),
-  );
+  const unsupportedOptions = [
+    'intent',
+    'prerelease',
+    'versionSpecifier',
+  ].filter((option) => Object.hasOwn(options, option));
 
   if (unsupportedOptions.length === 0) {
     return;
