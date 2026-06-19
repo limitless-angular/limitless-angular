@@ -9,6 +9,7 @@ import {
   releaseModes,
   runReleasePipeline,
 } from './pipeline.mjs';
+import { releaseBumps, releaseIntents } from './plan.mjs';
 
 const trustedPublishingEnv = {
   ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'github-oidc-token',
@@ -37,8 +38,9 @@ test('dry-run validates the planned artifact version without mutating release fi
       mode: releaseModes.dryRun,
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: fixture.paths,
+      bump: releaseBumps.minor,
+      releaseIntent: releaseIntents.stable,
       run: harness.run,
-      versionSpecifier: 'minor',
     });
 
     assert.equal(result.published, false);
@@ -74,8 +76,9 @@ test('publish mode pushes the release tag before publishing to npm', () => {
       mode: releaseModes.publish,
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: fixture.paths,
+      bump: releaseBumps.patch,
+      releaseIntent: releaseIntents.stable,
       run: harness.run,
-      versionSpecifier: 'patch',
     });
 
     assert.equal(result.published, true);
@@ -130,7 +133,8 @@ test('publish mode tags npm and GitHub prereleases', () => {
       mode: releaseModes.publish,
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: fixture.paths,
-      prerelease: true,
+      bump: releaseBumps.auto,
+      releaseIntent: releaseIntents.prerelease,
       run: harness.run,
     });
 
@@ -193,8 +197,9 @@ test('publish mode resumes when tag, npm version, and GitHub release already exi
       mode: releaseModes.publish,
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: fixture.paths,
+      bump: releaseBumps.patch,
+      releaseIntent: releaseIntents.stable,
       run: harness.run,
-      versionSpecifier: 'patch',
     });
 
     assert.equal(result.published, true);
@@ -239,8 +244,9 @@ test('artifact version mismatch fails before publish side effects', () => {
           mode: releaseModes.publish,
           now: new Date('2026-06-08T00:00:00.000Z'),
           paths: fixture.paths,
+          bump: releaseBumps.patch,
+          releaseIntent: releaseIntents.stable,
           run: harness.run,
-          versionSpecifier: 'patch',
         }),
       /does not match planned release version 1\.0\.1/,
     );

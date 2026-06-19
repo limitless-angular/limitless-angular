@@ -9,29 +9,50 @@ workspace and call this package.
 Plan a release without changing files:
 
 ```bash
-pnpm run release:plan --version patch
-pnpm run release:plan --version 19.3.0 --json
-pnpm run release:plan --prerelease
+pnpm run release:plan -- --intent stable --bump auto
+pnpm run release:plan -- --intent prerelease --bump major
+pnpm run release:plan -- --intent promote-stable --json
+```
+
+Preview the GitHub Release notes for the same plan:
+
+```bash
+pnpm run release:notes -- --intent stable --bump auto
+pnpm run release:notes -- --intent promote-stable
 ```
 
 Validate a prospective release without publishing:
 
 ```bash
-pnpm run release:dry-run --version patch
-pnpm run release:dry-run --prerelease
+pnpm run release:dry-run -- --intent stable --bump auto
+pnpm run release:dry-run -- --intent prerelease --bump major
 ```
 
 Publish a release:
 
 ```bash
-pnpm turbo run release:publish --filter=@limitless-angular/release-tools -- --version patch
-pnpm turbo run release:publish --filter=@limitless-angular/release-tools -- --prerelease
+pnpm turbo run release:publish --filter=@limitless-angular/release-tools -- --intent stable --bump auto
+pnpm turbo run release:publish --filter=@limitless-angular/release-tools -- --intent promote-stable
 ```
 
-Prerelease mode infers the release level from package-relevant conventional
-commits and uses the `next` prerelease identifier. For example, a feature-level
-release from `19.2.0` becomes `19.3.0-next.0`; the next prerelease in that train
-becomes `19.3.0-next.1`.
+Release planning is intent-based. Maintainers choose the kind of release; the
+tool computes the exact version:
+
+- `stable` publishes to npm's `latest` dist-tag. `--bump auto` derives
+  `patch`, `minor`, or `major` from package-relevant conventional commits.
+- `prerelease` publishes to npm's `next` dist-tag with the `next` prerelease
+  identifier. For example, `--intent prerelease --bump major` from `21.0.0`
+  becomes `22.0.0-next.0`; the next prerelease in that train becomes
+  `22.0.0-next.1`.
+- `promote-stable` promotes the latest prerelease train to stable without a
+  human typing the version. For example, `22.0.0-next.1` becomes `22.0.0`.
+- `manual` is an escape hatch that requires `--manual-version` and
+  `--manual-reason`.
+
+Stable major releases without a prerelease train are blocked unless maintainers
+explicitly pass `--allow-major-without-prerelease`. If the latest reachable
+release tag is a prerelease, `stable` refuses to guess; use `promote-stable` to
+publish that train as stable.
 
 ## Source of Truth
 
@@ -62,6 +83,9 @@ Release planning is package-aware. Each releasable package is configured in
 - `ignoredReleaseScopeJsonFields`: top-level JSON fields that ignored
   infrastructure scopes may touch without inferring a package release.
 - `releaseTagPrefix`: the Git tag prefix for that package's versions.
+- `stablePromotionIgnoredPaths`: package-owned documentation paths that may
+  change after a prerelease without requiring another prerelease before stable
+  promotion.
 
 The planner derives inferred versions from commits that either touch a
 configured package path or use a configured package scope. For
@@ -73,7 +97,8 @@ releases, even when they touch configured source-only package metadata. For
 `version` and `private` are ignored this way; consumer-facing manifest changes
 such as dependency, peer dependency, or export updates still infer a release.
 Source changes still infer releases by path, even if their conventional commit
-scope is wrong. Maintainers can always pass an explicit `--version`.
+scope is wrong. Maintainers can use the `manual` release intent when the normal
+state machine cannot represent an exceptional recovery release.
 
 GitHub Release notes use the same package-relevance filter, but their base tag
 depends on the release type. Prerelease notes are incremental from the latest
@@ -88,7 +113,7 @@ one.
 Both dry-run and publish mode use the same release pipeline:
 
 1. Compute the release plan from the latest reachable `sanity@*` tag, explicit
-   version input, or package-relevant conventional commits. Stable GitHub
+   release intent, or package-relevant conventional commits. Stable GitHub
    Release notes use the latest stable tag as their base so final releases
    summarize their prerelease train.
 2. In publish mode only, verify the release is running from `main`, the
@@ -121,8 +146,23 @@ does not perform git, npm, or GitHub release side effects.
 Publish mode performs external side effects only after tests, linting, artifact
 validation, compatibility consumer checks, and publish preflights pass. It never
 pushes to `main`; it only creates the release tag. The GitHub workflow only runs
-publish from `main` and targets the `npm-release` environment so repository
-environment protection rules can require approval before publishing.
+publish from `main`.
+
+`release-and-publish.yml` first computes and validates a release plan outside
+the protected publishing environment. After the dry run passes, the publish job
+enters the `npm-release` environment for approval, recomputes the plan at the
+same commit, and verifies the validated and publish-time summaries match before
+creating tags, publishing to npm, or creating the GitHub Release.
+
+The validation job summary includes the future GitHub Release notes generated
+from the same release plan. The protected `npm-release` environment links back
+to the workflow run so approvers can review the computed version, tag, dist-tag,
+and notes before approving the publish job.
+
+`promote-stable` refuses to publish if package-impacting commits landed after
+the latest prerelease tag. Tooling-only commits and configured package
+documentation paths can land after the prerelease, but package code or manifest
+changes require another prerelease before a stable promotion.
 
 The workflow is rerunnable. If the release tag already exists at `HEAD`, the
 pipeline reuses it. If the npm version already exists and the expected dist-tag

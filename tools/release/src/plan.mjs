@@ -16,7 +16,39 @@ const stableNpmDistTag = 'latest';
 const missingJsonFile = Symbol('missingJsonFile');
 const invalidJsonFile = Symbol('invalidJsonFile');
 
+export const releaseIntents = {
+  manual: 'manual',
+  prerelease: 'prerelease',
+  promoteStable: 'promote-stable',
+  stable: 'stable',
+};
+
+export const releaseBumps = {
+  auto: 'auto',
+  major: 'major',
+  minor: 'minor',
+  patch: 'patch',
+};
+
+export const comparableReleasePlanSummaryFields = [
+  'commitCount',
+  'currentVersion',
+  'headSha',
+  'latestTag',
+  'nextVersion',
+  'npmDistTag',
+  'packageName',
+  'prerelease',
+  'releaseBump',
+  'releaseIntent',
+  'releaseNotesBaseTag',
+  'releaseNotesCommitCount',
+  'releaseTag',
+];
+
 export function createReleasePlan(options = {}) {
+  assertSupportedReleaseOptions(options);
+
   const releasePackage = options.releasePackage ?? defaultReleasePackage;
   const paths = resolveReleasePaths(options.paths, releasePackage);
   const commandCapture = options.capture ?? defaultCapture;
@@ -40,15 +72,26 @@ export function createReleasePlan(options = {}) {
   const latestTag = releaseBaseTag?.tag ?? null;
   const allCommits = getCommitsSince(latestTag, { capture: commandCapture });
   const commits = filterReleaseCommits(allCommits, releasePackage);
-  const requestedNextVersion = resolveNextVersion(currentVersion, commits, {
-    prerelease: options.prerelease,
-    versionSpecifier: options.versionSpecifier,
+  const releaseRequest = resolveReleaseRequest({
+    commits,
+    currentVersion,
+    headReleaseTag,
+    latestReleaseTag,
+    options,
+    releaseBaseTag,
+    releasePackage,
   });
+  const requestedNextVersion = releaseRequest.nextVersion;
   const nextVersion = headReleaseTag?.version ?? requestedNextVersion;
 
-  if (!nextVersion) {
+  if (
+    headReleaseTag &&
+    releaseRequest.expectedPrerelease !== undefined &&
+    Boolean(semver.prerelease(headReleaseTag.version)) !==
+      releaseRequest.expectedPrerelease
+  ) {
     throw new Error(
-      `No release version could be determined for ${releasePackage.name}. Pass --version or add a package-relevant conventional commit with feat, fix, perf, refactor, or a breaking change.`,
+      `HEAD is already tagged for ${headReleaseTag.tag}; refusing to plan ${releaseRequest.releaseIntent}.`,
     );
   }
 
@@ -59,6 +102,12 @@ export function createReleasePlan(options = {}) {
   ) {
     throw new Error(
       `HEAD is already tagged for ${headReleaseTag.tag}; refusing to plan ${requestedNextVersion}.`,
+    );
+  }
+
+  if (!nextVersion) {
+    throw new Error(
+      `No release version could be determined for ${releasePackage.name}. Pass an explicit release intent or add a package-relevant conventional commit with feat, fix, perf, refactor, or a breaking change.`,
     );
   }
 
@@ -94,6 +143,7 @@ export function createReleasePlan(options = {}) {
     currentVersion,
     existingReleaseTag: Boolean(headReleaseTag),
     generatedAt: generatedAt.toISOString(),
+    headSha: getHeadSha({ capture: commandCapture }),
     latestTag,
     nextVersion,
     npmDistTag: isPrerelease ? prereleaseNpmDistTag : stableNpmDistTag,
@@ -102,6 +152,8 @@ export function createReleasePlan(options = {}) {
     releasePackage,
     paths,
     prerelease: isPrerelease,
+    releaseBump: releaseRequest.releaseBump,
+    releaseIntent: releaseRequest.releaseIntent,
     releaseNotes,
     releaseNotesBaseTag,
     releaseNotesCommits,
@@ -110,35 +162,51 @@ export function createReleasePlan(options = {}) {
   };
 }
 
-export function resolveReleaseSpecifier(
-  currentVersion,
-  specifier,
-  options = {},
-) {
-  return resolveVersionSpecifier(currentVersion, specifier, options);
-}
-
 export function summarizeReleasePlan(plan) {
   return {
     commitCount: plan.commits.length,
     currentVersion: plan.currentVersion,
     existingReleaseTag: plan.existingReleaseTag,
     generatedAt: plan.generatedAt,
+    headSha: plan.headSha,
     latestTag: plan.latestTag,
     nextVersion: plan.nextVersion,
     npmDistTag: plan.npmDistTag,
     packageName: plan.packageName,
     prerelease: plan.prerelease,
+    releaseBump: plan.releaseBump,
+    releaseIntent: plan.releaseIntent,
     releaseNotesBaseTag: plan.releaseNotesBaseTag,
     releaseNotesCommitCount: plan.releaseNotesCommits.length,
     releaseTag: plan.releaseTag,
   };
 }
 
+export function assertReleasePlanSummaryMatches(expected, actual) {
+  const mismatches = comparableReleasePlanSummaryFields.filter(
+    (field) => expected[field] !== actual[field],
+  );
+
+  if (mismatches.length === 0) {
+    return;
+  }
+
+  throw new Error(
+    `Release plan changed after validation: ${mismatches
+      .map(
+        (field) =>
+          `${field} expected ${formatPlanValue(expected[field])}, found ${formatPlanValue(actual[field])}`,
+      )
+      .join('; ')}.`,
+  );
+}
+
 export function printReleasePlan(plan) {
   const summary = summarizeReleasePlan(plan);
 
   console.log(`Package: ${summary.packageName}`);
+  console.log(`Release intent: ${summary.releaseIntent}`);
+  console.log(`Release bump: ${summary.releaseBump}`);
   console.log(`Current version: ${summary.currentVersion}`);
   console.log(`Latest tag: ${summary.latestTag ?? 'none'}`);
   console.log(`Next version: ${summary.nextVersion}`);
@@ -157,14 +225,279 @@ function resolveReleasePaths(paths = {}, releasePackage) {
   };
 }
 
-function resolveNextVersion(currentVersion, commits, options = {}) {
-  return options.versionSpecifier
-    ? resolveVersionSpecifier(currentVersion, options.versionSpecifier, {
-        prerelease: options.prerelease,
-      })
-    : inferVersionFromCommits(currentVersion, commits, {
-        prerelease: options.prerelease,
+function resolveReleaseRequest({
+  commits,
+  currentVersion,
+  headReleaseTag,
+  latestReleaseTag,
+  options,
+  releaseBaseTag,
+  releasePackage,
+}) {
+  const releaseIntent = normalizeReleaseIntent(
+    options.releaseIntent ?? releaseIntents.stable,
+  );
+  const releaseBump = normalizeReleaseBump(options.bump ?? releaseBumps.auto);
+
+  switch (releaseIntent) {
+    case releaseIntents.prerelease:
+      return {
+        expectedPrerelease: true,
+        nextVersion: resolvePrereleaseNextVersion(currentVersion, commits, {
+          bump: releaseBump,
+        }),
+        releaseBump,
+        releaseIntent,
+      };
+
+    case releaseIntents.promoteStable:
+      assertPromotableStableRelease({
+        commits,
+        headReleaseTag,
+        latestReleaseTag,
+        releaseBaseTag,
+        releasePackage,
       });
+
+      return {
+        expectedPrerelease: false,
+        nextVersion: removePrerelease(
+          resolvePromotedPrereleaseTag({
+            headReleaseTag,
+            latestReleaseTag,
+            releaseBaseTag,
+          }).version,
+        ),
+        releaseBump: releaseBumps.auto,
+        releaseIntent,
+      };
+
+    case releaseIntents.manual:
+      return {
+        expectedPrerelease: undefined,
+        nextVersion: resolveManualVersion(options),
+        releaseBump: 'manual',
+        releaseIntent,
+      };
+
+    case releaseIntents.stable:
+      return {
+        expectedPrerelease: false,
+        nextVersion: resolveStableNextVersion(currentVersion, commits, {
+          allowMajorWithoutPrerelease: options.allowMajorWithoutPrerelease,
+          bump: releaseBump,
+          latestReleaseTag,
+        }),
+        releaseBump,
+        releaseIntent,
+      };
+
+    default:
+      throw new Error(`Unknown release intent: ${releaseIntent}`);
+  }
+}
+
+function assertSupportedReleaseOptions(options) {
+  const unsupportedOptions = [
+    'intent',
+    'prerelease',
+    'versionSpecifier',
+  ].filter((option) => Object.hasOwn(options, option));
+
+  if (unsupportedOptions.length === 0) {
+    return;
+  }
+
+  throw new Error(
+    `Unsupported release option(s): ${unsupportedOptions.join(', ')}. Use releaseIntent with bump, or releaseIntent manual with manualVersion and manualReason.`,
+  );
+}
+
+function normalizeReleaseIntent(intent) {
+  if (Object.values(releaseIntents).includes(intent)) {
+    return intent;
+  }
+
+  throw new Error(
+    `Unknown release intent: ${intent}. Expected one of ${Object.values(releaseIntents).join(', ')}.`,
+  );
+}
+
+function normalizeReleaseBump(bump) {
+  if (Object.values(releaseBumps).includes(bump)) {
+    return bump;
+  }
+
+  throw new Error(
+    `Unknown release bump: ${bump}. Expected one of ${Object.values(releaseBumps).join(', ')}.`,
+  );
+}
+
+function resolveStableNextVersion(currentVersion, commits, options = {}) {
+  const latestReleaseTag = options.latestReleaseTag;
+
+  if (latestReleaseTag && semver.prerelease(latestReleaseTag.version)) {
+    throw new Error(
+      `Latest release tag ${latestReleaseTag.tag} is a prerelease; use release intent ${releaseIntents.promoteStable} to publish it as stable.`,
+    );
+  }
+
+  const nextVersion = resolveBumpedStableVersion(currentVersion, commits, {
+    bump: options.bump,
+  });
+
+  if (
+    nextVersion &&
+    isMajorStableRelease(currentVersion, nextVersion) &&
+    !options.allowMajorWithoutPrerelease
+  ) {
+    throw new Error(
+      `Refusing to publish major stable release ${nextVersion} without a prerelease train. Use release intent ${releaseIntents.prerelease} with bump ${releaseBumps.major}, or pass --allow-major-without-prerelease.`,
+    );
+  }
+
+  return nextVersion;
+}
+
+function resolveBumpedStableVersion(currentVersion, commits, { bump }) {
+  if (bump === releaseBumps.auto) {
+    const releaseType = inferReleaseTypeFromCommits(commits);
+
+    return releaseType ? semver.inc(currentVersion, releaseType) : null;
+  }
+
+  return semver.inc(currentVersion, bump);
+}
+
+function resolvePrereleaseNextVersion(currentVersion, commits, { bump }) {
+  const releaseType =
+    bump === releaseBumps.auto ? inferReleaseTypeFromCommits(commits) : bump;
+
+  return releaseType
+    ? inferPrereleaseVersion(currentVersion, releaseType)
+    : null;
+}
+
+function resolveManualVersion(options) {
+  const manualVersion = options.manualVersion?.trim();
+  const manualReason = options.manualReason?.trim();
+
+  if (!manualVersion || !semver.valid(manualVersion)) {
+    throw new Error(
+      `Release intent ${releaseIntents.manual} requires --manual-version with an exact semver version.`,
+    );
+  }
+
+  if (!manualReason) {
+    throw new Error(
+      `Release intent ${releaseIntents.manual} requires --manual-reason.`,
+    );
+  }
+
+  return manualVersion;
+}
+
+function assertPromotableStableRelease({
+  commits,
+  headReleaseTag,
+  latestReleaseTag,
+  releaseBaseTag,
+  releasePackage,
+}) {
+  const prereleaseTag = resolvePromotedPrereleaseTag({
+    headReleaseTag,
+    latestReleaseTag,
+    releaseBaseTag,
+  });
+
+  if (!prereleaseTag) {
+    throw new Error(
+      `Release intent ${releaseIntents.promoteStable} requires the latest release tag to be a prerelease.`,
+    );
+  }
+
+  const blockingCommits = getStablePromotionBlockingCommits(
+    commits,
+    releasePackage,
+  );
+
+  if (blockingCommits.length > 0) {
+    throw new Error(
+      `Refusing to promote ${prereleaseTag.tag} because ${blockingCommits.length} package-impacting commit(s) landed after that prerelease. Publish another prerelease first.`,
+    );
+  }
+}
+
+function getStablePromotionBlockingCommits(commits, releasePackage) {
+  return commits.filter((commit) =>
+    hasStablePromotionBlockingFiles(commit, releasePackage),
+  );
+}
+
+function hasStablePromotionBlockingFiles(commit, releasePackage) {
+  const releaseFiles = getReleaseFiles(commit, releasePackage);
+
+  if (releaseFiles.length === 0) {
+    return true;
+  }
+
+  return releaseFiles.some(
+    (file) => !matchesStablePromotionIgnoredPath(file, releasePackage),
+  );
+}
+
+function matchesStablePromotionIgnoredPath(file, releasePackage) {
+  const ignoredPaths = releasePackage.stablePromotionIgnoredPaths ?? [];
+
+  return ignoredPaths.some((pattern) => matchesPathPattern(file, pattern));
+}
+
+function resolvePromotedPrereleaseTag({
+  headReleaseTag,
+  latestReleaseTag,
+  releaseBaseTag,
+}) {
+  if (headReleaseTag && !isPrereleaseVersion(headReleaseTag.version)) {
+    return isPrereleaseVersion(releaseBaseTag?.version) ? releaseBaseTag : null;
+  }
+
+  return isPrereleaseVersion(latestReleaseTag?.version)
+    ? latestReleaseTag
+    : null;
+}
+
+function removePrerelease(version) {
+  const parsedVersion = semver.parse(version);
+
+  if (!parsedVersion) {
+    throw new Error(`Invalid prerelease version: ${version}`);
+  }
+
+  return `${parsedVersion.major}.${parsedVersion.minor}.${parsedVersion.patch}`;
+}
+
+function isMajorStableRelease(currentVersion, nextVersion) {
+  return (
+    currentVersion !== initialReleaseVersion &&
+    !semver.prerelease(nextVersion) &&
+    semver.major(nextVersion) > semver.major(currentVersion)
+  );
+}
+
+function isPrereleaseVersion(version) {
+  return Boolean(version && semver.prerelease(version));
+}
+
+function getHeadSha({ capture }) {
+  try {
+    return capture('git', ['rev-parse', 'HEAD']).trim() || null;
+  } catch {
+    return null;
+  }
+}
+
+function formatPlanValue(value) {
+  return value === null || value === undefined ? 'none' : JSON.stringify(value);
 }
 
 function getRepositoryUrl(repository) {
@@ -173,42 +506,6 @@ function getRepositoryUrl(repository) {
   }
 
   return repository?.url;
-}
-
-function resolveVersionSpecifier(currentVersion, specifier, options = {}) {
-  const trimmedSpecifier = specifier.trim();
-
-  if (semver.valid(trimmedSpecifier)) {
-    if (options.prerelease && !semver.prerelease(trimmedSpecifier)) {
-      return appendPrereleaseIdentifier(trimmedSpecifier);
-    }
-
-    return trimmedSpecifier;
-  }
-
-  if (options.prerelease) {
-    const prereleaseIncrement = toPrereleaseIncrement(trimmedSpecifier);
-
-    if (prereleaseIncrement) {
-      return semver.inc(
-        currentVersion,
-        prereleaseIncrement,
-        prereleaseIdentifier,
-      );
-    }
-  }
-
-  return semver.inc(currentVersion, trimmedSpecifier);
-}
-
-function inferVersionFromCommits(currentVersion, commits, options = {}) {
-  const releaseType = inferReleaseTypeFromCommits(commits);
-
-  if (options.prerelease) {
-    return inferPrereleaseVersion(currentVersion, releaseType);
-  }
-
-  return releaseType ? semver.inc(currentVersion, releaseType) : null;
 }
 
 function inferReleaseTypeFromCommits(commits) {
@@ -241,32 +538,6 @@ function inferPrereleaseVersion(currentVersion, releaseType) {
   }
 
   return semver.inc(currentVersion, `pre${releaseType}`, prereleaseIdentifier);
-}
-
-function appendPrereleaseIdentifier(version) {
-  const prereleaseVersion = `${version}-${prereleaseIdentifier}.0`;
-
-  if (!semver.valid(prereleaseVersion)) {
-    throw new Error(`Could not create prerelease version from ${version}.`);
-  }
-
-  return prereleaseVersion;
-}
-
-function toPrereleaseIncrement(specifier) {
-  switch (specifier) {
-    case 'major':
-    case 'minor':
-    case 'patch':
-      return `pre${specifier}`;
-    case 'premajor':
-    case 'preminor':
-    case 'prepatch':
-    case 'prerelease':
-      return specifier;
-    default:
-      return null;
-  }
 }
 
 function resolveReleaseNotesBaseTag({

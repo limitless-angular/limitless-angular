@@ -3,6 +3,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
 
+import { parse as parseYaml } from 'yaml';
+
 import { readJson, workspaceRoot } from './lib.mjs';
 
 const compatPackageName = '@limitless-angular/angular-compat';
@@ -43,10 +45,12 @@ const rootReleaseScriptContract = {
   'release:dry-run': turboReleaseCommand('release:dry-run', {
     forwardsArgs: true,
   }),
+  'release:notes': `pnpm --filter=${releasePackageName} run --silent release:notes`,
   'release:plan': `pnpm --filter=${releasePackageName} run --silent release:plan`,
   'release:publish': turboReleaseCommand('release:publish', {
     forwardsArgs: true,
   }),
+  'release:verify-plan': `pnpm --filter=${releasePackageName} run --silent release:verify-plan`,
 };
 
 const packageScriptContract = {
@@ -205,6 +209,78 @@ test('autofix workflow prepares built packages before preview publishing', () =>
 });
 
 test('release workflows delegate to the release tools package', () => {
+  const publishWorkflowPath = '.github/workflows/release-and-publish.yml';
+  const dryRunWorkflowPath = '.github/workflows/release-dry-run.yml';
+  const publishWorkflowText = readWorkspaceText(publishWorkflowPath);
+  const dryRunWorkflowText = readWorkspaceText(dryRunWorkflowPath);
+  const publishWorkflow = readWorkspaceWorkflow(publishWorkflowPath);
+  const dryRunWorkflow = readWorkspaceWorkflow(dryRunWorkflowPath);
+  const validateJob = getWorkflowJob(publishWorkflow, 'validate-release');
+  const publishJob = getWorkflowJob(publishWorkflow, 'release-and-publish');
+  const dryRunJob = getWorkflowJob(dryRunWorkflow, 'release-dry-run');
+  const validateSetupNodeStep = getWorkflowStep(
+    validateJob,
+    'Install Node.js per package.json',
+  );
+  const publishSetupNodeStep = getWorkflowStep(
+    publishJob,
+    'Install Node.js per package.json',
+  );
+
+  assert.equal(publishJob.needs, 'validate-release');
+  assert.equal(getWorkflowEnvironmentName(publishJob), 'npm-release');
+  assert.equal(
+    publishJob.environment.url,
+    '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}',
+  );
+  assert.equal(publishJob.permissions['id-token'], 'write');
+  assert.equal(publishJob.permissions.contents, 'write');
+  assert.equal(validateJob.permissions.contents, 'read');
+  assert.equal(dryRunJob.permissions.contents, 'read');
+  assert.equal(
+    validateSetupNodeStep.with?.['registry-url'],
+    'https://registry.npmjs.org/',
+  );
+  assert.equal(
+    publishSetupNodeStep.with?.['registry-url'],
+    undefined,
+    'trusted publishing job must not configure npm auth through setup-node',
+  );
+
+  assertJobRuns(validateJob, [
+    `pnpm --filter=${releasePackageName} run --silent release:plan`,
+    `pnpm --filter=${releasePackageName} run --silent release:notes`,
+    turboReleaseCommand('release:dry-run', { forwardsArgs: true }),
+  ]);
+  assertJobRuns(publishJob, [
+    'npm install -g npm@^11.10.0',
+    `pnpm --filter=${releasePackageName} run --silent release:plan`,
+    `pnpm --filter=${releasePackageName} run --silent release:verify-plan`,
+    turboReleaseCommand('release:publish', { forwardsArgs: true }),
+  ]);
+  assertJobRuns(dryRunJob, [
+    `pnpm --filter=${releasePackageName} run --silent release:plan`,
+    `pnpm --filter=${releasePackageName} run --silent release:notes`,
+    turboReleaseCommand('release:dry-run', { forwardsArgs: true }),
+  ]);
+
+  assertIncludes(publishWorkflowText, [
+    'NPM_CONFIG_PROVENANCE: true',
+    'Future GitHub Release Notes',
+  ]);
+  assertIncludes(dryRunWorkflowText, ['Future GitHub Release Notes']);
+
+  assert.doesNotMatch(publishWorkflowText, /runner\.temp/);
+  assert.doesNotMatch(publishWorkflowText, /compat:pack/);
+  assert.doesNotMatch(publishWorkflowText, /npm publish/);
+  assert.doesNotMatch(publishWorkflowText, /NODE_AUTH_TOKEN/);
+  assert.doesNotMatch(publishWorkflowText, /NPM_ACCESS_TOKEN/);
+  assert.doesNotMatch(dryRunWorkflowText, /runner\.temp/);
+  assert.doesNotMatch(dryRunWorkflowText, /NODE_AUTH_TOKEN/);
+  assert.doesNotMatch(dryRunWorkflowText, /NPM_ACCESS_TOKEN/);
+});
+
+test('legacy release workflow text contract remains documented', () => {
   const publishWorkflow = readWorkspaceText(
     '.github/workflows/release-and-publish.yml',
   );
@@ -213,29 +289,11 @@ test('release workflows delegate to the release tools package', () => {
   );
 
   assertIncludes(publishWorkflow, [
-    turboReleaseCommand('release:publish', { forwardsArgs: true }),
-    'environment: npm-release',
-    'id-token: write',
     'echo "RELEASE_PLAN_PATH=$RUNNER_TEMP/release-plan.json" >> "$GITHUB_ENV"',
-    'npm install -g npm@^11.10.0',
-    'NPM_CONFIG_PROVENANCE: true',
   ]);
   assertIncludes(dryRunWorkflow, [
-    turboReleaseCommand('release:dry-run', { forwardsArgs: true }),
-    'permissions:',
-    'contents: read',
     'echo "RELEASE_PLAN_PATH=$RUNNER_TEMP/release-plan.json" >> "$GITHUB_ENV"',
   ]);
-
-  assert.doesNotMatch(publishWorkflow, /runner\.temp/);
-  assert.doesNotMatch(publishWorkflow, /compat:pack/);
-  assert.doesNotMatch(publishWorkflow, /npm publish/);
-  assert.doesNotMatch(publishWorkflow, /registry-url/);
-  assert.doesNotMatch(publishWorkflow, /NODE_AUTH_TOKEN/);
-  assert.doesNotMatch(publishWorkflow, /NPM_ACCESS_TOKEN/);
-  assert.doesNotMatch(dryRunWorkflow, /runner\.temp/);
-  assert.doesNotMatch(dryRunWorkflow, /NODE_AUTH_TOKEN/);
-  assert.doesNotMatch(dryRunWorkflow, /NPM_ACCESS_TOKEN/);
 });
 
 test('release tools package owns the release command mapping', () => {
@@ -245,15 +303,19 @@ test('release tools package owns the release command mapping', () => {
     pick(scripts, [
       'release',
       'release:dry-run',
+      'release:notes',
       'release:plan',
       'release:publish',
+      'release:verify-plan',
       'test',
     ]),
     {
       release: 'node cli.mjs run',
       'release:dry-run': 'node cli.mjs dry-run',
+      'release:notes': 'node cli.mjs notes',
       'release:plan': 'node cli.mjs plan',
       'release:publish': 'node cli.mjs publish',
+      'release:verify-plan': 'node cli.mjs verify-plan',
       test: 'node --test src/*.test.mjs',
     },
   );
@@ -296,6 +358,41 @@ function readWorkspaceJson(path) {
 
 function readWorkspaceText(path) {
   return readFileSync(join(workspaceRoot, path), 'utf8');
+}
+
+function readWorkspaceWorkflow(path) {
+  return parseYaml(readWorkspaceText(path));
+}
+
+function getWorkflowJob(workflow, jobName) {
+  const job = workflow.jobs?.[jobName];
+
+  assert.ok(job, `Expected workflow job: ${jobName}`);
+
+  return job;
+}
+
+function getWorkflowEnvironmentName(job) {
+  return typeof job.environment === 'string'
+    ? job.environment
+    : job.environment?.name;
+}
+
+function getWorkflowStep(job, stepName) {
+  const step = job.steps.find((candidate) => candidate.name === stepName);
+
+  assert.ok(step, `Expected workflow step: ${stepName}`);
+
+  return step;
+}
+
+function assertJobRuns(job, expectedSnippets) {
+  const runScripts = job.steps
+    .map((step) => step.run)
+    .filter((run) => typeof run === 'string')
+    .join('\n');
+
+  assertIncludes(runScripts, expectedSnippets);
 }
 
 function pick(object, keys) {
