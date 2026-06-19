@@ -50,6 +50,7 @@ const rootReleaseScriptContract = {
   'release:publish': turboReleaseCommand('release:publish', {
     forwardsArgs: true,
   }),
+  'release:summary': `pnpm --filter=${releasePackageName} run --silent release:summary`,
   'release:verify-plan': `pnpm --filter=${releasePackageName} run --silent release:verify-plan`,
 };
 
@@ -117,6 +118,11 @@ test('root release scripts route side-effecting tasks through Turbo', () => {
     scripts['release:plan'],
     /turbo/,
     'release:plan supports clean JSON output and should remain a direct package command',
+  );
+  assert.doesNotMatch(
+    scripts['release:summary'],
+    /turbo/,
+    'release:summary writes GitHub markdown and should remain a direct package command',
   );
 });
 
@@ -251,24 +257,23 @@ test('release workflows delegate to the release tools package', () => {
     `pnpm --filter=${releasePackageName} run --silent release:plan`,
     `pnpm --filter=${releasePackageName} run --silent release:notes`,
     turboReleaseCommand('release:dry-run', { forwardsArgs: true }),
+    `pnpm --filter=${releasePackageName} run --silent release:summary`,
   ]);
   assertJobRuns(publishJob, [
     'npm install -g npm@^11.10.0',
     `pnpm --filter=${releasePackageName} run --silent release:plan`,
     `pnpm --filter=${releasePackageName} run --silent release:verify-plan`,
     turboReleaseCommand('release:publish', { forwardsArgs: true }),
+    `pnpm --filter=${releasePackageName} run --silent release:summary`,
   ]);
   assertJobRuns(dryRunJob, [
     `pnpm --filter=${releasePackageName} run --silent release:plan`,
     `pnpm --filter=${releasePackageName} run --silent release:notes`,
     turboReleaseCommand('release:dry-run', { forwardsArgs: true }),
+    `pnpm --filter=${releasePackageName} run --silent release:summary`,
   ]);
 
-  assertIncludes(publishWorkflowText, [
-    'NPM_CONFIG_PROVENANCE: true',
-    'Future GitHub Release Notes',
-  ]);
-  assertIncludes(dryRunWorkflowText, ['Future GitHub Release Notes']);
+  assertIncludes(publishWorkflowText, ['NPM_CONFIG_PROVENANCE: true']);
 
   assert.doesNotMatch(publishWorkflowText, /runner\.temp/);
   assert.doesNotMatch(publishWorkflowText, /compat:pack/);
@@ -306,6 +311,7 @@ test('release tools package owns the release command mapping', () => {
       'release:notes',
       'release:plan',
       'release:publish',
+      'release:summary',
       'release:verify-plan',
       'test',
     ]),
@@ -315,6 +321,7 @@ test('release tools package owns the release command mapping', () => {
       'release:notes': 'node cli.mjs notes',
       'release:plan': 'node cli.mjs plan',
       'release:publish': 'node cli.mjs publish',
+      'release:summary': 'node cli.mjs summary',
       'release:verify-plan': 'node cli.mjs verify-plan',
       test: 'node --test src/*.test.mjs',
     },

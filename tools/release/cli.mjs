@@ -13,6 +13,7 @@ import {
   summarizeReleasePlan,
 } from './src/plan.mjs';
 import { releaseModes, runReleasePipeline } from './src/pipeline.mjs';
+import { writeReleaseSummary } from './src/summary.mjs';
 
 export function runCli(args = hideBin(process.argv)) {
   return yargs(args)
@@ -90,6 +91,18 @@ export function runCli(args = hideBin(process.argv)) {
           ...toReleaseOptions(argv),
           verbose: argv.verbose,
         }),
+    )
+    .command(
+      'summary',
+      'Write the GitHub Actions release summary.',
+      (command) =>
+        command.option('output', {
+          describe: 'Path to write the release summary markdown.',
+          type: 'string',
+        }),
+      (argv) => {
+        writeReleaseSummary({ outputPath: argv.output });
+      },
     )
     .command(
       'verify-plan',

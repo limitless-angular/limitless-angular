@@ -28,6 +28,7 @@
     "release:notes": "pnpm --filter=@limitless-angular/release-tools run --silent release:notes",
     "release:plan": "pnpm --filter=@limitless-angular/release-tools run --silent release:plan",
     "release:publish": "pnpm turbo run release:publish --filter=@limitless-angular/release-tools --",
+    "release:summary": "pnpm --filter=@limitless-angular/release-tools run --silent release:summary",
     "release:verify-plan": "pnpm --filter=@limitless-angular/release-tools run --silent release:verify-plan"
   },
   "packageManager": "pnpm@11.5.2",
