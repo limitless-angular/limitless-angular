@@ -9,6 +9,7 @@
     "release:notes": "node cli.mjs notes",
     "release:plan": "node cli.mjs plan",
     "release:publish": "node cli.mjs publish",
+    "release:summary": "node cli.mjs summary",
     "release:verify-plan": "node cli.mjs verify-plan",
     "test": "node --test src/*.test.mjs"
   },
