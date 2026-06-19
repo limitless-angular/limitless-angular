@@ -23,7 +23,9 @@ export function renderReleaseSummary({ env = process.env } = {}) {
   if (planResult.plan) {
     lines.push(...formatPlanLines(planResult.plan));
   } else {
-    lines.push('- Planned version: unavailable; release planning did not complete.');
+    lines.push(
+      '- Planned version: unavailable; release planning did not complete.',
+    );
 
     if (planResult.reason) {
       lines.push(`- Release plan file: ${planResult.reason}.`);

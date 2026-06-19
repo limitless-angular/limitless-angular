@@ -25,7 +25,10 @@ test('release summary renders a completed release plan', () => {
         releaseTag: 'sanity@22.0.0',
       })}\n`,
     );
-    writeFileSync(workspace.notesPath, '## 22.0.0\n\n- add Angular 22 support\n');
+    writeFileSync(
+      workspace.notesPath,
+      '## 22.0.0\n\n- add Angular 22 support\n',
+    );
 
     const summary = renderReleaseSummary({
       env: createSummaryEnv({
