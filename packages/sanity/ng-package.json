@@ -16,7 +16,6 @@
     "@sanity/visual-editing-csm",
     "@vercel/stega",
     "dequal",
-    "lodash-es",
     "xstate"
   ]
 }

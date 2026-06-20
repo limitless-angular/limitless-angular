@@ -51,7 +51,6 @@
     "@sanity/visual-editing-csm": "^3.0.9",
     "@vercel/stega": "1.1.0",
     "dequal": "^2.0.3",
-    "lodash-es": "^4.17.21",
     "tslib": "^2.3.0",
     "xstate": "^5.19.2"
   },
@@ -67,7 +66,6 @@
     "@sanity/client": "^7.22.1",
     "@testing-library/angular": "^19.4.1",
     "@testing-library/dom": "^10.4.0",
-    "@types/lodash-es": "^4.17.12",
     "@types/node": "~22.19.20",
     "angular-eslint": "^22.0.0",
     "eslint": "^9.8.0",

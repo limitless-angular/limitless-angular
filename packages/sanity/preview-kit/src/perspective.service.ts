@@ -7,7 +7,7 @@ import {
   type LoaderControllerMsg,
   type LoaderNodeMsg,
 } from '@sanity/presentation-comlink';
-import isEqual from 'lodash-es/isEqual';
+import { dequal as isEqual } from 'dequal';
 import { BehaviorSubject, combineLatest, type Observable } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 

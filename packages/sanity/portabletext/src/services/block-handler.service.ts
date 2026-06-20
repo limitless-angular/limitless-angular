@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import { PortableTextBlock } from '@portabletext/types';
-import { memoize } from 'lodash-es';
 
 import {
   MissingComponentHandler,
@@ -8,6 +7,7 @@ import {
   Serializable,
 } from '../types';
 import { serializeBlock } from '../utils';
+import { memoize } from '../utils/memoize';
 import { unknownBlockStyleWarning } from '../warnings';
 import { isPortableTextBlock } from '@portabletext/toolkit';
 

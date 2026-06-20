@@ -9,7 +9,7 @@ import type {
   SanityClient,
   SyncTag,
 } from '@sanity/client';
-import isEqual from 'lodash-es/isEqual';
+import { dequal as isEqual } from 'dequal';
 import {
   EMPTY,
   Observable,
