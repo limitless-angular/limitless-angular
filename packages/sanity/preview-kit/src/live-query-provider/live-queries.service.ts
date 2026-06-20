@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import type { ContentSourceMap, QueryParams, SyncTag } from '@sanity/client';
-import isEqual from 'lodash-es/isEqual';
+import { dequal as isEqual } from 'dequal';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 

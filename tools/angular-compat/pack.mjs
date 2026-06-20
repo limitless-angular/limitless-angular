@@ -52,7 +52,6 @@ export function packCompatibilityArtifact() {
       '@angular/compiler-cli': toolchain.compilerCliVersion,
       '@angular/core': toolchain.angularVersion,
       '@angular/router': toolchain.angularVersion,
-      '@types/lodash-es': packageJson.devDependencies['@types/lodash-es'],
       '@types/node': packageJson.devDependencies['@types/node'],
       'ng-packagr': toolchain.ngPackagrVersion,
       typescript: toolchain.typescriptVersion,
