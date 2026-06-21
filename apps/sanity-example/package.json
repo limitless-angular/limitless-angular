@@ -1,6 +1,9 @@
 {
   "name": "sanity-example",
   "type": "module",
+  "volta": {
+    "extends": "../../package.json"
+  },
   "scripts": {
     "build": "ng build",
     "lint": "eslint .",

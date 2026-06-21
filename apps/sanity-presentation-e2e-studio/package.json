@@ -2,6 +2,9 @@
   "name": "sanity-presentation-e2e-studio",
   "type": "module",
   "private": true,
+  "volta": {
+    "extends": "../../package.json"
+  },
   "scripts": {
     "build": "rm -rf ../../dist/apps/sanity-presentation-e2e-studio && sanity build --yes ../../dist/apps/sanity-presentation-e2e-studio",
     "lint": "eslint .",

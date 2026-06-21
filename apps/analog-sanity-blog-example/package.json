@@ -1,6 +1,9 @@
 {
   "name": "analog-sanity-blog-example",
   "type": "module",
+  "volta": {
+    "extends": "../../package.json"
+  },
   "imports": {
     "#sanity": "./src/sanity/lib/index.ts"
   },

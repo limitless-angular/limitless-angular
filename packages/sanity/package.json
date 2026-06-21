@@ -10,6 +10,9 @@
   },
   "author": "Alfonso Andrés López Molina <osnoser3@gmail.com>",
   "license": "MIT",
+  "volta": {
+    "extends": "../../package.json"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/limitless-angular/limitless-angular"

@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "volta": {
+    "extends": "../../package.json"
+  },
   "scripts": {
     "compat:affected": "node cli.mjs affected",
     "compat:artifact": "node cli.mjs artifact",

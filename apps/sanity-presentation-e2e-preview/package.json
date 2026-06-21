@@ -2,6 +2,9 @@
   "name": "sanity-presentation-e2e-preview",
   "type": "module",
   "private": true,
+  "volta": {
+    "extends": "../../package.json"
+  },
   "scripts": {
     "build": "ng build",
     "lint": "eslint .",
