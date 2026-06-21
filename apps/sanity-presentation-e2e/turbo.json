@@ -5,16 +5,16 @@
       "extends": false
     },
     "e2e": {
-      "passThroughEnv": ["SANITY_E2E_*"]
+      "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH", "SANITY_E2E_*"]
     },
     "e2e-studio": {
-      "passThroughEnv": ["SANITY_E2E_*"]
+      "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH", "SANITY_E2E_*"]
     },
     "e2e-real-studio": {
-      "passThroughEnv": ["SANITY_E2E_*"]
+      "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH", "SANITY_E2E_*"]
     },
     "e2e-real-studio-auth": {
-      "passThroughEnv": ["SANITY_E2E_*"]
+      "passThroughEnv": ["PLAYWRIGHT_BROWSERS_PATH", "SANITY_E2E_*"]
     }
   }
 }

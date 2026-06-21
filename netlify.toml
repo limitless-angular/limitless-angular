@@ -4,7 +4,7 @@
   publish = "dist/sanity-example/browser"
 
 [build.environment]
-  NODE_VERSION = "22.22.3"
+  NODE_VERSION = "24.17.0"
 
 [[plugins]]
   package = "@netlify/angular-runtime"

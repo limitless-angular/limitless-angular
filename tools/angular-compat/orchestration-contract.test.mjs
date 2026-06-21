@@ -12,6 +12,16 @@ const compatFilter = `--filter=${compatPackageName}`;
 const compatPackageDir = 'tools/angular-compat';
 const releasePackageName = '@limitless-angular/release-tools';
 const releaseFilter = `--filter=${releasePackageName}`;
+const playwrightVersion = readWorkspaceJson(`${compatPackageDir}/package.json`)
+  .devDependencies['@playwright/test'];
+const playwrightContainer = {
+  image: `mcr.microsoft.com/playwright:v${playwrightVersion}-jammy`,
+  options: '--ipc=host',
+};
+const playwrightBrowserEnvName = 'PLAYWRIGHT_BROWSERS_PATH';
+const playwrightEnvPattern = 'PLAYWRIGHT_*';
+const trustedWorkspaceCommand =
+  'git config --global --add safe.directory "$GITHUB_WORKSPACE"';
 
 const turboCompatCommand = (task, { forwardsArgs = false } = {}) =>
   `pnpm turbo run ${task} ${compatFilter}${forwardsArgs ? ' --' : ''}`;
@@ -154,12 +164,19 @@ test('compat-only Turbo task settings are scoped to the compat package', () => {
   );
 
   for (const task of compatTurboTasks) {
-    assert.deepEqual(
-      compatTurbo.tasks[task],
-      releaseVersionAwareCompatTasks.has(task)
-        ? { cache: false, passThroughEnv: ['LIMITLESS_RELEASE_VERSION'] }
-        : { cache: false },
-    );
+    const passThroughEnv = [];
+
+    if (releaseVersionAwareCompatTasks.has(task)) {
+      passThroughEnv.push('LIMITLESS_RELEASE_VERSION');
+    }
+    if (task === 'compat:pipeline' || task === 'compat:test') {
+      passThroughEnv.push(playwrightEnvPattern);
+    }
+
+    assert.deepEqual(compatTurbo.tasks[task], {
+      cache: false,
+      ...(passThroughEnv.length ? { passThroughEnv } : {}),
+    });
   }
 
   assert.equal(
@@ -171,6 +188,15 @@ test('compat-only Turbo task settings are scoped to the compat package', () => {
 
 test('CI workflow follows the compat orchestration contract', () => {
   const workflow = readWorkspaceText('.github/workflows/ci.yml');
+  const parsedWorkflow = readWorkspaceWorkflow('.github/workflows/ci.yml');
+  const presentationE2EPackage = readWorkspaceJson(
+    'apps/sanity-presentation-e2e/package.json',
+  );
+
+  assert.equal(
+    presentationE2EPackage.devDependencies['@playwright/test'],
+    playwrightVersion,
+  );
 
   assertIncludes(workflow, [
     `pnpm turbo run test ${compatFilter}`,
@@ -186,7 +212,6 @@ test('CI workflow follows the compat orchestration contract', () => {
     `pnpm --filter=${compatPackageName} run --silent compat:matrix --canary`,
     turboCompatCommand('compat:pack'),
     turboCompatCommand('compat:artifact'),
-    `pnpm --dir ${compatPackageDir} exec playwright install --with-deps chromium`,
     `${turboCompatCommand('compat:test', {
       forwardsArgs: true,
     })} --set \${{ matrix.version_set.id }}`,
@@ -198,6 +223,25 @@ test('CI workflow follows the compat orchestration contract', () => {
 
   assert.doesNotMatch(workflow, /pnpm run compat:/);
   assert.doesNotMatch(workflow, /turbo run compat:matrix/);
+  assert.doesNotMatch(workflow, /playwright install --with-deps/);
+
+  for (const jobName of [
+    'sanity-compat-consumer',
+    'sanity-compat-canary',
+    'presentation-e2e',
+  ]) {
+    const job = getWorkflowJob(parsedWorkflow, jobName);
+
+    assert.deepEqual(job.container, {
+      ...playwrightContainer,
+    });
+    assert.equal(
+      job['timeout-minutes'],
+      undefined,
+      `${jobName} should rely on the pinned Playwright image instead of a timeout workaround`,
+    );
+    assertJobRuns(job, [trustedWorkspaceCommand]);
+  }
 });
 
 test('autofix workflow prepares built packages before preview publishing', () => {
@@ -212,6 +256,23 @@ test('autofix workflow prepares built packages before preview publishing', () =>
     /compat:prepare-publish[\s\S]+pkg-pr-new publish/,
     'autofix must strip source-only private metadata before pkg-pr-new reads dist/package.json',
   );
+});
+
+test('presentation E2E Turbo tasks pass Playwright browser paths through', () => {
+  const presentationE2ETurbo = readWorkspaceJson(
+    'apps/sanity-presentation-e2e/turbo.json',
+  );
+
+  for (const task of [
+    'e2e',
+    'e2e-studio',
+    'e2e-real-studio',
+    'e2e-real-studio-auth',
+  ]) {
+    assert.deepEqual(presentationE2ETurbo.tasks[task], {
+      passThroughEnv: [playwrightBrowserEnvName, 'SANITY_E2E_*'],
+    });
+  }
 });
 
 test('release workflows delegate to the release tools package', () => {

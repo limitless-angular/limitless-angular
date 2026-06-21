@@ -2,6 +2,9 @@
   "name": "sanity-presentation-e2e",
   "type": "module",
   "private": true,
+  "volta": {
+    "extends": "../../package.json"
+  },
   "scripts": {
     "e2e": "playwright test",
     "e2e-real-studio": "SANITY_E2E_STUDIO_MODE=real-project playwright test real-studio.spec.ts",
@@ -14,7 +17,7 @@
     "@playwright/test": "1.44.1",
     "@sanity/client": "^7.22.1",
     "@sanity/visual-editing-csm": "^3.0.9",
-    "@types/node": "~22.19.20",
+    "@types/node": "~24.13.2",
     "eslint": "^9.8.0"
   }
 }

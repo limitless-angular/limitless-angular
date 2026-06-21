@@ -1,6 +1,9 @@
 {
   "name": "analog-sanity-blog-example",
   "type": "module",
+  "volta": {
+    "extends": "../../package.json"
+  },
   "imports": {
     "#sanity": "./src/sanity/lib/index.ts"
   },
@@ -38,7 +41,7 @@
     "@angular/cli": "~22.0.0",
     "@angular/compiler-cli": "~22.0.0",
     "@tailwindcss/typography": "^0.5.13",
-    "@types/node": "~22.19.20",
+    "@types/node": "~24.13.2",
     "angular-eslint": "^22.0.0",
     "autoprefixer": "^10.4.0",
     "eslint": "^9.8.0",

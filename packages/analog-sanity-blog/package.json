@@ -2,6 +2,9 @@
   "name": "@limitless-angular/analog-sanity-blog",
   "private": true,
   "type": "module",
+  "volta": {
+    "extends": "../../package.json"
+  },
   "sideEffects": false,
   "exports": {
     "./demo": "./src/demo/index.ts",

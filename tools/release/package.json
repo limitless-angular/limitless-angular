@@ -3,6 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "volta": {
+    "extends": "../../package.json"
+  },
   "scripts": {
     "release": "node cli.mjs run",
     "release:dry-run": "node cli.mjs dry-run",

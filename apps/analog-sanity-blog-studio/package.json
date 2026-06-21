@@ -2,6 +2,9 @@
   "name": "analog-sanity-blog-studio",
   "type": "module",
   "private": true,
+  "volta": {
+    "extends": "../../package.json"
+  },
   "scripts": {
     "build": "node scripts/with-env.mjs sanity build dist --yes",
     "cors:add": "node scripts/sanity-cors.mjs add",
