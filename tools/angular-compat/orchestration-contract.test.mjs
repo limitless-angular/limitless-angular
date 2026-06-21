@@ -20,6 +20,8 @@ const playwrightContainer = {
 };
 const playwrightBrowserEnvName = 'PLAYWRIGHT_BROWSERS_PATH';
 const playwrightEnvPattern = 'PLAYWRIGHT_*';
+const trustedWorkspaceCommand =
+  'git config --global --add safe.directory "$GITHUB_WORKSPACE"';
 
 const turboCompatCommand = (task, { forwardsArgs = false } = {}) =>
   `pnpm turbo run ${task} ${compatFilter}${forwardsArgs ? ' --' : ''}`;
@@ -238,6 +240,7 @@ test('CI workflow follows the compat orchestration contract', () => {
       undefined,
       `${jobName} should rely on the pinned Playwright image instead of a timeout workaround`,
     );
+    assertJobRuns(job, [trustedWorkspaceCommand]);
   }
 });
 
