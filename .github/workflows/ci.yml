@@ -135,11 +135,6 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.44.1-jammy
       options: --ipc=host
-    defaults:
-      run:
-        shell: bash
-    env:
-      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     strategy:
       fail-fast: false
       matrix:
@@ -173,11 +168,6 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.44.1-jammy
       options: --ipc=host
-    defaults:
-      run:
-        shell: bash
-    env:
-      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     strategy:
       fail-fast: false
       matrix:
@@ -284,11 +274,6 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.44.1-jammy
       options: --ipc=host
-    defaults:
-      run:
-        shell: bash
-    env:
-      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     steps:
       - uses: actions/checkout@v6
         with:

@@ -18,10 +18,8 @@ const playwrightContainer = {
   image: `mcr.microsoft.com/playwright:v${playwrightVersion}-jammy`,
   options: '--ipc=host',
 };
-const bashRunDefaults = { run: { shell: 'bash' } };
 const playwrightBrowserEnvName = 'PLAYWRIGHT_BROWSERS_PATH';
 const playwrightEnvPattern = 'PLAYWRIGHT_*';
-const playwrightBrowserEnv = { PLAYWRIGHT_BROWSERS_PATH: '/ms-playwright' };
 const trustedWorkspaceCommand =
   'git config --global --add safe.directory "$GITHUB_WORKSPACE"';
 
@@ -237,8 +235,6 @@ test('CI workflow follows the compat orchestration contract', () => {
     assert.deepEqual(job.container, {
       ...playwrightContainer,
     });
-    assert.deepEqual(job.defaults, { ...bashRunDefaults });
-    assert.deepEqual(job.env, { ...playwrightBrowserEnv });
     assert.equal(
       job['timeout-minutes'],
       undefined,
