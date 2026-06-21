@@ -33,17 +33,17 @@
   },
   "packageManager": "pnpm@11.5.2",
   "volta": {
-    "node": "22.22.3",
+    "node": "24.17.0",
     "pnpm": "11.5.2"
   },
   "engines": {
-    "node": ">=22.22.3",
+    "node": ">=24.17.0",
     "pnpm": ">=11.5.2"
   },
   "private": true,
   "devDependencies": {
     "@eslint/js": "^9.11.0",
-    "@types/node": "~22.19.20",
+    "@types/node": "~24.13.2",
     "@types/semver": "^7.7.1",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^9.0.0",

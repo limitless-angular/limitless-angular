@@ -17,7 +17,7 @@
     "@playwright/test": "1.44.1",
     "@sanity/client": "^7.22.1",
     "@sanity/visual-editing-csm": "^3.0.9",
-    "@types/node": "~22.19.20",
+    "@types/node": "~24.13.2",
     "eslint": "^9.8.0"
   }
 }

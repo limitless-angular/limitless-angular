@@ -6,7 +6,7 @@ This is a pnpm/Turbo monorepo for Limitless Angular. The main package is `packag
 
 ## Build, Test, and Development Commands
 
-- `nvm use && pnpm install`: use Node `22.22.3` and install workspace dependencies.
+- `nvm use && pnpm install`: use Node `24.17.0` and install workspace dependencies.
 - `pnpm build`: run Turbo builds across packages and apps.
 - `pnpm lint`: run ESLint for all configured workspaces.
 - `pnpm test`: run workspace tests, including Vitest package specs.
