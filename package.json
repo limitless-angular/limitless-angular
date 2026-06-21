@@ -55,5 +55,12 @@
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.61.0",
     "yargs": "^17.7.2"
+  },
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "24.17.0",
+      "onFail": "download"
+    }
   }
 }
