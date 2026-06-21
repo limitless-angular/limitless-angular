@@ -23,14 +23,15 @@
       "passThroughEnv": ["LIMITLESS_RELEASE_VERSION"]
     },
     "compat:pipeline": {
-      "cache": false
+      "cache": false,
+      "passThroughEnv": ["PLAYWRIGHT_*"]
     },
     "compat:release-parity": {
       "cache": false
     },
     "compat:test": {
       "cache": false,
-      "passThroughEnv": ["LIMITLESS_RELEASE_VERSION"]
+      "passThroughEnv": ["LIMITLESS_RELEASE_VERSION", "PLAYWRIGHT_*"]
     }
   }
 }

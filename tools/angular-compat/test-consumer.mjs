@@ -58,9 +58,7 @@ function testConsumer(versionSet, tarballPath, options) {
     run('pnpm', ['install', '--no-frozen-lockfile'], { cwd: workspace });
     run('pnpm', ['run', 'build'], { cwd: workspace });
     if (!options.skipRuntime) {
-      run('pnpm', ['exec', 'playwright', 'install', 'chromium'], {
-        cwd: workspace,
-      });
+      installPlaywrightBrowserIfNeeded(workspace);
       run('pnpm', ['run', 'runtime:smoke'], { cwd: workspace });
     }
   } finally {
@@ -122,7 +120,7 @@ function writeConsumerProject(
     type: 'module',
     scripts: {
       build: 'ng build --configuration production',
-      'runtime:smoke': 'playwright test --config playwright.config.mjs',
+      'runtime:smoke': 'node runtime-smoke.mjs',
     },
     dependencies: {
       '@angular/common': toolchain.angularVersion,
@@ -243,14 +241,9 @@ function writeConsumerProject(
     join(workspace, 'runtime-server.mjs'),
     runtimeServerSource(packageName, runtimePort),
   );
-  mkdirSync(join(workspace, 'tests'), { recursive: true });
   writeFileSync(
-    join(workspace, 'playwright.config.mjs'),
-    playwrightConfigSource(runtimePort),
-  );
-  writeFileSync(
-    join(workspace, 'tests/runtime-smoke.spec.mjs'),
-    runtimeSmokeSource(),
+    join(workspace, 'runtime-smoke.mjs'),
+    runtimeSmokeSource(runtimePort),
   );
 
   console.log(`Consumer workspace: ${relative(workspaceRoot, workspace)}`);
@@ -559,65 +552,176 @@ async function pathExists(path) {
 `;
 }
 
-function playwrightConfigSource(runtimePort) {
-  return `export default {
-  testDir: './tests',
-  timeout: 60_000,
-  webServer: {
-    command: 'node runtime-server.mjs',
-    url: 'http://127.0.0.1:${runtimePort}',
-    reuseExistingServer: false,
-    timeout: 30_000,
-  },
-  use: {
-    baseURL: 'http://127.0.0.1:${runtimePort}',
-    browserName: 'chromium',
-  },
-};
-`;
+function runtimeSmokeSource(runtimePort) {
+  return `import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { setTimeout as delay } from 'node:timers/promises';
+
+import { chromium } from '@playwright/test';
+
+const runtimeUrl = 'http://127.0.0.1:${runtimePort}';
+const runtimeTimeout = 90_000;
+const serverStartupTimeout = 30_000;
+const browserTimeout = 30_000;
+const assertionTimeout = 15_000;
+const server = spawn(process.execPath, ['runtime-server.mjs'], {
+  stdio: ['ignore', 'inherit', 'inherit'],
+});
+let serverExit = null;
+
+server.once('exit', (code, signal) => {
+  serverExit = { code, signal };
+});
+
+try {
+  await withTimeout(
+    (async () => {
+      await waitForServer(runtimeUrl, serverStartupTimeout);
+      await runSmoke(runtimeUrl);
+    })(),
+    runtimeTimeout,
+    'complete compatibility runtime smoke',
+  );
+} finally {
+  await stopServer(server);
 }
 
-function runtimeSmokeSource() {
-  return `import { expect, test } from '@playwright/test';
-
-test('boots the packaged Angular compatibility consumer', async ({ page }) => {
+async function runSmoke(url) {
+  let browser;
+  let page;
   const consoleErrors = [];
   const pageErrors = [];
 
-  page.on('console', (message) => {
-    if (message.type() === 'error') {
-      consoleErrors.push(message.text());
-    }
-  });
-  page.on('pageerror', (error) => pageErrors.push(error.message));
-
-  await page.goto('/');
-
   try {
-    await expect(page.getByTestId('compat-marker')).toHaveText(
+    browser = await withTimeout(
+      chromium.launch(),
+      browserTimeout,
+      'launch Chromium',
+    );
+    page = await browser.newPage();
+    page.on('console', (message) => {
+      if (message.type() === 'error') {
+        consoleErrors.push(message.text());
+      }
+    });
+    page.on('pageerror', (error) => pageErrors.push(error.message));
+
+    await page.goto(url, { timeout: browserTimeout, waitUntil: 'load' });
+
+    assert.equal(
+      await page
+        .getByTestId('compat-marker')
+        .textContent({ timeout: assertionTimeout }),
       'Angular compatibility',
     );
-    await expect(page.getByTestId('portable-text')).toContainText(
-      'Angular compatibility',
+    assert.match(
+      await page
+        .getByTestId('portable-text')
+        .textContent({ timeout: assertionTimeout }),
+      /Angular compatibility/,
     );
 
     const image = page.getByTestId('compat-image');
-    await expect(image).toBeVisible();
-    await expect(image).toHaveAttribute(
-      'src',
+    await image.waitFor({ state: 'visible', timeout: assertionTimeout });
+    assert.match(
+      (await image.getAttribute('src', { timeout: assertionTimeout })) ?? '',
       /cdn\\.sanity\\.io\\/images\\/compatproject\\/production\\/abc123-120x80\\.png/,
     );
 
     await page.waitForTimeout(250);
-    expect(pageErrors).toEqual([]);
-    expect(consoleErrors).toEqual([]);
+    assert.deepEqual(pageErrors, []);
+    assert.deepEqual(consoleErrors, []);
+    console.log(
+      'Angular compatibility',
+      'runtime smoke passed at',
+      url,
+    );
   } catch (error) {
-    console.error('Compatibility smoke body:', await page.locator('body').innerHTML());
-    console.error('Compatibility smoke console errors:', JSON.stringify(consoleErrors, null, 2));
-    console.error('Compatibility smoke page errors:', JSON.stringify(pageErrors, null, 2));
+    if (page) {
+      console.error(
+        'Compatibility smoke body:',
+        await page.locator('body').innerHTML(),
+      );
+    }
+    console.error(
+      'Compatibility smoke console errors:',
+      JSON.stringify(consoleErrors, null, 2),
+    );
+    console.error(
+      'Compatibility smoke page errors:',
+      JSON.stringify(pageErrors, null, 2),
+    );
     throw error;
+  } finally {
+    await browser?.close();
   }
-});
+}
+
+async function waitForServer(url, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  let lastError;
+
+  while (Date.now() < deadline) {
+    assertServerRunning();
+
+    try {
+      const response = await fetch(url);
+      if (response.ok) {
+        return;
+      }
+      lastError = new Error(\`Server responded with \${response.status}\`);
+    } catch (error) {
+      lastError = error;
+    }
+
+    await delay(250);
+  }
+
+  throw new Error(
+    \`Timed out waiting for compatibility runtime server at \${url}: \${lastError}\`,
+  );
+}
+
+function assertServerRunning() {
+  if (serverExit) {
+    throw new Error(
+      \`Compatibility runtime server exited early with code \${serverExit.code} and signal \${serverExit.signal}\`,
+    );
+  }
+}
+
+function withTimeout(promise, timeoutMs, label) {
+  let timer;
+
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => {
+      timer = setTimeout(
+        () => reject(new Error(\`Timed out while trying to \${label}\`)),
+        timeoutMs,
+      );
+    }),
+  ]).finally(() => clearTimeout(timer));
+}
+
+async function stopServer(child) {
+  if (child.exitCode !== null || child.signalCode !== null) {
+    return;
+  }
+
+  child.kill('SIGTERM');
+  await new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      child.kill('SIGKILL');
+      resolve();
+    }, 5_000);
+
+    child.once('exit', () => {
+      clearTimeout(timer);
+      resolve();
+    });
+  });
+}
 `;
 }
 
@@ -654,6 +758,21 @@ function resolveRequestedVersionSets(options, result) {
 function readPlaywrightVersion() {
   const packageJson = readJson(new URL('./package.json', import.meta.url));
   return packageJson.devDependencies['@playwright/test'];
+}
+
+function installPlaywrightBrowserIfNeeded(workspace) {
+  const browserPath = process.env['PLAYWRIGHT_BROWSERS_PATH'];
+
+  if (browserPath && browserPath !== '0') {
+    console.log(
+      `Using preinstalled Playwright browsers from ${browserPath}; skipping browser download.`,
+    );
+    return;
+  }
+
+  run('pnpm', ['exec', 'playwright', 'install', 'chromium'], {
+    cwd: workspace,
+  });
 }
 
 function getRuntimePort(id) {

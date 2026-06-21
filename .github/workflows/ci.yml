@@ -132,6 +132,14 @@ jobs:
     needs: sanity-compat-pack
     if: needs.sanity-compat-pack.result == 'success'
     runs-on: ubuntu-22.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.44.1-jammy
+      options: --ipc=host
+    defaults:
+      run:
+        shell: bash
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     strategy:
       fail-fast: false
       matrix:
@@ -139,6 +147,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
+      - name: Trust checked-out workspace
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - uses: pnpm/action-setup@v6
 
       - uses: actions/setup-node@v6
@@ -152,8 +163,6 @@ jobs:
         with:
           name: sanity-compat-package
           path: .compat/artifacts
-
-      - run: pnpm --dir tools/angular-compat exec playwright install --with-deps chromium
 
       - run: pnpm turbo run compat:test --filter=@limitless-angular/angular-compat -- --set ${{ matrix.version_set.id }}
 
@@ -161,12 +170,23 @@ jobs:
     needs: sanity-compat-pack
     if: needs.sanity-compat-pack.result == 'success'
     runs-on: ubuntu-22.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.44.1-jammy
+      options: --ipc=host
+    defaults:
+      run:
+        shell: bash
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     strategy:
       fail-fast: false
       matrix:
         version_set: ${{ fromJson(needs.sanity-compat-pack.outputs.canary_version_sets) }}
     steps:
       - uses: actions/checkout@v6
+
+      - name: Trust checked-out workspace
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - uses: pnpm/action-setup@v6
 
@@ -181,8 +201,6 @@ jobs:
         with:
           name: sanity-compat-package
           path: .compat/artifacts
-
-      - run: pnpm --dir tools/angular-compat exec playwright install --with-deps chromium
 
       - name: Test Angular canary compatibility
         id: canary
@@ -263,10 +281,21 @@ jobs:
 
   presentation-e2e:
     runs-on: ubuntu-22.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.44.1-jammy
+      options: --ipc=host
+    defaults:
+      run:
+        shell: bash
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
+      - name: Trust checked-out workspace
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - uses: pnpm/action-setup@v6
 
@@ -305,10 +334,6 @@ jobs:
             echo "run=false" >> "$GITHUB_OUTPUT"
             echo "::notice::Skipping Sanity Presentation E2E because no related paths are affected."
           fi
-
-      - name: Install Playwright browser
-        if: ${{ steps.affected-presentation-e2e.outputs.run == 'true' || (github.event_name == 'workflow_dispatch' && inputs.run_real_studio) }}
-        run: pnpm --dir apps/sanity-presentation-e2e exec playwright install --with-deps chromium
 
       - name: Run Sanity Presentation protocol E2E
         if: steps.affected-presentation-e2e.outputs.run == 'true'
