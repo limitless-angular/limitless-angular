@@ -142,9 +142,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Trust checked-out workspace
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
       - uses: pnpm/action-setup@v6
 
       - uses: actions/setup-node@v6
@@ -174,9 +171,6 @@ jobs:
         version_set: ${{ fromJson(needs.sanity-compat-pack.outputs.canary_version_sets) }}
     steps:
       - uses: actions/checkout@v6
-
-      - name: Trust checked-out workspace
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - uses: pnpm/action-setup@v6
 
@@ -278,9 +272,6 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-
-      - name: Trust checked-out workspace
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - uses: pnpm/action-setup@v6
 
