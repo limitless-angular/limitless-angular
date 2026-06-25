@@ -37,14 +37,8 @@ npm install --save @limitless-angular/sanity @sanity/client
 | 19.x    | 21.x, 20.x, 19.x            |
 | 18.x    | 20.x, 19.x, 18.x            |
 
-The current stable 21.x package line supports Angular 19, Angular 20, and
-Angular 21.
-
-Angular 22 support is available on the `next` prerelease line:
-
-```bash
-npm install @limitless-angular/sanity@next
-```
+The current stable 22.x package line supports Angular 20, Angular 21, and
+Angular 22.
 
 ## Quick Start
 
