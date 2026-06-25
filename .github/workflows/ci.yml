@@ -330,6 +330,7 @@ jobs:
 
       - name: Prepare real-project Sanity Studio E2E
         if: ${{ (steps.affected-presentation-e2e.outputs.run == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && inputs.run_real_studio) }}
+        shell: bash
         env:
           SANITY_E2E_PROJECT_ID: ${{ secrets.SANITY_E2E_PROJECT_ID }}
           SANITY_E2E_DATASET: ${{ secrets.SANITY_E2E_DATASET }}
