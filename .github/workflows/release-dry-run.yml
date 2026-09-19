@@ -42,7 +42,12 @@ on:
         default: false
         type: boolean
 
+defaults:
+  run:
+    shell: bash
+
 env:
+  PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
   TURBO_TELEMETRY_DISABLED: '1'
 
 concurrency:
@@ -54,6 +59,10 @@ jobs:
     if: github.repository == 'limitless-angular/limitless-angular'
     name: Validate Release Dry Run
     runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    container:
+      image: mcr.microsoft.com/playwright:v1.44.1-jammy
+      options: --ipc=host
     permissions:
       contents: read
     steps:
@@ -61,6 +70,9 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+
+      - name: Trust checked-out workspace
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - uses: pnpm/action-setup@v6
         name: Install pnpm
@@ -127,7 +139,7 @@ jobs:
           pnpm --filter=@limitless-angular/release-tools run --silent release:notes "${PLAN_ARGS[@]}" > "$RELEASE_NOTES_PATH"
           cat "$RELEASE_NOTES_PATH"
 
-          pnpm turbo run release:dry-run --filter=@limitless-angular/release-tools -- "${PIPELINE_ARGS[@]}"
+          pnpm turbo run release:dry-run --filter=@limitless-angular/release-tools --log-order=stream -- "${PIPELINE_ARGS[@]}"
 
       - name: Generate release dry-run summary
         if: always()

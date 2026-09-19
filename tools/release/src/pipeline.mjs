@@ -24,6 +24,7 @@ export const compatibilityValidationSteps = [
       'run',
       'compat:pack',
       '--filter=@limitless-angular/angular-compat',
+      '--log-order=stream',
     ],
     command: 'pnpm',
     id: 'compat:pack',
@@ -34,6 +35,7 @@ export const compatibilityValidationSteps = [
       'run',
       'compat:artifact',
       '--filter=@limitless-angular/angular-compat',
+      '--log-order=stream',
     ],
     command: 'pnpm',
     id: 'compat:artifact',
@@ -57,6 +59,7 @@ export const compatibilityValidationSteps = [
       'run',
       'compat:test',
       '--filter=@limitless-angular/angular-compat',
+      '--log-order=stream',
     ],
     command: 'pnpm',
     id: 'compat:test',
@@ -91,6 +94,7 @@ export function runReleasePipeline(options = {}) {
 
   const artifact = validateReleaseArtifact(plan, {
     artifact: options.artifact,
+    env: options.env,
     run: commandRun,
   });
 
@@ -132,6 +136,7 @@ export function runReleasePipeline(options = {}) {
 
 export function validateReleaseArtifact(plan, options = {}) {
   const commandRun = options.run ?? defaultRun;
+  const env = options.env ?? process.env;
 
   runCompatibilityStep('compat:pack', commandRun, {
     env: { [plannedPackageVersionEnv]: plan.nextVersion },
@@ -140,12 +145,24 @@ export function validateReleaseArtifact(plan, options = {}) {
     env: { [plannedPackageVersionEnv]: plan.nextVersion },
   });
   const artifact = assertPlannedArtifactVersion(plan, options.artifact);
-  runCompatibilityStep('playwright:install', commandRun);
+  if (shouldInstallPlaywrightBrowsers(env)) {
+    runCompatibilityStep('playwright:install', commandRun);
+  } else {
+    console.log(
+      `Using preinstalled Playwright browsers from ${env.PLAYWRIGHT_BROWSERS_PATH}; skipping browser install.`,
+    );
+  }
   runCompatibilityStep('compat:test', commandRun, {
     env: { [plannedPackageVersionEnv]: plan.nextVersion },
   });
 
   return artifact;
+}
+
+function shouldInstallPlaywrightBrowsers(env) {
+  const browserPath = env.PLAYWRIGHT_BROWSERS_PATH;
+
+  return !browserPath || browserPath === '0';
 }
 
 function runCompatibilityStep(id, commandRun, options = {}) {

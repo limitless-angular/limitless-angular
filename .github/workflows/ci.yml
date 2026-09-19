@@ -23,6 +23,7 @@ env:
 jobs:
   main:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
         with:
@@ -51,6 +52,7 @@ jobs:
 
   sanity-compat-eligibility:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       reason: ${{ steps.sanity-compat-eligibility.outputs.reason }}
       run: ${{ steps.sanity-compat-eligibility.outputs.run }}
@@ -91,6 +93,7 @@ jobs:
     needs: sanity-compat-eligibility
     if: needs.sanity-compat-eligibility.outputs.run == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       version_sets: ${{ steps.compat-matrix.outputs.version_sets }}
       canary_version_sets: ${{ steps.compat-canary-matrix.outputs.canary_version_sets }}
@@ -132,6 +135,7 @@ jobs:
     needs: sanity-compat-pack
     if: needs.sanity-compat-pack.result == 'success'
     runs-on: ubuntu-22.04
+    timeout-minutes: 5
     container:
       image: mcr.microsoft.com/playwright:v1.44.1-jammy
       options: --ipc=host
@@ -165,6 +169,7 @@ jobs:
     needs: sanity-compat-pack
     if: needs.sanity-compat-pack.result == 'success'
     runs-on: ubuntu-22.04
+    timeout-minutes: 5
     container:
       image: mcr.microsoft.com/playwright:v1.44.1-jammy
       options: --ipc=host
@@ -234,6 +239,7 @@ jobs:
     needs: sanity-compat-canary
     if: always() && github.event_name == 'pull_request' && needs.sanity-compat-canary.result != 'skipped'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       actions: read
       contents: read
@@ -271,6 +277,7 @@ jobs:
 
   presentation-e2e:
     runs-on: ubuntu-22.04
+    timeout-minutes: 10
     container:
       image: mcr.microsoft.com/playwright:v1.44.1-jammy
       options: --ipc=host

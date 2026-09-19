@@ -8,11 +8,13 @@
         "ACTIONS_ID_TOKEN_REQUEST_*",
         "GITHUB_*",
         "NPM_CONFIG_PROVENANCE",
+        "PLAYWRIGHT_*",
         "RELEASE_BRANCH"
       ]
     },
     "release:dry-run": {
-      "cache": false
+      "cache": false,
+      "passThroughEnv": ["PLAYWRIGHT_*"]
     },
     "release:plan": {
       "cache": false
@@ -23,6 +25,7 @@
         "ACTIONS_ID_TOKEN_REQUEST_*",
         "GITHUB_*",
         "NPM_CONFIG_PROVENANCE",
+        "PLAYWRIGHT_*",
         "RELEASE_BRANCH"
       ]
     }
