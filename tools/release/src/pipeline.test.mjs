@@ -35,6 +35,7 @@ test('dry-run validates the planned artifact version without mutating release fi
         tarballPath: '/tmp/release.tgz',
       },
       capture: harness.capture,
+      env: { PLAYWRIGHT_BROWSERS_PATH: '0' },
       mode: releaseModes.dryRun,
       now: new Date('2026-06-08T00:00:00.000Z'),
       paths: fixture.paths,
@@ -53,6 +54,44 @@ test('dry-run validates the planned artifact version without mutating release fi
       harness.commands.map(({ command, args }) => [command, args]),
       compatibilityValidationSteps.map(({ command, args }) => [command, args]),
     );
+    assertVersionedCompatibilityEnv(harness.commands, '1.1.0');
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('dry-run skips browser install when Playwright browsers are preinstalled', () => {
+  const fixture = createReleaseFixture();
+  const harness = createReleaseHarness({ nextVersion: '1.1.0' });
+
+  try {
+    runReleasePipeline({
+      artifact: {
+        readTarballPackageJson() {
+          return {
+            name: '@limitless-angular/sanity',
+            version: '1.1.0',
+          };
+        },
+        tarballPath: '/tmp/release.tgz',
+      },
+      capture: harness.capture,
+      env: { PLAYWRIGHT_BROWSERS_PATH: '/ms-playwright' },
+      mode: releaseModes.dryRun,
+      now: new Date('2026-06-08T00:00:00.000Z'),
+      paths: fixture.paths,
+      bump: releaseBumps.minor,
+      releaseIntent: releaseIntents.stable,
+      run: harness.run,
+    });
+
+    const commandIds = toCommandIds(harness.commands);
+
+    assert.deepEqual(commandIds, [
+      'pnpm turbo run compat:pack --filter=@limitless-angular/angular-compat --log-order=stream',
+      'pnpm turbo run compat:artifact --filter=@limitless-angular/angular-compat --log-order=stream',
+      'pnpm turbo run compat:test --filter=@limitless-angular/angular-compat --log-order=stream',
+    ]);
     assertVersionedCompatibilityEnv(harness.commands, '1.1.0');
   } finally {
     fixture.cleanup();
@@ -97,7 +136,7 @@ test('publish mode pushes the release tag before publishing to npm', () => {
       false,
     );
     assertOrder(commandIds, [
-      'pnpm turbo run compat:test --filter=@limitless-angular/angular-compat',
+      'pnpm turbo run compat:test --filter=@limitless-angular/angular-compat --log-order=stream',
       'git tag -a sanity@1.0.1 -m sanity@1.0.1 HEAD',
       'git push origin refs/tags/sanity@1.0.1',
       'npm publish /tmp/release.tgz --access public --registry https://registry.npmjs.org',
@@ -442,9 +481,9 @@ function getNpmPublishDistTag(args) {
 
 function assertVersionedCompatibilityEnv(commands, expectedVersion) {
   const versionedCompatibilityCommands = new Set([
-    'pnpm turbo run compat:pack --filter=@limitless-angular/angular-compat',
-    'pnpm turbo run compat:artifact --filter=@limitless-angular/angular-compat',
-    'pnpm turbo run compat:test --filter=@limitless-angular/angular-compat',
+    'pnpm turbo run compat:pack --filter=@limitless-angular/angular-compat --log-order=stream',
+    'pnpm turbo run compat:artifact --filter=@limitless-angular/angular-compat --log-order=stream',
+    'pnpm turbo run compat:test --filter=@limitless-angular/angular-compat --log-order=stream',
   ]);
 
   for (const command of commands) {

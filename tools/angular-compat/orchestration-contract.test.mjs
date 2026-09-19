@@ -20,6 +20,8 @@ const playwrightContainer = {
 };
 const playwrightBrowserEnvName = 'PLAYWRIGHT_BROWSERS_PATH';
 const playwrightEnvPattern = 'PLAYWRIGHT_*';
+const defaultJobTimeoutMinutes = 5;
+const extendedJobTimeoutMinutes = 10;
 const trustedWorkspaceCommand =
   'git config --global --add safe.directory "$GITHUB_WORKSPACE"';
 
@@ -27,6 +29,8 @@ const turboCompatCommand = (task, { forwardsArgs = false } = {}) =>
   `pnpm turbo run ${task} ${compatFilter}${forwardsArgs ? ' --' : ''}`;
 const turboReleaseCommand = (task, { forwardsArgs = false } = {}) =>
   `pnpm turbo run ${task} ${releaseFilter}${forwardsArgs ? ' --' : ''}`;
+const turboReleaseWorkflowCommand = (task, { forwardsArgs = false } = {}) =>
+  `pnpm turbo run ${task} ${releaseFilter} --log-order=stream${forwardsArgs ? ' --' : ''}`;
 
 const rootScriptContract = {
   compat: turboCompatCommand('compat:pipeline'),
@@ -225,6 +229,24 @@ test('CI workflow follows the compat orchestration contract', () => {
   assert.doesNotMatch(workflow, /turbo run compat:matrix/);
   assert.doesNotMatch(workflow, /playwright install --with-deps/);
 
+  const expectedJobTimeouts = {
+    main: defaultJobTimeoutMinutes,
+    'sanity-compat-canary': defaultJobTimeoutMinutes,
+    'sanity-compat-canary-report': defaultJobTimeoutMinutes,
+    'sanity-compat-consumer': defaultJobTimeoutMinutes,
+    'sanity-compat-eligibility': defaultJobTimeoutMinutes,
+    'sanity-compat-pack': defaultJobTimeoutMinutes,
+    'presentation-e2e': extendedJobTimeoutMinutes,
+  };
+
+  for (const [jobName, timeoutMinutes] of Object.entries(expectedJobTimeouts)) {
+    assert.equal(
+      getWorkflowJob(parsedWorkflow, jobName)['timeout-minutes'],
+      timeoutMinutes,
+      `${jobName} should have an explicit GitHub Actions timeout`,
+    );
+  }
+
   for (const jobName of [
     'sanity-compat-consumer',
     'sanity-compat-canary',
@@ -235,22 +257,22 @@ test('CI workflow follows the compat orchestration contract', () => {
     assert.deepEqual(job.container, {
       ...playwrightContainer,
     });
-    assert.equal(
-      job['timeout-minutes'],
-      undefined,
-      `${jobName} should rely on the pinned Playwright image instead of a timeout workaround`,
-    );
     assertJobRuns(job, [trustedWorkspaceCommand]);
   }
 });
 
 test('autofix workflow prepares built packages before preview publishing', () => {
   const workflow = readWorkspaceText('.github/workflows/autofix.yml');
+  const parsedWorkflow = readWorkspaceWorkflow('.github/workflows/autofix.yml');
 
   assertIncludes(workflow, [
     "pnpm --filter=@limitless-angular/angular-compat run --silent compat:prepare-publish -- --package-root './dist/packages/sanity'",
     "pnpx pkg-pr-new publish --compact './dist/packages/sanity'",
   ]);
+  assert.equal(
+    getWorkflowJob(parsedWorkflow, 'autofix')['timeout-minutes'],
+    extendedJobTimeoutMinutes,
+  );
   assert.match(
     workflow,
     /compat:prepare-publish[\s\S]+pkg-pr-new publish/,
@@ -282,6 +304,9 @@ test('release workflows delegate to the release tools package', () => {
   const dryRunWorkflowText = readWorkspaceText(dryRunWorkflowPath);
   const publishWorkflow = readWorkspaceWorkflow(publishWorkflowPath);
   const dryRunWorkflow = readWorkspaceWorkflow(dryRunWorkflowPath);
+  for (const workflow of [publishWorkflow, dryRunWorkflow]) {
+    assert.equal(workflow.defaults?.run?.shell, 'bash');
+  }
   const validateJob = getWorkflowJob(publishWorkflow, 'validate-release');
   const publishJob = getWorkflowJob(publishWorkflow, 'release-and-publish');
   const dryRunJob = getWorkflowJob(dryRunWorkflow, 'release-dry-run');
@@ -294,6 +319,14 @@ test('release workflows delegate to the release tools package', () => {
     'Install Node.js per package.json',
   );
 
+  assert.equal(
+    publishWorkflow.env?.[playwrightBrowserEnvName],
+    '/ms-playwright',
+  );
+  assert.equal(
+    dryRunWorkflow.env?.[playwrightBrowserEnvName],
+    '/ms-playwright',
+  );
   assert.equal(publishJob.needs, 'validate-release');
   assert.equal(getWorkflowEnvironmentName(publishJob), 'npm-release');
   assert.equal(
@@ -304,6 +337,13 @@ test('release workflows delegate to the release tools package', () => {
   assert.equal(publishJob.permissions.contents, 'write');
   assert.equal(validateJob.permissions.contents, 'read');
   assert.equal(dryRunJob.permissions.contents, 'read');
+  for (const job of [validateJob, publishJob, dryRunJob]) {
+    assert.equal(job['timeout-minutes'], extendedJobTimeoutMinutes);
+    assert.deepEqual(job.container, {
+      ...playwrightContainer,
+    });
+    assertJobRuns(job, [trustedWorkspaceCommand]);
+  }
   assert.equal(
     validateSetupNodeStep.with?.['registry-url'],
     'https://registry.npmjs.org/',
@@ -317,20 +357,20 @@ test('release workflows delegate to the release tools package', () => {
   assertJobRuns(validateJob, [
     `pnpm --filter=${releasePackageName} run --silent release:plan`,
     `pnpm --filter=${releasePackageName} run --silent release:notes`,
-    turboReleaseCommand('release:dry-run', { forwardsArgs: true }),
+    turboReleaseWorkflowCommand('release:dry-run', { forwardsArgs: true }),
     `pnpm --filter=${releasePackageName} run --silent release:summary`,
   ]);
   assertJobRuns(publishJob, [
     'npm install -g npm@^11.10.0',
     `pnpm --filter=${releasePackageName} run --silent release:plan`,
     `pnpm --filter=${releasePackageName} run --silent release:verify-plan`,
-    turboReleaseCommand('release:publish', { forwardsArgs: true }),
+    turboReleaseWorkflowCommand('release:publish', { forwardsArgs: true }),
     `pnpm --filter=${releasePackageName} run --silent release:summary`,
   ]);
   assertJobRuns(dryRunJob, [
     `pnpm --filter=${releasePackageName} run --silent release:plan`,
     `pnpm --filter=${releasePackageName} run --silent release:notes`,
-    turboReleaseCommand('release:dry-run', { forwardsArgs: true }),
+    turboReleaseWorkflowCommand('release:dry-run', { forwardsArgs: true }),
     `pnpm --filter=${releasePackageName} run --silent release:summary`,
   ]);
 
@@ -400,15 +440,18 @@ test('release-only Turbo task settings are scoped to the release package', () =>
     'root turbo.json should keep shared tasks only',
   );
 
-  for (const task of ['release:dry-run', 'release:plan']) {
-    assert.deepEqual(releaseTurbo.tasks[task], { cache: false });
-  }
+  assert.deepEqual(releaseTurbo.tasks['release:dry-run'], {
+    cache: false,
+    passThroughEnv: [playwrightEnvPattern],
+  });
+  assert.deepEqual(releaseTurbo.tasks['release:plan'], { cache: false });
   const trustedPublishTaskConfig = {
     cache: false,
     passThroughEnv: [
       'ACTIONS_ID_TOKEN_REQUEST_*',
       'GITHUB_*',
       'NPM_CONFIG_PROVENANCE',
+      playwrightEnvPattern,
       'RELEASE_BRANCH',
     ],
   };
