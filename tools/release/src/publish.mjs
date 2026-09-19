@@ -177,12 +177,19 @@ function getGitHubRelease(plan, { capture, env }) {
         '--json',
         'tagName,isPrerelease,isDraft,url',
       ],
-      { env },
+      { env, stdio: ['ignore', 'pipe', 'pipe'] },
     ).trim();
 
-    return output ? JSON.parse(output) : null;
-  } catch {
-    return null;
+    return JSON.parse(output);
+  } catch (error) {
+    if (
+      error.status === 1 &&
+      error.stderr?.toString().trim() === 'release not found'
+    ) {
+      return null;
+    }
+
+    throw error;
   }
 }
 

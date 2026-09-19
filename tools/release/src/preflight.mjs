@@ -17,6 +17,7 @@ export function assertPublishPreconditions(plan, options = {}) {
 
   assertGitHubReleaseToken(env);
   assertGitHubOidcRequest(env);
+  commandRun('gh', ['--version'], { env });
   assertReleaseRef({ capture: commandCapture, env, releaseBranch });
   assertTrustedPublishingRepository(plan);
   assertCleanWorktree(commandCapture);

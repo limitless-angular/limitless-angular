@@ -15,6 +15,6 @@ export function capture(command, args, options = {}) {
     cwd: options.cwd ?? workspaceRoot,
     encoding: 'utf8',
     env: { ...process.env, ...options.env },
-    stdio: ['ignore', 'pipe', 'inherit'],
+    stdio: options.stdio ?? ['ignore', 'pipe', 'inherit'],
   });
 }

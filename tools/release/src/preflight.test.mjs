@@ -21,6 +21,27 @@ const trustedPublishingEnv = {
   GITHUB_TOKEN: 'token',
 };
 
+test('publish preflight rejects missing gh before running git or npm commands', () => {
+  const missingGh = Object.assign(new Error('spawnSync gh ENOENT'), {
+    code: 'ENOENT',
+  });
+  assert.throws(
+    () =>
+      assertPublishPreconditions(plan, {
+        env: trustedPublishingEnv,
+        capture() {
+          assert.fail('Must check gh before reading repository or npm state');
+        },
+        run(command, args) {
+          assert.equal(command, 'gh');
+          assert.deepEqual(args, ['--version']);
+          throw missingGh;
+        },
+      }),
+    (error) => error === missingGh,
+  );
+});
+
 test('publish preflight rejects non-main GitHub refs', () => {
   assert.throws(
     () =>
