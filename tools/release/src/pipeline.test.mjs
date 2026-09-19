@@ -408,7 +408,10 @@ function createReleaseHarness({
 
       if (command === 'gh' && args[0] === 'release' && args[1] === 'view') {
         if (!state.githubRelease) {
-          throw new Error(`Missing GitHub release ${args[2]}`);
+          throw Object.assign(new Error('release not found'), {
+            status: 1,
+            stderr: 'release not found\n',
+          });
         }
 
         return JSON.stringify(state.githubRelease);

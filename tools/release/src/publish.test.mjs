@@ -1,7 +1,102 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
-import { publishTarball } from './publish.mjs';
+import { createGitHubRelease, publishTarball } from './publish.mjs';
+
+test('GitHub release creation proceeds only for a confirmed missing release', () => {
+  let created = false;
+  const plan = {
+    releaseTag: 'sanity@1.0.1',
+    prerelease: false,
+    releaseNotes: 'Notes',
+  };
+  assert.equal(
+    createGitHubRelease(plan, {
+      env: { GITHUB_TOKEN: 'test-token' },
+      capture(_command, _args, options) {
+        assert.deepEqual(options.stdio, ['ignore', 'pipe', 'pipe']);
+        if (!created) {
+          throw Object.assign(new Error('release not found'), {
+            status: 1,
+            stderr: Buffer.from('release not found\n'),
+          });
+        }
+        return JSON.stringify({
+          tagName: plan.releaseTag,
+          isPrerelease: false,
+          isDraft: false,
+        });
+      },
+      run(command, args) {
+        assert.equal(command, 'gh');
+        assert.deepEqual(args.slice(0, 3), [
+          'release',
+          'create',
+          plan.releaseTag,
+        ]);
+        created = true;
+      },
+    }),
+    true,
+  );
+  assert.equal(created, true);
+});
+
+for (const output of ['', 'not json']) {
+  test(`GitHub release lookup rejects malformed output ${JSON.stringify(output)}`, () => {
+    assert.throws(
+      () =>
+        createGitHubRelease(
+          { releaseTag: 'sanity@1.0.1' },
+          {
+            env: { GITHUB_TOKEN: 'test-token' },
+            capture() {
+              return output;
+            },
+            run() {
+              assert.fail('Must not create a release after malformed output');
+            },
+          },
+        ),
+      SyntaxError,
+    );
+  });
+}
+
+for (const failure of [
+  Object.assign(new Error('spawnSync gh ENOENT'), { code: 'ENOENT' }),
+  Object.assign(new Error('unauthorized'), {
+    status: 1,
+    stderr: 'HTTP 401: Bad credentials',
+  }),
+  Object.assign(new Error('network'), {
+    status: 1,
+    stderr: 'connection refused',
+  }),
+  Object.assign(new Error('forbidden'), {
+    status: 1,
+    stderr: 'HTTP 403: Forbidden',
+  }),
+]) {
+  test(`GitHub release lookup propagates ${failure.message}`, () => {
+    assert.throws(
+      () =>
+        createGitHubRelease(
+          { releaseTag: 'sanity@1.0.1' },
+          {
+            env: { GITHUB_TOKEN: 'test-token' },
+            capture() {
+              throw failure;
+            },
+            run() {
+              assert.fail('Must not create a release after a failed lookup');
+            },
+          },
+        ),
+      (error) => error === failure,
+    );
+  });
+}
 
 test('publish retries npm verification until the version and dist-tag are visible', () => {
   const plan = createPlan();
