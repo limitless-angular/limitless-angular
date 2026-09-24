@@ -125,6 +125,7 @@ describe('SanityImage', () => {
       'img',
     ) as HTMLImageElement;
     expect(new URL(image.src).searchParams.get('auto')).toBe('format');
+    expect(new URL(image.src).searchParams.get('fit')).toBe('min');
   });
 
   it('preserves a custom image loader provided by the consumer', async () => {
@@ -178,6 +179,7 @@ describe('SanityImage', () => {
 
     expect(directive.loaderParams).toEqual({ fit: 'crop' });
     expect(url.searchParams.get('fit')).toBe('crop');
+    expect(renderedImageSearchParams(fixture).get('fit')).toBe('crop');
   });
 
   it('updates ngSrc when quality changes', async () => {
