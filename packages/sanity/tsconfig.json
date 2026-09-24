@@ -22,8 +22,15 @@
   "extends": "../../tsconfig.base.json",
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
+    "extendedDiagnostics": {
+      "checks": {
+        "uninvokedTrackFunction": "error",
+        "unusedStandaloneImports": "error"
+      }
+    },
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
+    "strictStandalone": true,
     "typeCheckHostBindings": true,
     "strictTemplates": true
   }

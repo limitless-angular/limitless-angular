@@ -1,5 +1,4 @@
 import {
-  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   effect,
@@ -28,25 +27,13 @@ import type { LivePreviewPerspective, Logger } from './types';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LiveQueryProviderComponent {
-  token = input<string | undefined>();
-  logger = input<Logger | undefined>();
+  token = input<string>();
+  logger = input<Logger>();
   perspective = input<LivePreviewPerspective>('drafts');
 
   private livePreviewService = inject(LivePreviewService);
 
   constructor() {
-    // Initialization for Angular v18
-    afterNextRender(() => {
-      if (!this.livePreviewService.isInitialized) {
-        this.initializeLivePreview(
-          this.token(),
-          this.perspective(),
-          this.logger(),
-        );
-      }
-    });
-
-    // Initialization for Angular v19
     effect(() => {
       const token = this.token();
       const logger = this.logger();

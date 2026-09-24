@@ -37,6 +37,8 @@ const imageUrlInputs = [
 
 const staticNgOptimizedImageInputs = ['loaderParams', 'width', 'height'];
 
+// Angular does not expose its default loader publicly. Keep this identity check
+// until custom loader precedence has an explicit public contract.
 function getNoopImageLoader() {
   return (
     IMAGE_LOADER.ɵprov as {
