@@ -37,6 +37,26 @@ describe('PortableText Dynamic Updates', () => {
     expect(fixture.nativeElement.textContent).toContain('after');
   });
 
+  test('preserves a keyed custom component when its node changes', async () => {
+    const { rerender } = await render(PortableTextComponent, {
+      inputs: {
+        value: fixtures.customBlockType.input,
+        ...aliasedInput('components', { types: { code: MutableBlock } }),
+      },
+    });
+
+    const component = MutableBlock.latest;
+    await rerender({
+      inputs: {
+        value: [{ ...fixtures.customBlockType.input[0], code: 'updated' }],
+      },
+      partialUpdate: true,
+    });
+
+    expect(MutableBlock.latest).toBe(component);
+    expect(MutableBlock.latest.value().code).toBe('updated');
+  });
+
   test('updates rendered content when input changes', async () => {
     // Render with initial content
     const { rerender, container } = await render(PortableTextComponent, {

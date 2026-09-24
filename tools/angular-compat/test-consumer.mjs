@@ -335,6 +335,8 @@ class CompatCustomBlock extends PortableTextTypeComponent {
 
   constructor() {
     super();
+    const browser = window as Window & { compatCustomBlockCreations?: number };
+    browser.compatCustomBlockCreations = (browser.compatCustomBlockCreations ?? 0) + 1;
     (window as Window & { updateCompatCustomBlock?: () => void }).updateCompatCustomBlock =
       () => this.label.set('after');
   }
@@ -362,7 +364,7 @@ class CompatCustomBlock extends PortableTextTypeComponent {
     ></article>
     <article
       portable-text
-      [value]="customBlock"
+      [value]="customBlock()"
       [components]="customComponents"
     ></article>
     <img
@@ -390,7 +392,7 @@ class CompatCustomBlock extends PortableTextTypeComponent {
 class AppComponent {
   protected readonly blocks = blocks;
   protected readonly components: Partial<PortableTextComponents> = {};
-  protected readonly customBlock = { _type: 'compat-custom', _key: 'custom' };
+  protected readonly customBlock = signal({ _type: 'compat-custom', _key: 'custom' });
   protected readonly customComponents: Partial<PortableTextComponents> = {
     types: { 'compat-custom': CompatCustomBlock },
   };
@@ -400,6 +402,11 @@ class AppComponent {
   protected readonly overlayNode = {} as SanityNode;
   protected readonly overlayParent = this.insertMenuNode as OverlayElementParent;
   protected readonly plainText = toPlainText(blocks);
+
+  constructor() {
+    (window as Window & { updateCompatCustomBlockNode?: () => void }).updateCompatCustomBlockNode =
+      () => this.customBlock.set({ ...this.customBlock() });
+  }
 }
 
 bootstrapApplication(AppComponent, {
@@ -652,6 +659,10 @@ async function runSmoke(url) {
     assert.equal(await customBlock.textContent({ timeout: assertionTimeout }), 'before');
     await page.evaluate(() => window.updateCompatCustomBlock());
     await customBlock.getByText('after').waitFor({ timeout: assertionTimeout });
+    await page.evaluate(() => window.updateCompatCustomBlockNode());
+    await page.waitForTimeout(50);
+    assert.equal(await customBlock.textContent({ timeout: assertionTimeout }), 'after');
+    assert.equal(await page.evaluate(() => window.compatCustomBlockCreations), 1);
 
     const image = page.getByTestId('compat-image');
     await image.waitFor({ state: 'visible', timeout: assertionTimeout });
