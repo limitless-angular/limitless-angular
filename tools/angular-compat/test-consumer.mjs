@@ -277,7 +277,7 @@ function consumerMainSource(toolchain) {
     toolchain.angularMajor >= 20
       ? 'provideZonelessChangeDetection'
       : 'provideExperimentalZonelessChangeDetection';
-  const coreImports = ['Component', zonelessProvider];
+  const coreImports = ['Component', 'signal', zonelessProvider];
   const browserGlobalErrorProvider =
     toolchain.angularMajor >= 20
       ? '\n    provideBrowserGlobalErrorListeners(),'
@@ -294,6 +294,7 @@ import { provideSanity } from '@limitless-angular/sanity';
 import { SanityImage, provideSanityLoader } from '@limitless-angular/sanity/image-loader';
 import {
   PortableTextComponent,
+  PortableTextTypeComponent,
   type PortableTextComponents,
   toPlainText,
 } from '@limitless-angular/sanity/portabletext';
@@ -326,6 +327,20 @@ const sanityConfig = {
 };
 
 @Component({
+  selector: 'compat-custom-block',
+  template: '<span data-testid="compat-custom-block">{{ label() }}</span>',
+})
+class CompatCustomBlock extends PortableTextTypeComponent {
+  readonly label = signal('before');
+
+  constructor() {
+    super();
+    (window as Window & { updateCompatCustomBlock?: () => void }).updateCompatCustomBlock =
+      () => this.label.set('after');
+  }
+}
+
+@Component({
   selector: 'app-root',
   standalone: true,
   imports: [
@@ -344,6 +359,11 @@ const sanityConfig = {
       portable-text
       [value]="blocks"
       [components]="components"
+    ></article>
+    <article
+      portable-text
+      [value]="customBlock"
+      [components]="customComponents"
     ></article>
     <img
       data-testid="compat-image"
@@ -370,6 +390,10 @@ const sanityConfig = {
 class AppComponent {
   protected readonly blocks = blocks;
   protected readonly components: Partial<PortableTextComponents> = {};
+  protected readonly customBlock = { _type: 'compat-custom', _key: 'custom' };
+  protected readonly customComponents: Partial<PortableTextComponents> = {
+    types: { 'compat-custom': CompatCustomBlock },
+  };
   protected readonly image = 'image-abc123-120x80-png';
   protected readonly insertMenuNode = {} as SchemaUnionNode<SchemaNode>;
   protected readonly overlayElement = {} as ElementNode;
@@ -594,7 +618,11 @@ async function runSmoke(url) {
 
   try {
     browser = await withTimeout(
-      chromium.launch(),
+      chromium.launch(
+        process.env['PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH']
+          ? { executablePath: process.env['PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH'] }
+          : undefined,
+      ),
       browserTimeout,
       'launch Chromium',
     );
@@ -620,6 +648,10 @@ async function runSmoke(url) {
         .textContent({ timeout: assertionTimeout }),
       /Angular compatibility/,
     );
+    const customBlock = page.getByTestId('compat-custom-block');
+    assert.equal(await customBlock.textContent({ timeout: assertionTimeout }), 'before');
+    await page.evaluate(() => window.updateCompatCustomBlock());
+    await customBlock.getByText('after').waitFor({ timeout: assertionTimeout });
 
     const image = page.getByTestId('compat-image');
     await image.waitFor({ state: 'visible', timeout: assertionTimeout });
@@ -761,6 +793,13 @@ function readPlaywrightVersion() {
 }
 
 function installPlaywrightBrowserIfNeeded(workspace) {
+  if (process.env['PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH']) {
+    console.log(
+      'Using preinstalled Chromium executable; skipping browser download.',
+    );
+    return;
+  }
+
   const browserPath = process.env['PLAYWRIGHT_BROWSERS_PATH'];
 
   if (browserPath && browserPath !== '0') {

@@ -115,6 +115,7 @@ function targetsLink(target: EventTarget | null): boolean {
     TelemetryService,
   ],
   template: `
+    @let state = overlayState();
     <div
       class="root"
       [attr.data-fading-out]="fadingOut() ? '' : null"
@@ -125,7 +126,7 @@ function targetsLink(target: EventTarget | null): boolean {
     >
       <sanity-visual-editing-document-reporter
         [documentIds]="documentIds()"
-        [perspective]="overlayState().perspective"
+        [perspective]="state.perspective"
       />
       <sanity-visual-editing-perspective-sync
         [comlink]="comlink()"
@@ -143,7 +144,7 @@ function targetsLink(target: EventTarget | null): boolean {
         (controllerMessage)="dispatch($event)"
       />
 
-      @if (overlayState().contextMenu; as contextMenu) {
+      @if (state.contextMenu; as contextMenu) {
         <sanity-visual-editing-context-menu
           [contextMenu]="contextMenu"
           (dismiss)="closeContextMenu()"
@@ -162,41 +163,34 @@ function targetsLink(target: EventTarget | null): boolean {
           [focused]="element.focused"
           [hovered]="element.hovered"
           [id]="element.id"
-          [isDragging]="
-            overlayState().isDragging || overlayState().dragMinimapTransition
-          "
+          [isDragging]="state.isDragging || state.dragMinimapTransition"
           [node]="element.sanity"
           [plugins]="plugins()"
           [rect]="element.rect"
           [showActions]="!shouldHideActions()"
           [targets]="element.targets"
-          [wasMaybeCollapsed]="
-            element.focused && overlayState().wasMaybeCollapsed
-          "
+          [wasMaybeCollapsed]="element.focused && state.wasMaybeCollapsed"
           [inFrame]="inFrame()"
         />
       }
 
-      @if (overlayState().isDragging && !overlayState().dragMinimapTransition) {
-        @if (overlayState().dragInsertPosition; as dragInsertPosition) {
+      @if (state.isDragging && !state.dragMinimapTransition) {
+        @if (state.dragInsertPosition; as dragInsertPosition) {
           <sanity-visual-editing-drag-insert-marker
             [dragInsertPosition]="dragInsertPosition"
           />
         }
-        @if (overlayState().dragShowMinimapPrompt) {
+        @if (state.dragShowMinimapPrompt) {
           <sanity-visual-editing-minimap-prompt />
         }
-        @if (overlayState().dragGroupRect; as dragGroupRect) {
+        @if (state.dragGroupRect; as dragGroupRect) {
           <sanity-visual-editing-drag-group-rect
             [dragGroupRect]="dragGroupRect"
           />
         }
       }
 
-      @if (
-        overlayState().isDragging && overlayState().dragSkeleton;
-        as skeleton
-      ) {
+      @if (state.isDragging && state.dragSkeleton; as skeleton) {
         <sanity-visual-editing-drag-preview [skeleton]="skeleton" />
       }
     </div>

@@ -33,7 +33,7 @@ const storageStatePath =
     ? undefined
     : existingStorageStatePath(requestedStorageStatePath);
 const browserChannel =
-  (isAuthSetup ? optionalEnv('SANITY_E2E_BROWSER_CHANNEL') : undefined) ??
+  optionalEnv('SANITY_E2E_BROWSER_CHANNEL') ??
   (isAuthSetup && !cdpEndpoint && !process.env['CI'] ? 'chrome' : undefined);
 const browserProjectName = cdpEndpoint ? 'cdp' : (browserChannel ?? 'chromium');
 const desktopChromeUse = {
