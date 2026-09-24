@@ -27,8 +27,8 @@ import type { LivePreviewPerspective, Logger } from './types';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LiveQueryProviderComponent {
-  token = input<string | undefined>();
-  logger = input<Logger | undefined>();
+  token = input<string>();
+  logger = input<Logger>();
   perspective = input<LivePreviewPerspective>('drafts');
 
   private livePreviewService = inject(LivePreviewService);

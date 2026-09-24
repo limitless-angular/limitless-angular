@@ -113,7 +113,7 @@ export class PortableTextComponent<
    * Custom components to override the default rendering.
    * @see PortableTextComponents
    */
-  componentOverrides = input<PortableTextComponents<B> | undefined>(
+  componentOverrides = input<PortableTextComponents<B>>(
     undefined,
     // eslint-disable-next-line @angular-eslint/no-input-rename
     { alias: 'components' },
