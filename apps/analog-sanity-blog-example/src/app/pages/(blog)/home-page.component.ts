@@ -118,7 +118,11 @@ export class HeroPostComponent {
           >
             More Stories
           </h2>
-          <blog-more-stories [moreStories]="posts()" />
+          @defer (on immediate; hydrate on viewport) {
+            <blog-more-stories [moreStories]="posts()" />
+          } @placeholder {
+            <div class="min-h-64" aria-hidden="true"></div>
+          }
         </aside>
       }
     </div>

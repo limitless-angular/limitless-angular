@@ -1,5 +1,7 @@
+import { IMAGE_LOADER, type ImageLoaderConfig } from '@angular/common';
 import { Component, signal, viewChild } from '@angular/core';
 import { render } from '@testing-library/angular';
+import { vi } from 'vitest';
 
 import { SANITY_CONFIG } from '@limitless-angular/sanity/shared';
 import { SanityImage } from './sanity-image.directive';
@@ -110,6 +112,39 @@ describe('SanityImage', () => {
     expect(directive.ngSrc).toBe(
       'https://cdn.sanity.io/images/k4hg38xw/demo/Tb9Ew8CXIwaY6R1kjMvI0uRR-2000x3000.jpg?w=200&h=300&q=75',
     );
+  });
+
+  it('uses the Sanity loader when no custom image loader is provided', async () => {
+    const { fixture } = await render(SanityImageHost, {
+      providers: [{ provide: SANITY_CONFIG, useValue: sanityConfig }],
+    });
+
+    await fixture.whenStable();
+
+    const image = fixture.nativeElement.querySelector(
+      'img',
+    ) as HTMLImageElement;
+    expect(new URL(image.src).searchParams.get('auto')).toBe('format');
+  });
+
+  it('preserves a custom image loader provided by the consumer', async () => {
+    const customLoader = vi.fn(
+      ({ src }: ImageLoaderConfig) => `${src}&custom=1`,
+    );
+    const { fixture } = await render(SanityImageHost, {
+      providers: [
+        { provide: SANITY_CONFIG, useValue: sanityConfig },
+        { provide: IMAGE_LOADER, useValue: customLoader },
+      ],
+    });
+
+    await fixture.whenStable();
+
+    const image = fixture.nativeElement.querySelector(
+      'img',
+    ) as HTMLImageElement;
+    expect(customLoader).toHaveBeenCalled();
+    expect(new URL(image.src).searchParams.get('custom')).toBe('1');
   });
 
   it('updates ngSrc when the bound Sanity image changes', async () => {
