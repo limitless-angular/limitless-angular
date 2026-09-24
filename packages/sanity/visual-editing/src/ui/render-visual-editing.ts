@@ -1,9 +1,12 @@
 import {
   createComponent,
+  inputBinding,
+  outputBinding,
+  signal,
   type ComponentRef,
-  type OutputRefSubscription,
   type ViewRef,
 } from '@angular/core';
+import type { ClientPerspective } from '@sanity/client';
 
 import type { VisualEditingOptions } from '../types';
 import { VisualEditingUiComponent } from './visual-editing.component';
@@ -11,35 +14,10 @@ import { VisualEditingUiComponent } from './visual-editing.component';
 let node: HTMLElement | null = null;
 let componentRef: ComponentRef<VisualEditingUiComponent> | null = null;
 let cleanup: ReturnType<typeof setTimeout> | null = null;
-let perspectiveChangeSubscription: OutputRefSubscription | null = null;
-
-function setInputs(
-  ref: ComponentRef<VisualEditingUiComponent>,
-  {
-    components,
-    history,
-    onPerspectiveChange,
-    plugins,
-    refresh,
-    zIndex,
-  }: VisualEditingOptions,
-): void {
-  perspectiveChangeSubscription?.unsubscribe();
-  perspectiveChangeSubscription = onPerspectiveChange
-    ? ref.instance.perspectiveChange.subscribe(onPerspectiveChange)
-    : null;
-
-  ref.setInput('components', components);
-  ref.setInput('handlesPerspectiveChange', !!onPerspectiveChange);
-  ref.setInput('history', history);
-  ref.setInput('plugins', plugins);
-  ref.setInput('refresh', refresh);
-  ref.setInput('zIndex', zIndex);
-  ref.changeDetectorRef.detectChanges();
-}
+const currentOptions = signal<VisualEditingOptions | null>(null);
 
 export function renderVisualEditing(
-  signal: AbortSignal,
+  abortSignal: AbortSignal,
   options: VisualEditingOptions,
 ): void {
   const { applicationRef, environmentInjector, injector } = options;
@@ -51,20 +29,21 @@ export function renderVisualEditing(
     return;
   }
 
+  currentOptions.set(options);
+
   if (cleanup) {
     clearTimeout(cleanup);
     cleanup = null;
   }
 
-  signal.addEventListener('abort', () => {
+  abortSignal.addEventListener('abort', () => {
     cleanup = setTimeout(() => {
-      perspectiveChangeSubscription?.unsubscribe();
-      perspectiveChangeSubscription = null;
       if (componentRef) {
         applicationRef.detachView(componentRef.hostView as ViewRef);
         componentRef.destroy();
         componentRef = null;
       }
+      currentOptions.set(null);
       if (node?.parentNode) {
         node.parentNode.removeChild(node);
         node = null;
@@ -82,9 +61,22 @@ export function renderVisualEditing(
       environmentInjector,
       hostElement: node,
       elementInjector: injector,
+      bindings: [
+        inputBinding('components', () => currentOptions()?.components),
+        inputBinding('handlesPerspectiveChange', () =>
+          Boolean(currentOptions()?.onPerspectiveChange),
+        ),
+        inputBinding('history', () => currentOptions()?.history),
+        inputBinding('plugins', () => currentOptions()?.plugins),
+        inputBinding('refresh', () => currentOptions()?.refresh),
+        inputBinding('zIndex', () => currentOptions()?.zIndex),
+        outputBinding<ClientPerspective>('perspectiveChange', (perspective) =>
+          currentOptions()?.onPerspectiveChange?.(perspective),
+        ),
+      ],
     });
     applicationRef.attachView(componentRef.hostView);
   }
 
-  setInputs(componentRef, options);
+  componentRef.changeDetectorRef.detectChanges();
 }
