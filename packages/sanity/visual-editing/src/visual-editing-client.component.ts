@@ -8,6 +8,7 @@ import {
   ChangeDetectionStrategy,
   EnvironmentInjector,
   Injector,
+  InjectionToken,
   input,
   output,
   untracked,
@@ -46,6 +47,13 @@ export interface VisualEditingProps
    */
   trailingSlash?: boolean;
 }
+
+export const ENABLE_VISUAL_EDITING = new InjectionToken<
+  typeof enableVisualEditing
+>('Enable visual editing', {
+  providedIn: 'root',
+  factory: () => enableVisualEditing,
+});
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -112,6 +120,8 @@ export class VisualEditingClientComponent {
 
   private injector = inject(Injector);
 
+  private enableVisualEditing = inject(ENABLE_VISUAL_EDITING);
+
   constructor() {
     effect((onCleanup) => {
       const components = this.components();
@@ -127,7 +137,7 @@ export class VisualEditingClientComponent {
         : undefined;
 
       untracked(() => {
-        const disable = enableVisualEditing({
+        const disable = this.enableVisualEditing({
           applicationRef: this.applicationRef,
           components,
           environmentInjector: this.environmentInjector,

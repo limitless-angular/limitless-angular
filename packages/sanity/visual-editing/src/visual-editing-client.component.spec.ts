@@ -4,16 +4,25 @@ import { provideRouter, Router } from '@angular/router';
 import { vi } from 'vitest';
 
 import type { HistoryAdapterNavigate } from './types';
-import { VisualEditingClientComponent } from './visual-editing-client.component';
+import {
+  ENABLE_VISUAL_EDITING,
+  VisualEditingClientComponent,
+} from './visual-editing-client.component';
 
 @Component({ template: '' })
 class EmptyRouteComponent {}
 
 describe('VisualEditingClientComponent', () => {
   it('sends the new URL to visual editing after each navigation', async () => {
+    const disableVisualEditing = vi.fn();
+
     TestBed.configureTestingModule({
       imports: [VisualEditingClientComponent],
       providers: [
+        {
+          provide: ENABLE_VISUAL_EDITING,
+          useValue: () => disableVisualEditing,
+        },
         provideRouter([
           { path: 'first', component: EmptyRouteComponent },
           { path: 'second', component: EmptyRouteComponent },
@@ -45,5 +54,6 @@ describe('VisualEditingClientComponent', () => {
     });
 
     fixture.destroy();
+    expect(disableVisualEditing).toHaveBeenCalledOnce();
   });
 });
