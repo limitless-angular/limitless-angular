@@ -38,9 +38,10 @@ import { VisualEditingEnvironmentService } from './environment/environment.servi
   ],
   providers: [ComlinkService, DatasetMutatorService],
   template: `
+    @let node = comlink.node();
     @if (ready()) {
       <sanity-visual-editing-overlays
-        [comlink]="comlink.node()"
+        [comlink]="node"
         [comlinkStatus]="comlink.status()"
         [components]="components()"
         [plugins]="plugins()"
@@ -52,7 +53,7 @@ import { VisualEditingEnvironmentService } from './environment/environment.servi
       />
     }
 
-    @if (comlink.node(); as node) {
+    @if (node) {
       <sanity-visual-editing-history [comlink]="node" [history]="history()" />
       <sanity-visual-editing-meta [comlink]="node" />
       @if (refresh(); as refresh) {

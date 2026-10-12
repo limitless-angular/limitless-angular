@@ -1,16 +1,18 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  inject,
   TemplateRef,
   viewChild,
   ViewEncapsulation,
 } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { TypedObject } from '@portabletext/types';
 import { trackBy } from '../utils';
-import { RenderNode } from '../directives/render-node.directive';
+import { PORTABLE_TEXT_RENDERER_CONTEXT } from '../tokens';
 
 @Component({
-  imports: [RenderNode],
+  imports: [NgTemplateOutlet],
   template: `<ng-template let-children="children" let-isInline="isInline">
     @for (
       child of children;
@@ -18,9 +20,12 @@ import { RenderNode } from '../directives/render-node.directive';
       let index = $index
     ) {
       <ng-container
-        [renderNode]="child"
-        [isInline]="child.isInline ?? isInline ?? true"
-        [index]="child.index ?? index"
+        [ngTemplateOutlet]="renderNode()"
+        [ngTemplateOutletContext]="{
+          $implicit: child,
+          isInline: child.isInline ?? isInline ?? true,
+          index: child.index ?? index,
+        }"
       />
     }
   </ng-template>`,
@@ -34,5 +39,7 @@ export class ChildrenComponent {
       isInline?: boolean;
     }>
   >(TemplateRef);
+  protected readonly renderNode = inject(PORTABLE_TEXT_RENDERER_CONTEXT)
+    .renderNode;
   protected readonly trackBy = trackBy;
 }

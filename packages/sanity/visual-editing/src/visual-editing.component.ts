@@ -41,7 +41,7 @@ export class VisualEditingComponent {
   plugins = input<VisualEditingProps['plugins']>();
   refresh = input<VisualEditingProps['refresh']>();
   zIndex = input<VisualEditingProps['zIndex']>();
-  basePath = input<VisualEditingProps['basePath']>(undefined);
+  basePath = input<VisualEditingProps['basePath']>();
   trailingSlash = input<VisualEditingProps['trailingSlash']>();
   protected perspectiveChangeEmitter = new Subject<ClientPerspective>();
   perspectiveChange = outputFromObservable(this.perspectiveChangeEmitter);

@@ -8,15 +8,16 @@ import {
   ChangeDetectionStrategy,
   EnvironmentInjector,
   Injector,
+  InjectionToken,
   input,
   output,
   untracked,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Location } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 
-import { filter } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import type { ClientPerspective } from '@sanity/client';
 
 import { enableVisualEditing } from './ui/enable-visual-editing';
@@ -46,6 +47,13 @@ export interface VisualEditingProps
    */
   trailingSlash?: boolean;
 }
+
+export const ENABLE_VISUAL_EDITING = new InjectionToken<
+  typeof enableVisualEditing
+>('Enable visual editing', {
+  providedIn: 'root',
+  factory: () => enableVisualEditing,
+});
 
 @Component({
   // eslint-disable-next-line @angular-eslint/component-selector
@@ -78,8 +86,18 @@ export class VisualEditingClientComponent {
 
   private applicationRef = inject(ApplicationRef);
 
+  private router = inject(Router);
+
+  private routeUrl = toSignal(
+    this.router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      map(() => this.router.url),
+    ),
+    { initialValue: this.router.url },
+  );
+
   private currentUrl = computed(() => {
-    const urlTree = this.router.parseUrl(this.router.url);
+    const urlTree = this.router.parseUrl(this.routeUrl());
     const primaryPath =
       urlTree.root.children['primary']?.segments
         .map((segment) => segment.path)
@@ -102,7 +120,7 @@ export class VisualEditingClientComponent {
 
   private injector = inject(Injector);
 
-  private router = inject(Router);
+  private enableVisualEditing = inject(ENABLE_VISUAL_EDITING);
 
   constructor() {
     effect((onCleanup) => {
@@ -119,7 +137,7 @@ export class VisualEditingClientComponent {
         : undefined;
 
       untracked(() => {
-        const disable = enableVisualEditing({
+        const disable = this.enableVisualEditing({
           applicationRef: this.applicationRef,
           components,
           environmentInjector: this.environmentInjector,
@@ -170,25 +188,6 @@ export class VisualEditingClientComponent {
         }
       });
     });
-
-    this.router.events
-      .pipe(
-        filter((event) => event instanceof NavigationEnd),
-        takeUntilDestroyed(),
-      )
-      .subscribe(() => {
-        const currentNavigate = this.navigate();
-        const url = this.currentUrl();
-
-        untracked(() => {
-          if (currentNavigate) {
-            currentNavigate({
-              type: 'push',
-              url,
-            });
-          }
-        });
-      });
   }
 
   private defaultRefresh: VisualEditingOptions['refresh'] = (payload) => {

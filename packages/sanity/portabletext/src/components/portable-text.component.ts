@@ -65,12 +65,11 @@ import { PORTABLE_TEXT_RENDERER_CONTEXT } from '../tokens';
     />
 
     <ng-template #renderNode let-node let-index="index" let-isInline="isInline">
-      @if (resolveNode(node, index, isInline); as nodeRendering) {
-        <ng-container
-          [ngTemplateOutlet]="nodeRendering.template"
-          [ngTemplateOutletContext]="nodeRendering.context"
-        />
-      }
+      @let nodeRendering = resolveNode(node, index, isInline);
+      <ng-container
+        [ngTemplateOutlet]="nodeRendering?.template"
+        [ngTemplateOutletContext]="nodeRendering?.context"
+      />
     </ng-template>
 
     <ng-template
@@ -114,7 +113,7 @@ export class PortableTextComponent<
    * Custom components to override the default rendering.
    * @see PortableTextComponents
    */
-  componentOverrides = input<PortableTextComponents<B> | undefined>(
+  componentOverrides = input<PortableTextComponents<B>>(
     undefined,
     // eslint-disable-next-line @angular-eslint/no-input-rename
     { alias: 'components' },

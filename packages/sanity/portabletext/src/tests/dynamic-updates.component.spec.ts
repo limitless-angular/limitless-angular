@@ -1,12 +1,62 @@
 import { expect, test, describe, vi } from 'vitest';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { aliasedInput, render, screen } from '@testing-library/angular';
 import { PortableTextComponent } from '../components/portable-text.component';
+import { PortableTextTypeComponent } from '../directives/portable-text-directives';
 import * as fixtures from './fixtures';
 import { HighlightComponent } from './test-components/HighlightComponent';
 import { CodeComponent } from './test-components/CodeComponent';
 import { assertHTML } from './helpers';
 
+@Component({ template: '<span data-testid="mutable-block">{{ label }}</span>' })
+class MutableBlock extends PortableTextTypeComponent {
+  static latest: MutableBlock;
+  label = 'before';
+  readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+  constructor() {
+    super();
+    MutableBlock.latest = this;
+  }
+}
+
 describe('PortableText Dynamic Updates', () => {
+  test('updates a consumer component when it notifies change detection', async () => {
+    const { fixture } = await render(PortableTextComponent, {
+      inputs: {
+        value: fixtures.customBlockType.input,
+        ...aliasedInput('components', { types: { code: MutableBlock } }),
+      },
+    });
+
+    expect(fixture.nativeElement.textContent).toContain('before');
+    MutableBlock.latest.label = 'after';
+    MutableBlock.latest.changeDetectorRef.markForCheck();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.textContent).toContain('after');
+  });
+
+  test('preserves a keyed custom component when its node changes', async () => {
+    const { rerender } = await render(PortableTextComponent, {
+      inputs: {
+        value: fixtures.customBlockType.input,
+        ...aliasedInput('components', { types: { code: MutableBlock } }),
+      },
+    });
+
+    const component = MutableBlock.latest;
+    await rerender({
+      inputs: {
+        value: [{ ...fixtures.customBlockType.input[0], code: 'updated' }],
+      },
+      partialUpdate: true,
+    });
+
+    expect(MutableBlock.latest).toBe(component);
+    expect(MutableBlock.latest.value().code).toBe('updated');
+  });
+
   test('updates rendered content when input changes', async () => {
     // Render with initial content
     const { rerender, container } = await render(PortableTextComponent, {

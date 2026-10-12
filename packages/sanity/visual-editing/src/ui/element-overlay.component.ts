@@ -1,7 +1,7 @@
 import {
+  afterRenderEffect,
   ChangeDetectionStrategy,
   Component,
-  type ComponentRef,
   ElementRef,
   EnvironmentInjector,
   Injector,
@@ -10,6 +10,7 @@ import {
   effect,
   inject,
   input,
+  linkedSignal,
   signal,
   untracked,
   viewChild,
@@ -26,7 +27,6 @@ import type {
   ElementFocusedState,
   ElementNode,
   OverlayComponentResolverContext,
-  OverlayPluginComponent,
   OverlayPluginDefinition,
   OverlayPluginExclusiveDefinition,
   OverlayPluginHudDefinition,
@@ -38,6 +38,7 @@ import type {
 import { getLinkHref } from '../util/get-link-href';
 import { PreviewSnapshotsService } from './preview/preview-snapshots.service';
 import { SchemaService } from './schema/schema.service';
+import { renderOverlayComponent } from './render-overlay-component';
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -92,24 +93,6 @@ function normalizeComponentDefinitions(
   }
 
   return definitions;
-}
-
-type OverlayComponentType = AngularOverlayComponent | OverlayPluginComponent;
-
-type AngularComponentWithInputMetadata = OverlayComponentType & {
-  ɵcmp?: {
-    inputs?: Record<string, unknown>;
-  };
-};
-
-function hasDeclaredInput(
-  component: OverlayComponentType,
-  input: string,
-): boolean {
-  const inputMetadata = (component as AngularComponentWithInputMetadata).ɵcmp
-    ?.inputs;
-
-  return !!inputMetadata && input in inputMetadata;
 }
 
 interface NodePluginCollection {
@@ -570,7 +553,10 @@ export class ElementOverlayComponent {
 
   protected isNearTop = signal(false);
   protected currentHref = signal(window.location.href);
-  protected menuOpen = signal(false);
+  protected menuOpen = linkedSignal({
+    source: this.hovered,
+    computation: () => false,
+  });
   protected activeExclusivePlugin = signal<ActiveExclusivePlugin | undefined>(
     undefined,
   );
@@ -748,51 +734,49 @@ export class ElementOverlayComponent {
       });
     });
 
-    effect((onCleanup) => {
-      const overlayElement = this.overlayElement()?.nativeElement;
-      const hovered = this.hovered();
+    afterRenderEffect({
+      read: (onCleanup) => {
+        const overlayElement = this.overlayElement()?.nativeElement;
+        const hovered = this.hovered();
 
-      if (!overlayElement || !hovered) {
-        this.isNearTop.set(false);
-        return;
-      }
+        if (!overlayElement || !hovered) {
+          this.isNearTop.set(false);
+          return;
+        }
 
-      const observer = new IntersectionObserver(
-        ([intersection]) => {
-          this.isNearTop.set(intersection.boundingClientRect.top < 0);
-        },
-        { threshold: 1 },
-      );
-      observer.observe(overlayElement);
+        const observer = new IntersectionObserver(
+          ([intersection]) => {
+            this.isNearTop.set(intersection.boundingClientRect.top < 0);
+          },
+          { threshold: 1 },
+        );
+        observer.observe(overlayElement);
 
-      onCleanup(() => observer.disconnect());
+        onCleanup(() => observer.disconnect());
+      },
     });
 
-    effect(() => {
-      const overlayElement = this.overlayElement()?.nativeElement;
-      const focused = this.focused() === true;
+    afterRenderEffect({
+      write: () => {
+        const overlayElement = this.overlayElement()?.nativeElement;
+        const focused = this.focused() === true;
 
-      if (
-        overlayElement &&
-        !this.scrolledIntoView &&
-        !this.wasMaybeCollapsed() &&
-        focused &&
-        this.enableScrollIntoView()
-      ) {
-        overlayElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-          inline: 'nearest',
-        });
-      }
+        if (
+          overlayElement &&
+          !this.scrolledIntoView &&
+          !this.wasMaybeCollapsed() &&
+          focused &&
+          this.enableScrollIntoView()
+        ) {
+          overlayElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+            inline: 'nearest',
+          });
+        }
 
-      this.scrolledIntoView = focused;
-    });
-
-    effect(() => {
-      if (!this.hovered()) {
-        this.menuOpen.set(false);
-      }
+        this.scrolledIntoView = focused;
+      },
     });
 
     effect((onCleanup) => {
@@ -823,13 +807,6 @@ export class ElementOverlayComponent {
           continue;
         }
 
-        const componentRef = viewContainer.createComponent(
-          definition.component,
-          {
-            environmentInjector: this.environmentInjector,
-            injector: this.injector,
-          },
-        );
         const values = {
           ...context,
           ...(definition.props ?? {}),
@@ -837,7 +814,13 @@ export class ElementOverlayComponent {
           PointerEvents: VisualEditingPointerEventsComponent,
         };
 
-        this.setComponentValues(componentRef, definition.component, values);
+        renderOverlayComponent(
+          viewContainer,
+          definition.component,
+          this.environmentInjector,
+          this.injector,
+          values,
+        );
       }
 
       onCleanup(() => {
@@ -863,13 +846,13 @@ export class ElementOverlayComponent {
             continue;
           }
 
-          const componentRef = viewContainer.createComponent(hud.component, {
-            environmentInjector: this.environmentInjector,
-            injector: this.injector,
-          });
-          this.setComponentValues(componentRef, hud.component, {
-            ...collection.context,
-          });
+          renderOverlayComponent(
+            viewContainer,
+            hud.component,
+            this.environmentInjector,
+            this.injector,
+            { ...collection.context },
+          );
         }
       }
 
@@ -891,31 +874,18 @@ export class ElementOverlayComponent {
       }
 
       const component = activeExclusivePlugin.plugin.component;
-      const componentRef = viewContainer.createComponent(component, {
-        environmentInjector: this.environmentInjector,
-        injector: this.injector,
-      });
-
-      this.setComponentValues(componentRef, component, {
-        ...activeExclusivePlugin.context,
-        closeExclusiveView: () => this.closeExclusivePluginView(),
-      });
+      renderOverlayComponent(
+        viewContainer,
+        component,
+        this.environmentInjector,
+        this.injector,
+        {
+          ...activeExclusivePlugin.context,
+          closeExclusiveView: () => this.closeExclusivePluginView(),
+        },
+      );
 
       onCleanup(() => viewContainer.clear());
     });
-  }
-
-  private setComponentValues(
-    componentRef: ComponentRef<unknown>,
-    component: OverlayComponentType,
-    values: Record<string, unknown>,
-  ): void {
-    for (const [key, value] of Object.entries(values)) {
-      if (hasDeclaredInput(component, key)) {
-        componentRef.setInput(key, value);
-      } else {
-        Reflect.set(componentRef.instance as object, key, value);
-      }
-    }
   }
 }

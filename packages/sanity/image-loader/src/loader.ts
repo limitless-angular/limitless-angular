@@ -23,7 +23,8 @@ export function sanityImageLoader(config?: SanityConfig | null) {
     url.searchParams.set('auto', 'format');
     url.searchParams.set(
       'fit',
-      url.searchParams.get('fit') || url.searchParams.has('h') ? 'min' : 'max',
+      url.searchParams.get('fit') ||
+        (url.searchParams.has('h') ? 'min' : 'max'),
     );
     if (width && url.searchParams.has('h') && url.searchParams.has('w')) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

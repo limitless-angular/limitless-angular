@@ -64,9 +64,10 @@ function getInsertMenuOptions(
         }
       </div>
 
-      @if (filteredTypes().length) {
+      @let types = filteredTypes();
+      @if (types.length) {
         <div class="items" [attr.data-view]="view()">
-          @for (schemaType of filteredTypes(); track schemaType.name) {
+          @for (schemaType of types; track schemaType.name) {
             <button
               class="item"
               type="button"
